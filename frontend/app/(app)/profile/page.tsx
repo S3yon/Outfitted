@@ -136,7 +136,7 @@ export default function ProfilePage() {
           className="w-full justify-start text-destructive hover:text-destructive"
           asChild
         >
-          <a href="/auth/logout">
+          <a href="/api/auth/logout">
             <LogOut className="size-4" data-icon="inline-start" />
             Log Out
           </a>
