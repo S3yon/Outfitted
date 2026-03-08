@@ -87,7 +87,7 @@ export function Hero1() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative w-full"
         >
-          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[580px] rounded-2xl overflow-hidden ring-1 ring-neutral-200/40 dark:ring-neutral-800/40">
+          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[580px] rounded-2xl overflow-hidden ring-1 ring-neutral-200/40 dark:ring-neutral-800/40 bg-white">
             <ShaderReveal
               frontImage="/hero-casual.png"
               backImage="/hero-outfit.png"
