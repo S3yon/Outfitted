@@ -24,8 +24,8 @@ export function Navigation7() {
   }, []);
 
   const navItems: NavItem[] = [
-    { label: "Features", href: "#features" },
     { label: "How It Works", href: "#how-it-works" },
+    { label: "Features", href: "#features" },
   ];
 
   return (
@@ -66,28 +66,19 @@ export function Navigation7() {
             {!isLoading && !user && (
               <>
                 <a
-                  href="/auth/login"
+                  href="/login"
                   className="hidden md:block px-3 py-1.5 rounded-md text-sm font-medium tracking-tight text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
                 >
                   Log in
                 </a>
                 <a
-                  href="/auth/login"
+                  href="/login"
                   className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
                 >
                   Get Started
                 </a>
               </>
             )}
-            {!isLoading && user && (
-              <a
-                href="/wardrobe"
-                className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
-              >
-                Open App
-              </a>
-            )}
-
             <button
               onClick={() => setIsMobileMenuOpen(true)}
               className="md:hidden p-2 rounded-md text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
@@ -147,26 +138,18 @@ export function Navigation7() {
               {!isLoading && !user && (
                 <>
                   <a
-                    href="/auth/login"
+                    href="/login"
                     className="block w-full px-4 py-3 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 text-center hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
                   >
                     Log in
                   </a>
                   <a
-                    href="/auth/login"
+                    href="/login"
                     className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
                   >
                     Get Started
                   </a>
                 </>
-              )}
-              {!isLoading && user && (
-                <a
-                  href="/wardrobe"
-                  className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
-                >
-                  Open App
-                </a>
               )}
             </motion.div>
           </motion.div>

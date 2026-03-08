@@ -64,7 +64,7 @@ export function Hero1() {
             className="flex items-center gap-4"
           >
             <a
-              href="/auth/login"
+              href="/login"
               className="group px-6 py-3 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium text-sm hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors flex items-center gap-2"
             >
               Get Started

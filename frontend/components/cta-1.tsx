@@ -199,7 +199,7 @@ export default function CTA1() {
             transition={{ duration: 0.6, delay: 0.4 }}
           >
             <a
-              href="/auth/login"
+              href="/login"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-neutral-800 dark:bg-white text-white dark:text-neutral-900 font-medium text-base hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors duration-200"
             >
               Get Started Free
@@ -215,7 +215,7 @@ export default function CTA1() {
           >
             Already have an account?{" "}
             <a
-              href="/auth/login"
+              href="/login"
               className="text-neutral-900 dark:text-white font-medium hover:underline transition-all duration-200"
             >
               Log in
