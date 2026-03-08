@@ -34,7 +34,7 @@ export function Navigation7() {
 
   return (
     <>
-      <nav className="absolute top-0 left-0 right-0 z-50 w-full py-6 px-4 sm:px-6 lg:px-8">
+      <nav className="fixed top-0 left-0 right-0 z-50 w-full py-4 px-4 sm:px-6 lg:px-8 backdrop-blur-md bg-white/60 dark:bg-neutral-950/60 border-b border-neutral-200/30 dark:border-neutral-800/30">
         <div className="max-w-[1100px] mx-auto w-full flex items-center justify-between gap-8">
           {/* Left side: Logo + Nav Items */}
           <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function Navigation7() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="flex items-center gap-1.5 px-4 h-10 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg transition-colors text-sm tracking-tight font-medium text-neutral-700 dark:text-neutral-100"
+                  className="flex items-center gap-1.5 px-4 h-10 hover:text-neutral-900 dark:hover:text-white rounded-lg transition-colors text-sm tracking-tight font-medium text-neutral-500 dark:text-neutral-400"
                 >
                   {item.label}
                 </a>
@@ -64,7 +64,7 @@ export function Navigation7() {
           {/* Action Buttons */}
           <div className="flex items-center gap-3">
             {/* Desktop Buttons */}
-            <a href="/api/auth/login" className="hidden md:block px-4 h-10 leading-10 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 rounded-lg text-sm font-medium tracking-tight text-neutral-700 dark:text-neutral-100 transition-colors">
+            <a href="/api/auth/login" className="hidden md:block px-4 h-10 leading-10 hover:text-neutral-900 dark:hover:text-white rounded-lg text-sm font-medium tracking-tight text-neutral-500 dark:text-neutral-400 transition-colors">
               Log in
             </a>
             <a href="/api/auth/login" className="px-4 h-10 leading-10 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors">
