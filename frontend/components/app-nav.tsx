@@ -28,7 +28,7 @@ export function AppNav() {
     <>
       {/* Desktop: top bar */}
       <nav className="hidden md:flex items-center h-14 border-b border-border px-6">
-        <Link href="/" className="text-base font-semibold tracking-tight mr-8">
+        <Link href="/?home=1" className="text-base font-semibold tracking-tight mr-8">
           Outfitted
         </Link>
         <div className="flex items-center gap-1">

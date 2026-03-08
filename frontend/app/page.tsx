@@ -18,9 +18,16 @@ function Divider() {
   )
 }
 
-export default async function LandingPage() {
-  const session = await auth0.getSession();
-  if (session?.user) redirect("/wardrobe");
+export default async function LandingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ home?: string }>;
+}) {
+  const params = await searchParams;
+  if (!params.home) {
+    const session = await auth0.getSession();
+    if (session?.user) redirect("/wardrobe");
+  }
 
   return (
     <div className="relative min-h-svh flex flex-col">

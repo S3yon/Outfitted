@@ -151,7 +151,7 @@ export function WardrobeGrid() {
             className={cn(
               "shrink-0 rounded-full border px-4 py-1.5 text-xs transition-all",
               activeCategory === cat
-                ? "border-gold bg-gold/10 text-foreground"
+                ? "border-foreground/30 bg-foreground/10 text-foreground font-medium"
                 : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/20",
             )}
           >
@@ -169,7 +169,7 @@ export function WardrobeGrid() {
             className={cn(
               "rounded-full border px-3 py-1 text-xs capitalize transition-all",
               activeStatus === s
-                ? "border-gold bg-gold/10 text-foreground"
+                ? "border-foreground/30 bg-foreground/10 text-foreground font-medium"
                 : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/20",
             )}
           >
