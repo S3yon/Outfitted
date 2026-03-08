@@ -45,7 +45,8 @@ export function Hero1() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight font-medium text-neutral-900 leading-[1.1]"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight font-medium text-white leading-[1.1]"
+            style={{ WebkitTextStroke: "1px rgba(0,0,0,0.4)" }}
           >
             Your wardrobe,
             <br />
@@ -56,7 +57,8 @@ export function Hero1() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="text-base sm:text-lg md:text-xl text-neutral-600 leading-relaxed max-w-lg tracking-tight"
+            className="text-base sm:text-lg md:text-xl text-white/90 leading-relaxed max-w-lg tracking-tight"
+            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}
           >
             Photograph your clothes, build a virtual closet, and let AI put
             together outfits that match your style.
@@ -77,7 +79,8 @@ export function Hero1() {
             </a>
             <a
               href="#how-it-works"
-              className="text-sm sm:text-base text-neutral-500 hover:text-neutral-900 transition-colors duration-200"
+              className="text-sm sm:text-base text-white/70 hover:text-white transition-colors duration-200"
+              style={{ textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}
             >
               See how it works
             </a>
