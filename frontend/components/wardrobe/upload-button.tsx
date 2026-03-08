@@ -11,35 +11,38 @@ import { toast } from "sonner";
 export function UploadButton() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { setWardrobeItems, wardrobeItems } = useAppStore();
-  const [file, setFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [status, setStatus] = useState<"owned" | "wishlisted">("owned");
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
-    const selected = e.target.files?.[0];
-    if (!selected) return;
-    setFile(selected);
-    setPreview(URL.createObjectURL(selected));
+    const selected = Array.from(e.target.files ?? []);
+    if (selected.length === 0) return;
+    setFiles(selected);
+    setPreviews(selected.map((f) => URL.createObjectURL(f)));
     setDialogOpen(true);
     e.target.value = "";
   }
 
   function resetState() {
-    setFile(null);
-    setPreview(null);
+    previews.forEach((url) => URL.revokeObjectURL(url));
+    setFiles([]);
+    setPreviews([]);
     setStatus("owned");
     setDialogOpen(false);
   }
 
   async function handleUpload() {
-    if (!file) return;
+    if (files.length === 0) return;
     setUploading(true);
     setDialogOpen(false);
 
     const formData = new FormData();
-    formData.append("file", file);
+    for (const file of files) {
+      formData.append("files", file);
+    }
     formData.append("status", status);
 
     const res = await fetch("/api/upload", { method: "POST", body: formData });
@@ -77,6 +80,7 @@ export function UploadButton() {
         ref={inputRef}
         type="file"
         accept="image/*"
+        multiple
         className="hidden"
         onChange={handleFileSelect}
       />
@@ -96,18 +100,32 @@ export function UploadButton() {
             <DialogTitle>Add to Wardrobe</DialogTitle>
           </DialogHeader>
 
-          {preview && (
-            <div className="mx-auto h-48 w-40 overflow-hidden rounded-lg bg-white">
-              <img
-                src={preview}
-                alt="Preview"
-                className="h-full w-full object-contain"
-              />
+          {previews.length > 0 && (
+            <div className={cn(
+              "mx-auto gap-2",
+              previews.length === 1
+                ? "flex"
+                : "grid grid-cols-2",
+            )}>
+              {previews.map((src, i) => (
+                <div
+                  key={i}
+                  className="h-36 w-full overflow-hidden rounded-lg bg-white"
+                >
+                  <img
+                    src={src}
+                    alt={`Preview ${i + 1}`}
+                    className="h-full w-full object-contain"
+                  />
+                </div>
+              ))}
             </div>
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            AI will detect and separate each item automatically.
+            {files.length === 1
+              ? "AI will detect and separate each item automatically."
+              : `${files.length} images selected. AI will process each one.`}
           </p>
 
           {/* Status toggle */}
@@ -149,7 +167,7 @@ export function UploadButton() {
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
           <Loader2 className="size-10 animate-spin text-gold" />
           <p className="text-sm font-medium text-foreground">
-            AI is analyzing your photo...
+            AI is analyzing your {files.length === 1 ? "photo" : `${files.length} photos`}...
           </p>
           <p className="text-xs text-muted-foreground">
             Detecting items, removing backgrounds, sorting into categories

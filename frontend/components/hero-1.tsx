@@ -97,7 +97,7 @@ export function Hero1() {
               autoDemo
               autoSpeed={0.55}
               autoIntensity={2.2}
-              revealStrength={0.75}
+              revealStrength={1}
               revealSoftness={1}
               className="w-full h-full"
             />

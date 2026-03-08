@@ -23,7 +23,7 @@ export async function POST(req: Request) {
     .set({
       styleProfile: styleProfile.trim(),
       onboardingCompleted: true,
-      updatedAt: new Date(),
+      updatedAt: new Date().toISOString(),
     })
     .where(eq(users.auth0Id, session.user.sub))
     .returning();

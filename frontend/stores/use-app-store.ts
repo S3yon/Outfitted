@@ -5,9 +5,10 @@ export type PopulatedOutfit = {
   id: string;
   userId: string;
   explanation: string;
-  outfit_description: string;
+  outfit_description?: string;
+  modelImageUrl?: string | null;
   items: ClothingItem[];
-  createdAt: Date;
+  createdAt: string;
 };
 
 type AppStore = {

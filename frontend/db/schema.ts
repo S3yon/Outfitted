@@ -57,6 +57,7 @@ export const outfits = sqliteTable("outfits", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   explanation: text("explanation").notNull(),
+  modelImageUrl: text("model_image_url"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),

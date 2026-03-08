@@ -6,6 +6,7 @@ import Stats4 from "@/components/stats-4"
 import FAQ1 from "@/components/faq-1"
 import CTA1 from "@/components/cta-1"
 import Footer4 from "@/components/footer-4"
+import Grainient from "@/components/grainient"
 
 function Divider() {
   return (
@@ -17,13 +18,25 @@ function Divider() {
 
 export default function LandingPage() {
   return (
-    <div className="relative min-h-svh flex flex-col bg-gradient-to-br from-rose-50 via-amber-50 to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
-      {/* Decorative blobs that span the whole page */}
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute top-[5%] right-[-5%] w-[500px] h-[500px] rounded-full bg-rose-200/25 dark:bg-rose-900/10 blur-3xl" />
-        <div className="absolute top-[35%] left-[-8%] w-[400px] h-[400px] rounded-full bg-violet-200/25 dark:bg-violet-900/10 blur-3xl" />
-        <div className="absolute top-[60%] right-[10%] w-[350px] h-[350px] rounded-full bg-amber-200/20 dark:bg-amber-900/10 blur-3xl" />
-        <div className="absolute top-[85%] left-[15%] w-[300px] h-[300px] rounded-full bg-rose-100/20 dark:bg-rose-900/5 blur-3xl" />
+    <div className="relative min-h-svh flex flex-col">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Grainient
+          color1="#F9D1D1"
+          color2="#FDE8C8"
+          color3="#DDD6FE"
+          grainAmount={0.12}
+          timeSpeed={0.3}
+          warpStrength={0.8}
+          warpFrequency={2.0}
+          warpSpeed={1.5}
+          warpAmplitude={30.0}
+          blendSoftness={0.3}
+          contrast={1.1}
+          saturation={0.9}
+          rotationAmount={200.0}
+          noiseScale={1.5}
+          className="h-full w-full"
+        />
       </div>
 
       <div className="relative z-10 flex flex-col">

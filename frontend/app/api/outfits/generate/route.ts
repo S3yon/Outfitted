@@ -121,7 +121,6 @@ Rules:
         }))
       );
 
-      // Return outfit with full item data for the frontend
       const items = owned.filter((i) => safeItemIds.includes(i.id));
 
       return {

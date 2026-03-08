@@ -36,11 +36,11 @@ export async function POST(req: Request) {
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+    const files = formData.getAll("files") as File[];
     const status = (formData.get("status") as string) ?? "owned";
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (files.length === 0) {
+      return NextResponse.json({ error: "No files provided" }, { status: 400 });
     }
 
     if (!["owned", "wishlisted"].includes(status)) {
@@ -60,23 +60,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const imageBuffer = Buffer.from(arrayBuffer);
-    const mimeType = file.type || "image/png";
-    const imageBase64 = imageBuffer.toString("base64");
-
-    // Step 1: Gemini 3.1 Flash identifies items in the image
-    console.log("[upload] Analyzing image with Gemini 3.1 Flash...");
-    const analysis = await analyzeClothingImage(imageBase64, mimeType);
-    console.log("[upload] Analysis result:", JSON.stringify(analysis));
-
-    if (!analysis.items || analysis.items.length === 0) {
-      return NextResponse.json(
-        { error: "No clothing items detected in the image", analysis },
-        { status: 400 },
-      );
-    }
-
     const validCategories = new Set([
       "tops",
       "bottoms",
@@ -85,45 +68,71 @@ export async function POST(req: Request) {
       "accessories",
     ]);
 
-    const validItems = analysis.items.filter((item) =>
-      validCategories.has(item.category),
-    );
+    const allCreatedItems = [];
 
-    console.log(`[upload] Found ${validItems.length} valid items, isolating...`);
+    for (const file of files) {
+      const arrayBuffer = await file.arrayBuffer();
+      const imageBuffer = Buffer.from(arrayBuffer);
+      const mimeType = file.type || "image/png";
+      const imageBase64 = imageBuffer.toString("base64");
 
-    // Step 2: For each item, isolate it with GPT image 1.5 then upload
-    const createdItems = await Promise.all(
-      validItems.map(async (identified) => {
-        console.log(`[upload] Isolating: ${identified.description}`);
-        const isolatedBuffer = await isolateItem(
-          imageBase64,
-          mimeType,
-          identified.description,
-        );
+      console.log("[upload] Analyzing image with Gemini 3.1 Flash...");
+      const analysis = await analyzeClothingImage(imageBase64, mimeType);
+      console.log("[upload] Analysis result:", JSON.stringify(analysis));
 
-        const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
+      if (!analysis.items || analysis.items.length === 0) {
+        console.log("[upload] No items detected in file, skipping...");
+        continue;
+      }
 
-        console.log(`[upload] Uploading to Cloudinary: ${identified.description}`);
-        const { url, publicId } = await uploadBufferToCloudinary(pngBuffer);
+      const validItems = analysis.items.filter((item) =>
+        validCategories.has(item.category),
+      );
 
-        const [item] = await db
-          .insert(clothingItems)
-          .values({
-            userId: user.id,
-            cloudinaryUrl: url,
-            cloudinaryPublicId: publicId,
-            category: identified.category,
-            status: status as "owned" | "wishlisted",
-            notes: identified.description,
-          })
-          .returning();
+      console.log(`[upload] Found ${validItems.length} valid items, isolating...`);
 
-        return item;
-      }),
-    );
+      const createdItems = await Promise.all(
+        validItems.map(async (identified) => {
+          console.log(`[upload] Isolating: ${identified.description}`);
+          const isolatedBuffer = await isolateItem(
+            imageBase64,
+            mimeType,
+            identified.description,
+          );
 
-    console.log(`[upload] Done. Created ${createdItems.length} items.`);
-    return NextResponse.json(createdItems, { status: 201 });
+          const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
+
+          console.log(`[upload] Uploading to Cloudinary: ${identified.description}`);
+          const { url, publicId } = await uploadBufferToCloudinary(pngBuffer);
+
+          const [item] = await db
+            .insert(clothingItems)
+            .values({
+              userId: user.id,
+              cloudinaryUrl: url,
+              cloudinaryPublicId: publicId,
+              category: identified.category,
+              status: status as "owned" | "wishlisted",
+              notes: identified.description,
+            })
+            .returning();
+
+          return item;
+        }),
+      );
+
+      allCreatedItems.push(...createdItems);
+    }
+
+    if (allCreatedItems.length === 0) {
+      return NextResponse.json(
+        { error: "No clothing items detected in any of the uploaded images" },
+        { status: 400 },
+      );
+    }
+
+    console.log(`[upload] Done. Created ${allCreatedItems.length} items.`);
+    return NextResponse.json(allCreatedItems, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[upload] Error:", message);
