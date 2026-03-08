@@ -30,7 +30,11 @@ async function uploadBufferToCloudinary(
 
 export async function POST(req: Request) {
   try {
+    const t0 = performance.now();
+
+    let t = performance.now();
     const session = await auth0.getSession();
+    console.log(`[upload] auth: ${(performance.now() - t).toFixed(0)}ms`);
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -50,11 +54,13 @@ export async function POST(req: Request) {
       );
     }
 
+    t = performance.now();
     const [user] = await db
       .select()
       .from(users)
       .where(eq(users.auth0Id, session.user.sub))
       .limit(1);
+    console.log(`[upload] db user lookup: ${(performance.now() - t).toFixed(0)}ms`);
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -71,14 +77,16 @@ export async function POST(req: Request) {
     const allCreatedItems = [];
 
     for (const file of files) {
+      const fileStart = performance.now();
       const arrayBuffer = await file.arrayBuffer();
       const imageBuffer = Buffer.from(arrayBuffer);
       const mimeType = file.type || "image/png";
       const imageBase64 = imageBuffer.toString("base64");
+      console.log(`[upload] file read (${(imageBuffer.length / 1024).toFixed(0)}KB): ${(performance.now() - fileStart).toFixed(0)}ms`);
 
-      console.log("[upload] Analyzing image with Gemini 3.1 Flash...");
+      t = performance.now();
       const analysis = await analyzeClothingImage(imageBase64, mimeType);
-      console.log("[upload] Analysis result:", JSON.stringify(analysis));
+      console.log(`[upload] Gemini analysis: ${(performance.now() - t).toFixed(0)}ms — ${JSON.stringify(analysis)}`);
 
       if (!analysis.items || analysis.items.length === 0) {
         console.log("[upload] No items detected in file, skipping...");
@@ -93,18 +101,23 @@ export async function POST(req: Request) {
 
       const createdItems = await Promise.all(
         validItems.map(async (identified) => {
-          console.log(`[upload] Isolating: ${identified.description}`);
+          let step = performance.now();
           const isolatedBuffer = await isolateItem(
             imageBase64,
             mimeType,
             identified.description,
           );
+          console.log(`[upload] Replicate isolate "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
 
+          step = performance.now();
           const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
+          console.log(`[upload] sharp png convert: ${(performance.now() - step).toFixed(0)}ms`);
 
-          console.log(`[upload] Uploading to Cloudinary: ${identified.description}`);
+          step = performance.now();
           const { url, publicId } = await uploadBufferToCloudinary(pngBuffer);
+          console.log(`[upload] Cloudinary upload: ${(performance.now() - step).toFixed(0)}ms`);
 
+          step = performance.now();
           const [item] = await db
             .insert(clothingItems)
             .values({
@@ -116,6 +129,7 @@ export async function POST(req: Request) {
               notes: identified.description,
             })
             .returning();
+          console.log(`[upload] db insert: ${(performance.now() - step).toFixed(0)}ms`);
 
           return item;
         }),
@@ -131,7 +145,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(`[upload] Done. Created ${allCreatedItems.length} items.`);
+    console.log(`[upload] TOTAL: ${(performance.now() - t0).toFixed(0)}ms — Created ${allCreatedItems.length} items`);
     return NextResponse.json(allCreatedItems, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

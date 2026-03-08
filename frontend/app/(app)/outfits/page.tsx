@@ -138,8 +138,8 @@ export default function OutfitsPage() {
       {/* Generating overlay */}
       {generating && (
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Sparkles className="size-10 animate-pulse text-gold" />
-          <p className="text-sm text-muted-foreground">Your AI stylist is working...</p>
+          <Sparkles className="size-10 animate-pulse text-amber-400" />
+          <p className="text-sm text-neutral-300">Your AI stylist is working...</p>
         </div>
       )}
     </>

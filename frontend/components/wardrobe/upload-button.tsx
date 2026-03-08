@@ -141,7 +141,7 @@ export function UploadButton() {
                   className={cn(
                     "flex-1 rounded-lg border px-3 py-2 text-sm capitalize transition-all",
                     status === s
-                      ? "border-gold bg-gold/10 text-foreground"
+                      ? "border-foreground bg-foreground/5 text-foreground"
                       : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80",
                   )}
                 >
@@ -165,11 +165,11 @@ export function UploadButton() {
       {/* Full-screen processing overlay */}
       {uploading && (
         <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Loader2 className="size-10 animate-spin text-gold" />
-          <p className="text-sm font-medium text-foreground">
+          <Loader2 className="size-10 animate-spin text-amber-400" />
+          <p className="text-sm font-medium text-neutral-100">
             AI is analyzing your {files.length === 1 ? "photo" : `${files.length} photos`}...
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-neutral-400">
             Detecting items, removing backgrounds, sorting into categories
           </p>
         </div>

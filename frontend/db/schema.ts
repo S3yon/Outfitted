@@ -115,6 +115,127 @@ export const outfitItemsRelations = relations(outfitItems, ({ one }) => ({
   }),
 }));
 
+// ─── Market Listings ─────────────────────────────────────────────────────────
+
+export const marketListings = sqliteTable("market_listings", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  outfitId: text("outfit_id")
+    .notNull()
+    .references(() => outfits.id, { onDelete: "cascade" }),
+  creatorId: text("creator_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  ticker: text("ticker").notNull().unique(),
+  name: text("name").notNull(),
+  currentPrice: integer("current_price").notNull().default(100), // in cents
+  totalSupply: integer("total_supply").notNull().default(10000),
+  circulatingSupply: integer("circulating_supply").notNull().default(0),
+  volume24h: integer("volume_24h").notNull().default(0),
+  change24h: integer("change_24h").notNull().default(0), // basis points (+250 = +2.5%)
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+// ─── Price History (OHLC candles) ────────────────────────────────────────────
+
+export const priceCandles = sqliteTable("price_candles", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  listingId: text("listing_id")
+    .notNull()
+    .references(() => marketListings.id, { onDelete: "cascade" }),
+  timestamp: integer("timestamp").notNull(), // unix seconds
+  open: integer("open").notNull(),
+  high: integer("high").notNull(),
+  low: integer("low").notNull(),
+  close: integer("close").notNull(),
+  volume: integer("volume").notNull().default(0),
+});
+
+// ─── Holdings ────────────────────────────────────────────────────────────────
+
+export const holdings = sqliteTable("holdings", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  listingId: text("listing_id")
+    .notNull()
+    .references(() => marketListings.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull().default(0),
+});
+
+// ─── Trade History ───────────────────────────────────────────────────────────
+
+export const trades = sqliteTable("trades", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  listingId: text("listing_id")
+    .notNull()
+    .references(() => marketListings.id, { onDelete: "cascade" }),
+  side: text("side").notNull(), // "buy" | "sell"
+  quantity: integer("quantity").notNull(),
+  price: integer("price").notNull(), // price per unit at time of trade
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+});
+
+// ─── Market Relations ────────────────────────────────────────────────────────
+
+export const marketListingsRelations = relations(marketListings, ({ one, many }) => ({
+  outfit: one(outfits, {
+    fields: [marketListings.outfitId],
+    references: [outfits.id],
+  }),
+  creator: one(users, {
+    fields: [marketListings.creatorId],
+    references: [users.id],
+  }),
+  candles: many(priceCandles),
+  trades: many(trades),
+  holdings: many(holdings),
+}));
+
+export const priceCandlesRelations = relations(priceCandles, ({ one }) => ({
+  listing: one(marketListings, {
+    fields: [priceCandles.listingId],
+    references: [marketListings.id],
+  }),
+}));
+
+export const holdingsRelations = relations(holdings, ({ one }) => ({
+  user: one(users, {
+    fields: [holdings.userId],
+    references: [users.id],
+  }),
+  listing: one(marketListings, {
+    fields: [holdings.listingId],
+    references: [marketListings.id],
+  }),
+}));
+
+export const tradesRelations = relations(trades, ({ one }) => ({
+  user: one(users, {
+    fields: [trades.userId],
+    references: [users.id],
+  }),
+  listing: one(marketListings, {
+    fields: [trades.listingId],
+    references: [marketListings.id],
+  }),
+}));
+
 // ─── Inferred Types ───────────────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect;
@@ -125,3 +246,7 @@ export type Outfit = typeof outfits.$inferSelect;
 export type NewOutfit = typeof outfits.$inferInsert;
 export type OutfitItem = typeof outfitItems.$inferSelect;
 export type NewOutfitItem = typeof outfitItems.$inferInsert;
+export type MarketListing = typeof marketListings.$inferSelect;
+export type PriceCandle = typeof priceCandles.$inferSelect;
+export type Holding = typeof holdings.$inferSelect;
+export type Trade = typeof trades.$inferSelect;

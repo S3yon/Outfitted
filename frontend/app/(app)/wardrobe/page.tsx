@@ -5,6 +5,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { Loader2 } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
 import { UploadButton } from "@/components/wardrobe/upload-button";
+import { CameraButton } from "@/components/wardrobe/camera-button";
 import { ProductSearch } from "@/components/wardrobe/product-search";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
 
@@ -47,6 +48,7 @@ export default function WardrobePage() {
         </div>
         <div className="flex gap-2">
           <ProductSearch />
+          <CameraButton />
           <UploadButton />
         </div>
       </div>

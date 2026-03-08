@@ -7,19 +7,16 @@ export const replicate = new Replicate({
 export async function isolateItem(
   imageBase64: string,
   mimeType: string,
-  description: string,
+  _description: string,
 ): Promise<Buffer> {
   const dataUri = `data:${mimeType};base64,${imageBase64}`;
 
-  const output = await replicate.run("openai/gpt-image-1.5", {
-    input: {
-      prompt: `Extract ONLY the "${description}" from this photo. Remove everything else. Output just the isolated ${description} on a completely transparent background, as a clean product photo. Keep the original item exactly as it appears - same color, same texture, same details. No other objects, no person, no background.`,
-      image: dataUri,
-      quality: "high",
-    },
-  });
+  const output = await replicate.run(
+    "smoretalk/rembg-enhance:4067ee2a58f6c161d434a9c077cfa012820b8e076efa2772aa171e26557da919",
+    { input: { image: dataUri } },
+  );
 
-  const url = (output as Array<{ url: () => string }>)[0].url();
+  const url = typeof output === "string" ? output : String(output);
   const res = await fetch(url);
   const arrayBuffer = await res.arrayBuffer();
   return Buffer.from(arrayBuffer);

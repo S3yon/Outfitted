@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Shirt, Layers, User } from "lucide-react"
+import { Shirt, Layers, TrendingUp, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const WalletMultiButton = dynamic(
@@ -17,6 +17,7 @@ const WalletMultiButton = dynamic(
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
   { href: "/outfits", label: "Outfits", icon: Layers },
+  { href: "/market", label: "Market", icon: TrendingUp },
   { href: "/profile", label: "Profile", icon: User },
 ] as const
 
@@ -57,6 +58,7 @@ export function AppNav() {
               fontSize: 13,
               borderRadius: 8,
               backgroundColor: "hsl(var(--secondary))",
+              color: "hsl(var(--foreground))",
             }}
           />
         </div>

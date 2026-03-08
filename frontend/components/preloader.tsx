@@ -264,7 +264,7 @@ const Preloader: React.FC<PreloaderProps> = ({
                 ease: [0.65, 0, 0.35, 1],
               }}
               className={cn(
-                "text-4xl font-bold text-background dark:text-foreground",
+                "text-4xl font-bold text-neutral-100 dark:text-neutral-900",
                 textClassName,
               )}
             >
@@ -333,7 +333,7 @@ const Preloader: React.FC<PreloaderProps> = ({
             }}
           >
             {!bgColor && (
-              <div className="w-full h-full bg-black dark:bg-[#5227FF]" />
+              <div className="w-full h-full bg-neutral-900 dark:bg-neutral-100" />
             )}
           </motion.div>
         ))}
@@ -446,7 +446,7 @@ const Preloader: React.FC<PreloaderProps> = ({
           }}
           className={cn(
             "rounded-full aspect-square",
-            bgColor ? "" : "bg-black dark:bg-[#5227FF]",
+            bgColor ? "" : "bg-neutral-900 dark:bg-neutral-100",
           )}
           style={{
             width: "300vmax",
@@ -493,7 +493,7 @@ const Preloader: React.FC<PreloaderProps> = ({
           style={{ backgroundColor: bgColor || undefined }}
         >
           {!bgColor && (
-            <div className="w-full h-full bg-black dark:bg-[#5227FF]" />
+            <div className="w-full h-full bg-neutral-900 dark:bg-neutral-100" />
           )}
         </motion.div>
         {renderLoadingText()}
@@ -536,7 +536,7 @@ const Preloader: React.FC<PreloaderProps> = ({
           style={{ backgroundColor: bgColor || undefined }}
         >
           {!bgColor && (
-            <div className="w-full h-full bg-black dark:bg-[#5227FF]" />
+            <div className="w-full h-full bg-neutral-900 dark:bg-neutral-100" />
           )}
         </motion.div>
 
@@ -558,7 +558,7 @@ const Preloader: React.FC<PreloaderProps> = ({
           style={{ backgroundColor: bgColor || undefined }}
         >
           {!bgColor && (
-            <div className="w-full h-full bg-black dark:bg-[#5227FF]" />
+            <div className="w-full h-full bg-neutral-900 dark:bg-neutral-100" />
           )}
         </motion.div>
         {renderLoadingText()}

@@ -73,14 +73,46 @@ export function TryOnDialog({
   }, [open, stopCamera, outfit.items])
 
   async function startCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 960 } },
-    })
-    streamRef.current = stream
-    if (videoRef.current) {
-      videoRef.current.srcObject = stream
-    }
+    console.log("[try-on] startCamera called, stopping existing stream...")
+    stopCamera()
     setStage("webcam")
+    await new Promise((r) => setTimeout(r, 100))
+    console.log("[try-on] videoRef exists:", !!videoRef.current)
+
+    const permStatus = await navigator.permissions.query({ name: "camera" as PermissionName })
+    console.log("[try-on] permission state:", permStatus.state)
+
+    try {
+      console.log("[try-on] requesting getUserMedia with ideal user...")
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "user" }, width: { ideal: 720 }, height: { ideal: 960 } },
+      })
+      console.log("[try-on] got stream:", stream.id)
+      streamRef.current = stream
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+      }
+    } catch (err1) {
+      console.log("[try-on] first attempt failed:", err1 instanceof Error ? `${err1.name}: ${err1.message}` : err1)
+      try {
+        console.log("[try-on] retrying with bare { video: true }...")
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+        console.log("[try-on] fallback got stream:", stream.id)
+        streamRef.current = stream
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream
+        }
+      } catch (err2) {
+        console.log("[try-on] fallback also failed:", err2 instanceof Error ? `${err2.name}: ${err2.message}` : err2)
+        const name = err2 instanceof Error ? err2.name : ""
+        if (name === "NotAllowedError") {
+          toast.error("Camera permission denied. Check your browser site settings.")
+        } else {
+          toast.error("Could not access camera. Make sure no other app is using it.")
+        }
+        setStage("idle")
+      }
+    }
   }
 
   function startCountdown() {

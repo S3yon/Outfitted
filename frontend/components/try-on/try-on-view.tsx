@@ -45,9 +45,11 @@ export function TryOnView({
   }, []);
 
   const startCamera = useCallback(async () => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1440 } },
+        video: { facingMode: { ideal: "user" }, width: { ideal: 1080 }, height: { ideal: 1440 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -55,7 +57,16 @@ export function TryOnView({
       }
       setStage("webcam");
     } catch {
-      toast.error("Camera access denied");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setStage("webcam");
+      } catch {
+        toast.error("Camera access denied. Check your browser site settings.");
+      }
     }
   }, []);
 
