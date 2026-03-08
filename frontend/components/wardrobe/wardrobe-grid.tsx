@@ -279,7 +279,7 @@ function ItemCard({
       {/* Delete button */}
       <button
         onClick={() => onDelete(item)}
-        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-2 text-white/60 transition-opacity hover:text-red-400 md:opacity-0 md:p-1.5 md:group-hover:opacity-100"
       >
         <Trash2 className="size-3.5" />
       </button>
@@ -316,7 +316,7 @@ function ItemCard({
               <button
                 disabled={busy}
                 onClick={handleBuy}
-                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-purple-600 px-2 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-purple-600 px-2 py-2 text-[11px] font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50 md:py-1.5"
               >
                 {busy ? (
                   <Loader2 className="size-3 animate-spin" />
@@ -329,7 +329,7 @@ function ItemCard({
               <button
                 disabled={busy}
                 onClick={handleOwn}
-                className="flex flex-1 items-center justify-center gap-1 rounded-md bg-gold px-2 py-1.5 text-[11px] font-medium text-black transition-colors hover:bg-gold/80 disabled:opacity-50"
+                className="flex flex-1 items-center justify-center gap-1 rounded-md bg-foreground px-2 py-2 text-[11px] font-medium text-background transition-colors hover:bg-foreground/85 disabled:opacity-50 md:py-1.5"
               >
                 {busy ? (
                   <Loader2 className="size-3 animate-spin" />
@@ -345,7 +345,7 @@ function ItemCard({
                   href={item.productUrl!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center rounded-md border border-border px-2 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                  className="flex items-center rounded-md border border-border px-2 py-2 text-muted-foreground transition-colors hover:text-foreground md:py-1.5"
                 >
                   <ExternalLink className="size-3" />
                 </a>

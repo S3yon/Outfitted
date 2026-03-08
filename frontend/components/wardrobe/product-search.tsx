@@ -187,16 +187,16 @@ export function ProductSearch() {
   return (
     <>
       <Button
-        size="lg"
         variant="outline"
         onClick={() => setOpen(true)}
+        className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6"
       >
-        <Search className="size-4" data-icon="inline-start" />
-        Search Products
+        <Search className="size-4 shrink-0" />
+        <span className="hidden sm:inline">Search Products</span>
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col">
+        <DialogContent className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>Search Products</DialogTitle>
           </DialogHeader>
@@ -210,7 +210,7 @@ export function ProductSearch() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search by brand, item, style..."
-              className="w-full rounded-lg border border-border bg-secondary py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold"
+              className="w-full rounded-lg border border-border bg-secondary py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-foreground/30"
             />
             {query && (
               <button
@@ -231,7 +231,7 @@ export function ProductSearch() {
                 className={cn(
                   "rounded-full border px-3 py-1 text-xs transition-all",
                   query === brand
-                    ? "border-gold bg-gold/10 text-foreground"
+                    ? "border-foreground/30 bg-foreground/10 text-foreground"
                     : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
                 )}
               >

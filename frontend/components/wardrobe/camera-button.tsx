@@ -165,9 +165,9 @@ export function CameraButton() {
 
   return (
     <>
-      <Button size="lg" variant="outline" onClick={() => setOpen(true)}>
-        <Camera className="size-4" data-icon="inline-start" />
-        Camera
+      <Button variant="outline" onClick={() => setOpen(true)} className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6">
+        <Camera className="size-4 shrink-0" />
+        <span className="hidden sm:inline">Camera</span>
       </Button>
 
       <Dialog
