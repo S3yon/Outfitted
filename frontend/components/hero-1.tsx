@@ -1,17 +1,21 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
-import Grainient from "@/components/grainient";
+
+const Grainient = dynamic(() => import("@/components/grainient"), {
+  ssr: false,
+});
 
 export function Hero1() {
   return (
-    <section className="relative w-full min-h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <section className="relative w-full h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden bg-neutral-950">
       {/* Grainient Background */}
       <div className="absolute inset-0 z-0">
         <Grainient
-          color1="#ffffff"
-          color2="#a0a0a0"
+          color1="#3a3a3a"
+          color2="#1a1a1a"
           color3="#000000"
           timeSpeed={0.15}
           warpStrength={0.8}
@@ -22,7 +26,7 @@ export function Hero1() {
           noiseScale={1.5}
           grainAmount={0.12}
           grainScale={2}
-          contrast={1.4}
+          contrast={1.6}
           gamma={1}
           saturation={0}
           zoom={0.8}
@@ -37,7 +41,7 @@ export function Hero1() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight font-medium text-neutral-900 dark:text-white leading-[1.1]"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight font-medium text-white leading-[1.1]"
           >
             Your wardrobe,
             <br />
@@ -48,7 +52,7 @@ export function Hero1() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.35 }}
-            className="text-base sm:text-lg md:text-xl text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-lg tracking-tight"
+            className="text-base sm:text-lg md:text-xl text-neutral-300 leading-relaxed max-w-lg tracking-tight"
           >
             Photograph your clothes, build a virtual closet, and let AI put
             together outfits that match your style.
@@ -62,14 +66,14 @@ export function Hero1() {
           >
             <a
               href="/api/auth/login"
-              className="px-8 py-3 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium text-sm sm:text-base hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors duration-200 flex items-center gap-2"
+              className="px-8 py-3 rounded-md bg-white text-neutral-900 font-medium text-sm sm:text-base hover:bg-neutral-200 transition-colors duration-200 flex items-center gap-2"
             >
               Get Started
               <ArrowRight className="w-4 h-4" />
             </a>
             <a
               href="#how-it-works"
-              className="text-sm sm:text-base text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors duration-200"
+              className="text-sm sm:text-base text-neutral-400 hover:text-white transition-colors duration-200"
             >
               See how it works
             </a>
