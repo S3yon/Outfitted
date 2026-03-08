@@ -58,7 +58,7 @@ export default function Stats4() {
               </motion.p>
 
               <motion.a
-                href="/auth/login"
+                href="/login"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
