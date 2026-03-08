@@ -64,20 +64,12 @@ export function Navigation7() {
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
             {!isLoading && !user && (
-              <>
-                <a
-                  href="/login"
-                  className="hidden md:block px-3 py-1.5 rounded-md text-sm font-medium tracking-tight text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
-                >
-                  Log in
-                </a>
-                <a
-                  href="/login"
-                  className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
-                >
-                  Get Started
-                </a>
-              </>
+              <a
+                href="/login"
+                className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
+              >
+                Log in
+              </a>
             )}
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -136,20 +128,12 @@ export function Navigation7() {
               className="absolute bottom-0 left-0 right-0 p-4 space-y-3 border-t border-neutral-200/50 dark:border-neutral-800/50"
             >
               {!isLoading && !user && (
-                <>
-                  <a
-                    href="/login"
-                    className="block w-full px-4 py-3 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 text-center hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
-                  >
-                    Log in
-                  </a>
-                  <a
-                    href="/login"
-                    className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
-                  >
-                    Get Started
-                  </a>
-                </>
+                <a
+                  href="/login"
+                  className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
+                >
+                  Log in
+                </a>
               )}
             </motion.div>
           </motion.div>
