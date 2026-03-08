@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { styleProfile } = body;
 
-  if (!styleProfile || typeof styleProfile !== "string" || styleProfile.trim() === "") {
+  if (!styleProfile || typeof styleProfile !== "string" || styleProfile.trim().length === 0) {
     return NextResponse.json({ error: "styleProfile is required" }, { status: 400 });
   }
 
@@ -27,6 +27,11 @@ export async function POST(req: Request) {
     })
     .where(eq(users.auth0Id, session.user.sub))
     .returning();
+
+  if (!updated) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
 
   return NextResponse.json(updated);
 }
