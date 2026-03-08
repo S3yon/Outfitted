@@ -47,30 +47,31 @@ export async function POST() {
   }));
 
   const prompt = `
-You are a fashion stylist AI. Your client's style profile:
+You are a personal stylist AI. Study this client's style profile carefully:
 "${styleProfile}"
 
-Their wardrobe (JSON):
+Their wardrobe (JSON array — use ONLY these items):
 ${JSON.stringify(itemsForPrompt, null, 2)}
 
-Generate exactly 3 outfit combinations using only items from the list above.
+Generate exactly 3 outfit combinations. Each outfit should feel like it was curated specifically for this person.
 
 Respond ONLY with valid JSON, no markdown:
 {
   "outfits": [
     {
-      "outfit_description": "Short outfit name (e.g. 'Casual Friday')",
+      "outfit_description": "Evocative outfit name (e.g. 'Saturday Sneaker Run', 'Late Night Minimal')",
       "item_ids": ["uuid1", "uuid2", "uuid3"]
     }
   ]
 }
 
 Rules:
-- Only use item IDs from the wardrobe JSON. Do not invent IDs.
-- Every outfit MUST include at least one "tops" item AND one "bottoms" item. No outfit without both.
-- Each outfit should have 2-5 items. Add shoes, outerwear, or accessories if available.
-- Vary the outfits — avoid reusing the same items across all three.
-- Match the user's style profile.
+- Only use item IDs from the wardrobe JSON above. Never invent IDs.
+- Every outfit MUST have at least one "tops" item AND one "bottoms" item.
+- Each outfit should have 2-5 items. Layer with shoes, outerwear, or accessories when available.
+- Vary the outfits — each should work for a different mood or occasion from the client's profile.
+- Actively respect the client's stated vibe, fit preference, color preferences, and influences when choosing items. If they listed preferred colors, prioritize items whose descriptions match those colors. If they prefer oversized fits, pick items described as oversized or relaxed. If they dress primarily for casual occasions, don't build a formal look.
+- Name each outfit with personality — match the naming vibe to the client's aesthetic.
 `.trim();
 
   const result = await geminiModel.generateContent(prompt);
