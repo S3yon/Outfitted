@@ -11,81 +11,89 @@ const ShaderReveal = dynamic(() => import("@/components/shader-reveal"), {
 export function Hero1() {
   return (
     <section className="relative w-full h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden pt-16">
-      <div className="relative z-10 max-w-[1100px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-        <div className="flex flex-col gap-6 sm:gap-8 text-center lg:text-left items-center lg:items-start">
-          <div className="overflow-hidden">
+      <div className="relative z-10 max-w-[1100px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        {/* Left - Copy */}
+        <div className="flex flex-col gap-8 text-center lg:text-left items-center lg:items-start">
+          {/* Headline - big, bold, confident */}
+          <div className="space-y-0">
             <motion.h1
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl tracking-tight font-medium leading-[1.08]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
             >
-              <motion.span
-                className="block text-neutral-800 dark:text-white"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-              >
-                Your wardrobe,
-              </motion.span>
-              <motion.span
-                className="block text-neutral-800 dark:text-white"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              >
-                digitized.
-              </motion.span>
+              Your
+            </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
+            >
+              wardrobe,
+            </motion.h1>
+            <motion.h1
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-400 dark:text-neutral-500 leading-[0.95]"
+            >
+              digitized.
             </motion.h1>
           </div>
 
+          {/* Subline - short, direct */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-base sm:text-lg md:text-xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-md tracking-tight"
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-sm"
           >
-            Photograph your clothes, build a virtual closet, and let AI style
-            outfits from what you already own.
+            Upload your clothes. Take a style quiz.
+            <br />
+            Get AI-curated outfits daily.
           </motion.p>
 
+          {/* CTA row */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.65 }}
-            className="flex flex-col sm:flex-row items-center gap-3"
+            transition={{ duration: 0.6, delay: 0.55 }}
+            className="flex items-center gap-4"
           >
             <a
               href="/api/auth/login"
-              className="group px-6 py-3 rounded-lg bg-neutral-800 dark:bg-white text-white dark:text-neutral-900 font-medium text-sm sm:text-base hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-all duration-200 flex items-center gap-2"
+              className="group px-6 py-3 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium text-sm hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors flex items-center gap-2"
             >
               Get Started
-              <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </a>
             <a
               href="#how-it-works"
-              className="group px-4 py-3 rounded-lg text-sm sm:text-base text-neutral-500 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-800/50 transition-all duration-200 flex items-center gap-1.5"
+              className="text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
             >
-              How it works
-              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
+              Learn more
             </a>
           </motion.div>
 
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="text-xs text-neutral-400/70 dark:text-neutral-500 tracking-tight"
+            transition={{ duration: 0.5, delay: 0.7 }}
+            className="text-xs text-neutral-400 dark:text-neutral-600"
           >
             Hover the image to reveal the styled look
           </motion.p>
         </div>
 
-        {/* Right - ShaderReveal Image */}
+        {/* Right - Image */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
           className="relative w-full"
         >
-          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[580px] rounded-2xl overflow-hidden shadow-2xl shadow-neutral-300/40 dark:shadow-none ring-1 ring-neutral-200/30 dark:ring-neutral-700/30">
+          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[580px] rounded-2xl overflow-hidden ring-1 ring-neutral-200/40 dark:ring-neutral-800/40">
             <ShaderReveal
               frontImage="/hero-casual.png"
               backImage="/hero-outfit.png"
