@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
 
@@ -10,6 +11,7 @@ interface NavItem {
 }
 
 export function Navigation7() {
+  const { user, isLoading } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -61,18 +63,30 @@ export function Navigation7() {
 
           {/* Right: Actions */}
           <div className="flex items-center gap-2">
-            <a
-              href="/api/auth/login"
-              className="hidden md:block px-3 py-1.5 rounded-md text-sm font-medium tracking-tight text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
-            >
-              Log in
-            </a>
-            <a
-              href="/api/auth/login"
-              className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
-            >
-              Get Started
-            </a>
+            {!isLoading && !user && (
+              <>
+                <a
+                  href="/auth/login"
+                  className="hidden md:block px-3 py-1.5 rounded-md text-sm font-medium tracking-tight text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
+                >
+                  Log in
+                </a>
+                <a
+                  href="/auth/login"
+                  className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
+                >
+                  Get Started
+                </a>
+              </>
+            )}
+            {!isLoading && user && (
+              <a
+                href="/wardrobe"
+                className="px-4 py-2 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium tracking-tight transition-colors"
+              >
+                Open App
+              </a>
+            )}
 
             <button
               onClick={() => setIsMobileMenuOpen(true)}
@@ -130,18 +144,30 @@ export function Navigation7() {
               transition={{ duration: 0.3, delay: 0.15 }}
               className="absolute bottom-0 left-0 right-0 p-4 space-y-3 border-t border-neutral-200/50 dark:border-neutral-800/50"
             >
-              <a
-                href="/api/auth/login"
-                className="block w-full px-4 py-3 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 text-center hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
-              >
-                Log in
-              </a>
-              <a
-                href="/api/auth/login"
-                className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
-              >
-                Get Started
-              </a>
+              {!isLoading && !user && (
+                <>
+                  <a
+                    href="/auth/login"
+                    className="block w-full px-4 py-3 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 text-center hover:bg-neutral-100/60 dark:hover:bg-neutral-800/60 transition-colors"
+                  >
+                    Log in
+                  </a>
+                  <a
+                    href="/auth/login"
+                    className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
+                  >
+                    Get Started
+                  </a>
+                </>
+              )}
+              {!isLoading && user && (
+                <a
+                  href="/wardrobe"
+                  className="block w-full px-4 py-3 bg-neutral-800 dark:bg-white hover:bg-neutral-700 dark:hover:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg text-sm font-medium transition-colors text-center"
+                >
+                  Open App
+                </a>
+              )}
             </motion.div>
           </motion.div>
         )}

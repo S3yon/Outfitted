@@ -47,34 +47,32 @@ export async function POST() {
   }));
 
   const prompt = `
-You are a luxury fashion stylist AI. Your client has the following style profile:
+You are a fashion stylist AI. Your client's style profile:
 "${styleProfile}"
 
-Their wardrobe contains these owned items (JSON):
+Their wardrobe (JSON):
 ${JSON.stringify(itemsForPrompt, null, 2)}
 
 Generate exactly 3 outfit combinations using only items from the list above.
 
-Respond ONLY with valid JSON in this exact format, no markdown, no explanation outside the JSON:
+Respond ONLY with valid JSON, no markdown:
 {
   "outfits": [
     {
-      "outfit_description": "Short stylish outfit name (e.g. 'Quiet Luxury Monday')",
-      "item_ids": ["uuid1", "uuid2", "uuid3"],
-      "explanation": "Two sentences max. Why this outfit works for their vibe and when to wear it."
+      "outfit_description": "Short outfit name (e.g. 'Casual Friday')",
+      "item_ids": ["uuid1", "uuid2", "uuid3"]
     }
   ]
 }
 
 Rules:
-- Only use item IDs that exist in the wardrobe JSON above. Do not invent IDs.
-- Each outfit must include 2-4 items and cover at minimum a top + bottom or a full look.
-- Vary the outfits — avoid repeating the same items across all three.
+- Only use item IDs from the wardrobe JSON. Do not invent IDs.
+- Every outfit MUST include at least one "tops" item AND one "bottoms" item. No outfit without both.
+- Each outfit should have 2-5 items. Add shoes, outerwear, or accessories if available.
+- Vary the outfits — avoid reusing the same items across all three.
 - Match the user's style profile.
-- The explanation must sound like a high-end personal stylist wrote it.
 `.trim();
 
-  // Call Gemini
   const result = await geminiModel.generateContent(prompt);
   const raw = result.response.text();
   const cleaned = cleanGeminiJson(raw);
@@ -83,30 +81,35 @@ Rules:
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    console.error("[gemini] Failed to parse response:", cleaned);
-    return NextResponse.json({ error: "Gemini returned invalid JSON" }, { status: 502 });
+    console.error("[outfits] Failed to parse response:", cleaned);
+    return NextResponse.json({ error: "Gemini returned invalid JSON", raw: cleaned }, { status: 502 });
   }
 
   if (!parsed.outfits || !Array.isArray(parsed.outfits)) {
-    return NextResponse.json({ error: "Unexpected Gemini response shape" }, { status: 502 });
+    return NextResponse.json({ error: "Unexpected response shape", raw: cleaned }, { status: 502 });
   }
 
   // Build a set of valid item IDs for validation
   const validIds = new Set(owned.map((i) => i.id));
 
+  const itemCategoryMap = new Map(owned.map((i) => [i.id, i.category]));
+
   // Persist each outfit to DB
   const createdOutfits = await Promise.all(
     parsed.outfits.map(async (geminiOutfit) => {
-      // Filter out any hallucinated IDs
       const safeItemIds = geminiOutfit.item_ids.filter((id) => validIds.has(id));
 
       if (safeItemIds.length === 0) return null;
+
+      // Enforce top + bottom
+      const categories = safeItemIds.map((id) => itemCategoryMap.get(id));
+      if (!categories.includes("tops") || !categories.includes("bottoms")) return null;
 
       const [outfit] = await db
         .insert(outfits)
         .values({
           userId: user.id,
-          explanation: geminiOutfit.explanation,
+          explanation: geminiOutfit.outfit_description,
         })
         .returning();
 

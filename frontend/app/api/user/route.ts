@@ -48,7 +48,7 @@ export async function PATCH(req: Request) {
   const body = await req.json();
   const { styleProfile, solanaWalletAddress, onboardingCompleted } = body;
 
-  const updates: Record<string, unknown> = { updatedAt: new Date() };
+  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (styleProfile !== undefined) updates.styleProfile = styleProfile;
   if (solanaWalletAddress !== undefined) updates.solanaWalletAddress = solanaWalletAddress;
   if (onboardingCompleted !== undefined) updates.onboardingCompleted = onboardingCompleted;

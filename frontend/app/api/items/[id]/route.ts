@@ -22,7 +22,7 @@ export async function PATCH(
   const body = await req.json();
   const { status, notes, wearLevel, nftMintAddress } = body;
 
-  const updates: Record<string, unknown> = { updatedAt: new Date() };
+  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (status !== undefined) updates.status = status;
   if (notes !== undefined) updates.notes = notes;
   if (wearLevel !== undefined) updates.wearLevel = wearLevel;

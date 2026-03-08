@@ -1,77 +1,77 @@
-import { relations } from "drizzle-orm";
-import {
-  boolean,
-  integer,
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from "drizzle-orm/pg-core";
-
-// ─── Enums ────────────────────────────────────────────────────────────────────
-
-export const categoryEnum = pgEnum("category", [
-  "tops",
-  "bottoms",
-  "shoes",
-  "accessories",
-  "outerwear",
-]);
-
-export const itemStatusEnum = pgEnum("item_status", ["owned", "wishlisted"]);
+import { relations, sql } from "drizzle-orm";
+import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
-export const users = pgTable("users", {
-  id: uuid("id").primaryKey().defaultRandom(),
+export const users = sqliteTable("users", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   auth0Id: text("auth0_id").notNull().unique(),
   email: text("email").notNull(),
   displayName: text("display_name"),
-  styleProfile: text("style_profile"), // compiled "User Style" string from onboarding
-  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
-  solanaWalletAddress: text("solana_wallet_address"), // linked Phantom/Solflare pubkey
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  styleProfile: text("style_profile"),
+  onboardingCompleted: integer("onboarding_completed", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  solanaWalletAddress: text("solana_wallet_address"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
 });
 
 // ─── Clothing Items ───────────────────────────────────────────────────────────
 
-export const clothingItems = pgTable("clothing_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
+export const clothingItems = sqliteTable("clothing_items", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   cloudinaryUrl: text("cloudinary_url").notNull(),
   cloudinaryPublicId: text("cloudinary_public_id").notNull(),
-  category: categoryEnum("category").notNull(),
-  status: itemStatusEnum("status").notNull().default("owned"), // owned = in closet, wishlisted = want to buy
+  category: text("category").notNull(), // tops, bottoms, shoes, accessories, outerwear
+  status: text("status").notNull().default("owned"), // owned | wishlisted
   notes: text("notes"),
-  wearLevel: integer("wear_level").default(1), // 1–5, meaningful for owned items only
-  nftMintAddress: text("nft_mint_address"), // Solana SPL token mint pubkey (owned items only)
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  wearLevel: integer("wear_level").default(1),
+  nftMintAddress: text("nft_mint_address"),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
+  updatedAt: text("updated_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
 });
 
 // ─── Outfits ──────────────────────────────────────────────────────────────────
 
-export const outfits = pgTable("outfits", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  userId: uuid("user_id")
+export const outfits = sqliteTable("outfits", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  explanation: text("explanation").notNull(), // AI-generated 2-sentence styling rationale
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  explanation: text("explanation").notNull(),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(datetime('now'))`),
 });
 
 // ─── Outfit Items (join table) ────────────────────────────────────────────────
 
-export const outfitItems = pgTable("outfit_items", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  outfitId: uuid("outfit_id")
+export const outfitItems = sqliteTable("outfit_items", {
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  outfitId: text("outfit_id")
     .notNull()
     .references(() => outfits.id, { onDelete: "cascade" }),
-  clothingItemId: uuid("clothing_item_id")
+  clothingItemId: text("clothing_item_id")
     .notNull()
     .references(() => clothingItems.id, { onDelete: "cascade" }),
 });

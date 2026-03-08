@@ -64,7 +64,7 @@ export function Hero1() {
             className="flex items-center gap-4"
           >
             <a
-              href="/api/auth/login"
+              href="/auth/login"
               className="group px-6 py-3 rounded-lg bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium text-sm hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors flex items-center gap-2"
             >
               Get Started
@@ -87,7 +87,7 @@ export function Hero1() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative w-full"
         >
-          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[580px] rounded-2xl overflow-hidden ring-1 ring-neutral-200/40 dark:ring-neutral-800/40 bg-white">
+          <div className="relative w-full h-[500px] sm:h-[650px] lg:h-[85vh] overflow-hidden" style={{ mask: "linear-gradient(to bottom, transparent 0%, transparent 12%, black 22%, black 85%, transparent 100%)", WebkitMask: "linear-gradient(to bottom, transparent 0%, transparent 12%, black 22%, black 85%, transparent 100%)" }}>
             <ShaderReveal
               frontImage="/hero-casual.png"
               backImage="/hero-outfit.png"
