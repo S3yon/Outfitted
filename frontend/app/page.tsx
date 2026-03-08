@@ -1,19 +1,27 @@
-import { Button } from "@/components/ui/button"
+import { Navigation7 } from "@/components/navigation-7"
+import { Hero1 } from "@/components/hero-1"
+import { Features1 } from "@/components/features-1"
+import { HowItWorks2 } from "@/components/how-it-works-2"
+import Stats4 from "@/components/stats-4"
+import FAQ1 from "@/components/faq-1"
+import CTA1 from "@/components/cta-1"
+import Footer4 from "@/components/footer-4"
 
-export default function Page() {
+export default function LandingPage() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
-        </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
-        </div>
+    <div className="min-h-svh flex flex-col">
+      <Navigation7 />
+      <Hero1 />
+      <div id="features">
+        <Features1 />
       </div>
+      <div id="how-it-works">
+        <HowItWorks2 />
+      </div>
+      <Stats4 />
+      <FAQ1 />
+      <CTA1 />
+      <Footer4 />
     </div>
   )
 }
