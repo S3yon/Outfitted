@@ -2,13 +2,13 @@
 
 > **AI-powered digital wardrobe & personal stylist.** Digitize your closet, build your style profile, and let AI dress you every morning.
 
-Built for **Hack Canada** — targeting three tracks: **Best Use of Auth0**, **Best Use of Cloudinary**, and **Best Use of Google Gemini API**.
+Built for **Hack Canada** — targeting four tracks: **Best Use of Auth0**, **Best Use of Cloudinary**, **Best Use of Google Gemini API**, and **[MLH] Best Use of Solana**.
 
 ---
 
 ## What It Is
 
-Outfitted is a high-end web app inspired by [Indyx](https://www.indyx.com). Users photograph their clothing, the app strips the background via AI, and stores every piece in a sleek virtual closet. From there, a Gemini-powered stylist reads your style profile and assembles curated outfit flatlay cards — daily, automatically.
+Outfitted is a high-end web app inspired by [Indyx](https://www.indyx.com). Users photograph their clothing, the app strips the background via AI, and stores every piece in a sleek virtual closet. Items can be marked as **Owned** (in your physical closet) or **Wishlisted** (items you want). From there, a Gemini-powered stylist reads your style profile and assembles curated outfit flatlay cards using only your owned items — and Solana records ownership of those items on-chain.
 
 ---
 
@@ -21,6 +21,7 @@ Outfitted is a high-end web app inspired by [Indyx](https://www.indyx.com). User
 | **Auth** | Auth0 |
 | **Media & AI Cutout** | Cloudinary (AI Background Removal) |
 | **Outfit AI** | Google Gemini API |
+| **Blockchain** | Solana (devnet) — `@solana/web3.js`, wallet adapters |
 
 ---
 
@@ -48,13 +49,15 @@ First-time users go through a two-part onboarding flow:
 The core engine:
 
 1. **Upload** — Drag-and-drop clothing photos from phone or computer.
-2. **Process** — The image is sent to Cloudinary, which returns a clean transparent PNG via AI background removal.
-3. **Display** — Items are laid over glassmorphic cards in a filterable grid. Filter by category (Tops, Bottoms, Shoes, etc.), wear frequency, or search by notes.
+2. **Tag** — Each item is marked as **Owned** (you have it) or **Wishlisted** (you want it).
+3. **Process** — The image is sent to Cloudinary, which returns a clean transparent PNG via AI background removal.
+4. **On-Chain** — Owned items are minted as lightweight NFTs on Solana devnet, creating a verifiable ownership record.
+5. **Display** — Items are laid over glassmorphic cards in a filterable grid. Filter by category, status (Owned/Wishlisted), wear frequency, or search by notes.
 
 ### 4. The Outfits
 Where the magic happens:
 
-1. **The Brains** — Backend sends the User Style string + wardrobe item metadata to the Gemini API.
+1. **The Brains** — Backend sends the User Style string + **owned** wardrobe items to the Gemini API. Wishlisted items are excluded — you can't wear what you don't have.
 2. **The Output** — Gemini returns outfit groupings (item IDs) with a 2-sentence stylist explanation for each look.
 3. **The Canvas** — The frontend assembles the transparent PNGs into a beautiful e-commerce-style flatlay **Outfit Card** using CSS Grid.
 
@@ -79,7 +82,7 @@ outfitted/
 
 ## Getting Started
 
-> Setup instructions coming soon. The app requires Auth0, Cloudinary, and Google Gemini API keys, plus a local PostgreSQL instance.
+> Setup instructions coming soon. The app requires Auth0, Cloudinary, Google Gemini API keys, a local PostgreSQL instance, and a Solana wallet (Phantom recommended) connected to devnet.
 
 ---
 
@@ -90,3 +93,4 @@ outfitted/
 | **Best Use of Auth0** | Secure authentication & user session management |
 | **Best Use of Cloudinary** | AI background removal on clothing uploads |
 | **Best Use of Google Gemini API** | LLM-powered outfit generation & style badge creation |
+| **[MLH] Best Use of Solana** | On-chain ownership records for wardrobe items (NFT minting on devnet) |

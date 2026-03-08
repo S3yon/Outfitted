@@ -21,9 +21,10 @@
 11. [Database Schema (Drizzle + PostgreSQL)](#11-database-schema-drizzle--postgresql)
 12. [Cloudinary Upload Pipeline](#12-cloudinary-upload-pipeline)
 13. [Gemini API — Outfit Generation](#13-gemini-api--outfit-generation)
-14. [API Route Reference](#14-api-route-reference)
-15. [Credentials & Environment Variables](#15-credentials--environment-variables)
-16. [Hackathon Constraints & Shortcuts](#16-hackathon-constraints--shortcuts)
+14. [Solana Integration — On-Chain Ownership](#14-solana-integration--on-chain-ownership)
+15. [API Route Reference](#15-api-route-reference)
+16. [Credentials & Environment Variables](#16-credentials--environment-variables)
+17. [Hackathon Constraints & Shortcuts](#17-hackathon-constraints--shortcuts)
 
 ---
 
@@ -39,6 +40,7 @@ Users photograph their real-life clothing items, upload them, and the app automa
 - Best Use of Auth0
 - Best Use of Cloudinary
 - Best Use of Google Gemini API
+- [MLH] Best Use of Solana
 
 ---
 
@@ -103,6 +105,12 @@ className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shado
 | **Auth0** | Authentication — login, signup, session management |
 | **Cloudinary** | Image hosting + AI Background Removal add-on |
 | **Google Gemini API** | LLM-powered outfit generation and style badge creation |
+| **Solana (devnet)** | On-chain ownership records for wardrobe items via NFT minting |
+
+### Solana Packages
+```bash
+npm install @solana/web3.js @solana/spl-token @metaplex-foundation/js
+```
 
 ---
 
@@ -127,11 +135,16 @@ outfitted/
 │   │       ├── upload/
 │   │       │   └── route.ts        # Cloudinary upload pipeline
 │   │       ├── generate-outfits/
-│   │       │   └── route.ts        # Gemini outfit generation
+│   │       │   └── route.ts        # Gemini outfit generation (owned items only)
 │   │       ├── onboarding/
 │   │       │   └── route.ts        # Save style string on first login
-│   │       └── user/
-│   │           └── route.ts        # Get/update user profile
+│   │       ├── user/
+│   │       │   └── route.ts        # Get/update user profile
+│   │       └── solana/
+│   │           ├── mint/
+│   │           │   └── route.ts    # Mint owned item as NFT on Solana devnet
+│   │           └── wallet/
+│   │               └── route.ts    # Link/get user's Solana wallet address
 │   ├── components/
 │   │   ├── onboarding/
 │   │   │   └── OnboardingFlow.tsx  # Multi-step onboarding modal
@@ -231,9 +244,11 @@ export type WardrobeItem = {
   id: string;
   cloudinary_url: string;
   category: "top" | "bottom" | "shoes" | "outerwear" | "accessory";
-  wear_level: number; // 1-5 scale
+  status: "owned" | "wishlisted"; // owned = in physical closet, wishlisted = want to buy
+  wear_level: number; // 1-5 scale (only meaningful for owned items)
   notes: string;
   user_id: string;
+  nft_mint_address: string | null; // Solana NFT mint address, set after on-chain mint (owned items only)
 };
 
 export type GeneratedOutfit = {
@@ -273,10 +288,16 @@ type AppStore = {
   // Filters (Wardrobe)
   activeCategory: string | null;  // null = "All"
   setActiveCategory: (category: string | null) => void;
+  activeStatus: "owned" | "wishlisted" | null;  // null = show all
+  setActiveStatus: (status: "owned" | "wishlisted" | null) => void;
 
   // Onboarding
   showOnboarding: boolean;
   setShowOnboarding: (val: boolean) => void;
+
+  // Solana
+  solanaWalletAddress: string | null;
+  setSolanaWalletAddress: (address: string | null) => void;
 };
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -295,9 +316,14 @@ export const useAppStore = create<AppStore>((set) => ({
 
   activeCategory: null,
   setActiveCategory: (category) => set({ activeCategory: category }),
+  activeStatus: null,
+  setActiveStatus: (status) => set({ activeStatus: status }),
 
   showOnboarding: false,
   setShowOnboarding: (val) => set({ showOnboarding: val }),
+
+  solanaWalletAddress: null,
+  setSolanaWalletAddress: (address) => set({ solanaWalletAddress: address }),
 }));
 ```
 
@@ -305,10 +331,10 @@ export const useAppStore = create<AppStore>((set) => ({
 Never pass props for global state. Always read directly from the store:
 
 ```tsx
-const { wardrobeItems, activeCategory } = useAppStore();
-const filtered = activeCategory
-  ? wardrobeItems.filter(i => i.category === activeCategory)
-  : wardrobeItems;
+const { wardrobeItems, activeCategory, activeStatus } = useAppStore();
+const filtered = wardrobeItems
+  .filter(i => activeCategory ? i.category === activeCategory : true)
+  .filter(i => activeStatus ? i.status === activeStatus : true);
 ```
 
 ---
@@ -370,19 +396,33 @@ The wardrobe page has two zones:
 ### Component: `UploadButton.tsx`
 
 - A styled button that opens a hidden `<input type="file" accept="image/*">`.
+- Before upload, prompt the user to select **Owned** or **Wishlisted** (a two-button toggle or a small modal). This is required — do not default silently.
 - On file select: show a glassmorphic full-screen loading overlay with a spinner and "Processing..." text.
-- POST the file as `FormData` to `/api/upload`.
-- On success: call `addWardrobeItem(newItem)` from the Zustand store.
+- POST the file as `FormData` to `/api/upload` — include the `status` field.
+- On success:
+  - Call `addWardrobeItem(newItem)` from the Zustand store.
+  - If `status === "owned"`, trigger a Solana mint call to `/api/solana/mint` (fire-and-forget is acceptable for demo; update item's `nft_mint_address` in store when complete).
 - On error: show a toast notification (use shadcn/ui `toast`).
 
 ```tsx
-const handleUpload = async (file: File) => {
+const handleUpload = async (file: File, status: "owned" | "wishlisted") => {
   setIsLoading(true);
   const formData = new FormData();
   formData.append("file", file);
+  formData.append("status", status);
   const res = await fetch("/api/upload", { method: "POST", body: formData });
   const newItem = await res.json();
   addWardrobeItem(newItem);
+
+  // Kick off Solana mint for owned items (non-blocking)
+  if (status === "owned" && solanaWalletAddress) {
+    fetch("/api/solana/mint", {
+      method: "POST",
+      body: JSON.stringify({ itemId: newItem.id, walletAddress: solanaWalletAddress }),
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   setIsLoading(false);
 };
 ```
@@ -404,6 +444,13 @@ const handleUpload = async (file: File) => {
 const categories = ["All", "Tops", "Bottoms", "Shoes", "Outerwear", "Accessories"];
 // Render as pill buttons that set activeCategory in Zustand
 ```
+
+### Owned / Wishlisted Toggle
+A secondary filter row (below categories) with two pill buttons: **Owned** and **Wishlisted**. Selecting one sets `activeStatus` in Zustand. Deselecting returns to showing all.
+
+Visual distinction on item cards:
+- **Owned** items: show a small gold checkmark badge (`✓ Owned`)
+- **Wishlisted** items: show a small neon heart/bookmark badge (`♡ Wishlist`)
 
 ---
 
@@ -505,6 +552,7 @@ File: `lib/schema.ts`
 | `name` | `varchar(255)` | |
 | `style_string` | `text` | Nullable — set after onboarding |
 | `has_completed_onboarding` | `boolean` | Default: `false` |
+| `solana_wallet_address` | `varchar(255)` | Nullable — linked Phantom/Solflare wallet pubkey |
 | `created_at` | `timestamp` | Default: `now()` |
 
 #### `items`
@@ -515,8 +563,10 @@ File: `lib/schema.ts`
 | `cloudinary_url` | `text` | URL of processed PNG |
 | `cloudinary_public_id` | `varchar(255)` | For deletion |
 | `category` | `varchar(50)` | `top`, `bottom`, `shoes`, `outerwear`, `accessory` |
-| `wear_level` | `integer` | 1–5 scale |
+| `status` | `varchar(20)` | `owned` or `wishlisted` — **required on upload** |
+| `wear_level` | `integer` | 1–5 scale (relevant for owned items only) |
 | `notes` | `text` | User-added notes |
+| `nft_mint_address` | `varchar(255)` | Nullable — Solana NFT mint pubkey (owned items only) |
 | `created_at` | `timestamp` | Default: `now()` |
 
 #### `outfits`
@@ -540,6 +590,7 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 255 }),
   style_string: text("style_string"),
   has_completed_onboarding: boolean("has_completed_onboarding").default(false),
+  solana_wallet_address: varchar("solana_wallet_address", { length: 255 }),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -549,8 +600,10 @@ export const items = pgTable("items", {
   cloudinary_url: text("cloudinary_url").notNull(),
   cloudinary_public_id: varchar("cloudinary_public_id", { length: 255 }),
   category: varchar("category", { length: 50 }),
+  status: varchar("status", { length: 20 }).notNull().default("owned"), // "owned" | "wishlisted"
   wear_level: integer("wear_level").default(1),
   notes: text("notes"),
+  nft_mint_address: varchar("nft_mint_address", { length: 255 }), // Solana mint pubkey
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -638,14 +691,25 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 ```
 
+### Owned Items Filter
+**Critical:** Only pass `status === "owned"` items to Gemini. Wishlisted items are aspirational — the user cannot wear them yet.
+
+```ts
+const ownedItems = wardrobeItems.filter(item => item.status === "owned");
+// Also warn if fewer than 3 owned items — return early with a helpful message
+if (ownedItems.length < 3) {
+  return NextResponse.json({ error: "not_enough_items", message: "Add at least 3 owned items to generate outfits." }, { status: 400 });
+}
+```
+
 ### Prompt Structure
 ```ts
 const prompt = `
 You are a luxury fashion stylist AI. Your client has the following style profile:
 "${user.style_string}"
 
-Their wardrobe contains these items (JSON):
-${JSON.stringify(wardrobeItems, null, 2)}
+Their owned wardrobe contains these items (JSON):
+${JSON.stringify(ownedItems, null, 2)}
 
 Generate exactly 3 outfit combinations from these items.
 
@@ -684,7 +748,119 @@ After parsing, save each outfit to the `outfits` table and return the full array
 
 ---
 
-## 14. API Route Reference
+## 14. Solana Integration — On-Chain Ownership
+
+### Track Goal
+Use Solana's high-throughput, near-zero-fee network to record clothing ownership on-chain. Every item marked **Owned** gets minted as a compressed NFT (or a simple SPL token) on Solana devnet — creating a verifiable, permanent ownership record. This is the core Solana story: your wardrobe, on-chain.
+
+### Why It Fits
+- **Owned items** = real clothes in your closet → mint an NFT to prove it
+- **Wishlisted items** = aspirational → stay off-chain in the DB only
+- When a wishlisted item is later marked as Owned (user bought it), trigger the mint at that point
+
+### Packages
+```bash
+npm install @solana/web3.js @solana/spl-token @metaplex-foundation/js
+```
+
+### Wallet Connection (Frontend)
+Users connect their Solana wallet (Phantom, Solflare) via the wallet adapter. On first connect, save the public key to the DB via `PATCH /api/solana/wallet`.
+
+```tsx
+// In profile page or a "Connect Wallet" button in the nav
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+
+// Once connected:
+const { publicKey } = useWallet();
+// Save to DB: PATCH /api/solana/wallet { walletAddress: publicKey.toString() }
+// Save to Zustand: setSolanaWalletAddress(publicKey.toString())
+```
+
+### API Route: `POST /api/solana/mint`
+
+**Input:**
+```ts
+{
+  itemId: string;         // UUID of the wardrobe item
+  walletAddress: string;  // User's Solana public key (recipient)
+}
+```
+
+**Flow:**
+1. Get the item from the DB — verify it belongs to the authenticated user and `status === "owned"`.
+2. Get the item's `cloudinary_url` as the NFT image/metadata URI.
+3. Create a connection to Solana devnet.
+4. Use a backend keypair (funded devnet wallet) as the fee payer/mint authority.
+5. Mint a compressed NFT or a simple SPL token representing the item.
+6. Update the item's `nft_mint_address` in the DB.
+7. Return the mint address and explorer URL.
+
+**Implementation (Simple SPL Token approach for hackathon speed):**
+```ts
+import { Connection, Keypair, PublicKey, clusterApiUrl } from "@solana/web3.js";
+import { createMint, mintTo, getOrCreateAssociatedTokenAccount } from "@solana/spl-token";
+
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+// Backend payer keypair — funded devnet wallet
+const payer = Keypair.fromSecretKey(
+  Uint8Array.from(JSON.parse(process.env.SOLANA_PAYER_PRIVATE_KEY!))
+);
+
+const userPubkey = new PublicKey(walletAddress);
+
+// Create mint (1 token = 1 item ownership)
+const mint = await createMint(connection, payer, payer.publicKey, null, 0);
+
+// Create recipient token account
+const tokenAccount = await getOrCreateAssociatedTokenAccount(
+  connection, payer, mint, userPubkey
+);
+
+// Mint exactly 1 token to the user's wallet
+await mintTo(connection, payer, mint, tokenAccount.address, payer, 1);
+
+// Save mint.toBase58() as nft_mint_address in the items table
+```
+
+**Output:**
+```json
+{
+  "mintAddress": "AbcXyz...",
+  "explorerUrl": "https://explorer.solana.com/address/AbcXyz...?cluster=devnet",
+  "itemId": "uuid-here"
+}
+```
+
+### API Route: `PATCH /api/solana/wallet`
+
+Save a user's connected wallet address to the DB.
+
+**Input:** `{ walletAddress: string }`
+**Action:** Update `users.solana_wallet_address` for the authenticated user.
+
+### API Route: `GET /api/solana/wallet`
+
+Return the user's linked wallet address and a list of their minted item mint addresses (joined from the `items` table).
+
+### Environment Variable
+```env
+# A devnet Solana keypair (JSON array of 64 numbers) — fund it with devnet SOL via faucet
+SOLANA_PAYER_PRIVATE_KEY=[1,2,3,...] # 64 numbers
+```
+
+Fund the payer wallet:
+```bash
+solana airdrop 2 <PAYER_PUBKEY> --url devnet
+```
+
+### Demo Story
+For the demo: upload an item, mark it Owned, and show the Solana Explorer link to the minted token — proof that the item's ownership is recorded immutably on-chain. This is the "wow" moment for the Solana track.
+
+---
+
+## 15. API Route Reference
 
 | Method | Route | Purpose | Auth Required |
 |---|---|---|---|
@@ -692,15 +868,19 @@ After parsing, save each outfit to the `outfits` table and return the full array
 | `POST` | `/api/onboarding` | Save `style_string` after questionnaire | Yes |
 | `GET` | `/api/user` | Fetch user profile + check onboarding status | Yes |
 | `PATCH` | `/api/user` | Update `style_string` (re-calibrate) | Yes |
-| `POST` | `/api/upload` | Upload image to Cloudinary, save item to DB | Yes |
+| `POST` | `/api/upload` | Upload image to Cloudinary, save item to DB (include `status` field) | Yes |
 | `GET` | `/api/wardrobe` | Fetch all wardrobe items for current user | Yes |
+| `PATCH` | `/api/wardrobe/[id]` | Update item status (e.g., wishlisted → owned) + trigger mint | Yes |
 | `DELETE` | `/api/wardrobe/[id]` | Delete a wardrobe item | Yes |
-| `POST` | `/api/generate-outfits` | Call Gemini, generate outfits, save to DB | Yes |
+| `POST` | `/api/generate-outfits` | Call Gemini with owned items only, generate outfits, save to DB | Yes |
 | `GET` | `/api/outfits` | Fetch saved outfits for current user | Yes |
+| `POST` | `/api/solana/mint` | Mint owned item as SPL token on Solana devnet | Yes |
+| `GET` | `/api/solana/wallet` | Get user's linked wallet + minted items | Yes |
+| `PATCH` | `/api/solana/wallet` | Link user's Solana wallet address to their profile | Yes |
 
 ---
 
-## 15. Credentials & Environment Variables
+## 16. Credentials & Environment Variables
 
 > **HACKATHON ONLY.** Rotate all secrets after the event.
 
@@ -724,6 +904,11 @@ CLOUDINARY_API_SECRET=<your_api_secret>
 
 # Google Gemini
 GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
+
+# Solana (devnet payer keypair — JSON array of 64 numbers)
+# Generate with: solana-keygen new --outfile payer.json
+# Fund with:     solana airdrop 2 <PUBKEY> --url devnet
+SOLANA_PAYER_PRIVATE_KEY=[1,2,3,...]
 ```
 
 ### Auth0 App Settings (Dashboard)
@@ -734,7 +919,7 @@ GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
 
 ---
 
-## 16. Hackathon Constraints & Shortcuts
+## 17. Hackathon Constraints & Shortcuts
 
 | Constraint | Decision |
 |---|---|
@@ -743,8 +928,13 @@ GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
 | **Local PostgreSQL** | Use pgAdmin for local DB — no cloud DB setup required |
 | **No separate backend server** | Everything runs as Next.js API routes in the same project |
 | **Gemini response format** | Always demand strict JSON. Strip code block wrappers before parsing. |
+| **Gemini items filter** | Only pass `status === "owned"` items. Wishlisted items are excluded from outfit generation. |
 | **Onboarding skip behavior** | Skipping sets a generic default style string: `"Vibe: Classic. Fit preference: Relaxed. Occasions: Casual."` |
-| **Outfit fallback** | If user has fewer than 3 items, show a placeholder card prompting them to upload more. |
+| **Outfit fallback** | If user has fewer than 3 owned items, show a placeholder card prompting them to upload more. |
+| **Solana network** | Use **devnet** only. Never mainnet during a hackathon. |
+| **Solana mint approach** | SPL token (1 token = 1 item) is fastest. Compressed NFTs (Metaplex Bubblegum) are better but more complex. |
+| **Solana wallet** | Wallet connection is optional for the user — the app works without it. Minting only triggers if a wallet is linked. |
+| **Solana payer** | Use a backend keypair as fee payer. Fund it with `solana airdrop` on devnet. Never expose this key client-side. |
 
 ---
 
@@ -756,4 +946,10 @@ GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
 - **`getSession()` server-side:** In API routes, use `import { getSession } from "@auth0/nextjs-auth0"` to get the current user's session securely.
 - **Drizzle migrations:** Run `npx drizzle-kit push:pg` (or `generate` + `migrate`) to sync schema to the local DB.
 - **Gemini model:** Use `gemini-1.5-flash` — it's fastest and most cost-effective for the hackathon.
+- **Gemini only sees owned items.** Filter wardrobe items to `status === "owned"` before building the Gemini prompt. Wishlisted items must never appear in generated outfits.
+- **`status` field is required on upload.** The `/api/upload` route must reject requests without a valid `status` value (`owned` or `wishlisted`). Default to `owned` in the UI toggle, not silently in the backend.
+- **Solana PublicKey serialization:** `PublicKey` objects from `@solana/web3.js` must be converted with `.toString()` or `.toBase58()` before storing in the DB or returning in JSON.
+- **Solana devnet airdrop:** Devnet airdrops are rate-limited. Fund the payer wallet early. Keep 1–2 SOL on hand; each mint costs ~0.002 SOL.
+- **`nft_mint_address` is nullable.** Items minted successfully will have it set. Items where the user has no wallet linked, or mint failed, will have it as `null`. The app must handle both cases gracefully — never block the UI on mint status.
+- **Wallet adapter setup:** The Solana wallet adapter requires `ConnectionProvider` and `WalletProvider` wrapping the app in `layout.tsx`. Configure endpoint to `clusterApiUrl("devnet")`.
 - **`next/image` with Cloudinary:** Add `res.cloudinary.com` to the `images.domains` array in `next.config.js`.
