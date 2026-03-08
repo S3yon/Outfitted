@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+import { auth0 } from "@/lib/auth0"
 import { Navigation7 } from "@/components/navigation-7"
 import { Hero1 } from "@/components/hero-1"
 import { Features1 } from "@/components/features-1"
@@ -16,7 +18,10 @@ function Divider() {
   )
 }
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth0.getSession();
+  if (session?.user) redirect("/wardrobe");
+
   return (
     <div className="relative min-h-svh flex flex-col">
       <div className="pointer-events-none fixed inset-0 z-0">
