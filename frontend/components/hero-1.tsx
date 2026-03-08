@@ -36,7 +36,7 @@ export function Hero1() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-400 dark:text-neutral-500 leading-[0.95]"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
             >
               digitized.
             </motion.h1>
@@ -47,7 +47,7 @@ export function Hero1() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.45 }}
-            className="text-base sm:text-lg text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-sm"
+            className="text-base sm:text-lg text-neutral-800 dark:text-neutral-300 leading-relaxed max-w-sm"
           >
             Upload your clothes. Take a style quiz.
             <br />
@@ -76,14 +76,6 @@ export function Hero1() {
             </a>
           </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="text-xs text-neutral-400 dark:text-neutral-600"
-          >
-            Hover the image to reveal the styled look
-          </motion.p>
         </div>
 
         {/* Right - Image */}
