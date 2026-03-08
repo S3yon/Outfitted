@@ -176,12 +176,12 @@ export function TryOnView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex bg-background"
+      className="fixed inset-0 z-50 flex flex-col md:flex-row bg-background"
     >
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Left: webcam / result */}
-      <div className="relative flex-1">
+      {/* Camera / result — top half on mobile, full height on desktop */}
+      <div className="relative flex-1 min-h-0">
         {/* Back button */}
         <button
           onClick={onBack}
@@ -338,12 +338,12 @@ export function TryOnView({
         )}
       </div>
 
-      {/* Right: outfit panel */}
+      {/* Outfit panel — bottom sheet on mobile, right sidebar on desktop */}
       <motion.div
-        initial={{ x: 40, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex w-[340px] shrink-0 flex-col border-l border-border bg-background"
+        className="flex h-[42vh] w-full shrink-0 flex-col overflow-y-auto border-t border-border bg-background md:h-auto md:w-[340px] md:overflow-hidden md:border-l md:border-t-0"
       >
         {/* Selected outfit */}
         <div className="shrink-0 p-4">
@@ -389,7 +389,7 @@ export function TryOnView({
             <p className="mb-3 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
               Other Outfits
             </p>
-            <div className="flex flex-col gap-2 overflow-y-auto pr-1">
+            <div className="flex flex-col gap-2 md:overflow-y-auto pr-1">
               {otherOutfits.map((o) => {
                 const thumbItems = [...o.items]
                   .sort((a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category))

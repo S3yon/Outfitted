@@ -34,7 +34,7 @@ export function OutfitCard({
             e.stopPropagation();
             onDelete(outfit.id);
           }}
-          className="rounded-full bg-secondary p-1.5 text-muted-foreground opacity-0 transition-all hover:text-red-500 group-hover:opacity-100"
+          className="rounded-full bg-secondary p-2 text-muted-foreground transition-all hover:text-red-500 md:opacity-0 md:p-1.5 md:group-hover:opacity-100"
         >
           <Trash2 className="size-3.5" />
         </button>
@@ -61,7 +61,7 @@ export function OutfitCard({
         </div>
 
         {/* Right: try-on result or empty */}
-        <div className="relative min-h-[280px] flex-1">
+        <div className="relative min-h-[180px] flex-1 sm:min-h-[280px]">
           {outfit.modelImageUrl ? (
             <Image
               src={outfit.modelImageUrl}

@@ -151,10 +151,10 @@ export default function MarketPage() {
           Back to Market
         </button>
 
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{selected.ticker}</h1>
+              <h1 className="text-xl font-bold tracking-tight sm:text-2xl">{selected.ticker}</h1>
               <span
                 className={cn(
                   "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
@@ -167,8 +167,8 @@ export default function MarketPage() {
             </div>
             <p className="mt-1 text-sm text-muted-foreground">{selected.name}</p>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold font-mono">
+          <div className="sm:text-right">
+            <p className="text-xl font-bold font-mono sm:text-2xl">
               {(selected.currentPrice / 100 / SOL_PRICE).toFixed(4)} SOL
             </p>
             <p className="text-xs text-muted-foreground">
@@ -179,7 +179,7 @@ export default function MarketPage() {
 
         <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
           {/* Chart */}
-          <div className="h-[400px] rounded-xl border border-border bg-secondary/20 p-2">
+          <div className="h-[250px] rounded-xl border border-border bg-secondary/20 p-2 md:h-[400px]">
             {loadingCandles ? (
               <div className="flex h-full items-center justify-center">
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
@@ -260,14 +260,14 @@ export default function MarketPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="text-xl font-semibold tracking-tight">Market</h1>
           <p className="text-xs text-muted-foreground">
             Trade tokenized outfits on Solana
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-2">
+        <div className="flex shrink-0 items-center gap-2 rounded-xl border border-border bg-secondary/50 px-3 py-2 sm:px-4">
           <Wallet className="size-4 text-muted-foreground" />
           <div className="text-right">
             <p className="text-sm font-semibold">{SIMULATED_BALANCE_SOL} SOL</p>
@@ -333,11 +333,11 @@ export default function MarketPage() {
         <div className="mt-6">
           <div className="rounded-xl border border-border">
             {/* Header */}
-            <div className="grid grid-cols-[1fr_100px_100px_100px] gap-4 border-b border-border px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <div className="grid grid-cols-[1fr_75px_65px] gap-3 border-b border-border px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground md:grid-cols-[1fr_100px_100px_100px] md:gap-4">
               <span>Token</span>
-              <span className="text-right">Price (SOL)</span>
+              <span className="text-right">Price</span>
               <span className="text-right">24h</span>
-              <span className="text-right">Volume</span>
+              <span className="hidden text-right md:block">Volume</span>
             </div>
 
             {/* Rows */}
@@ -349,15 +349,15 @@ export default function MarketPage() {
                 <button
                   key={listing.id}
                   onClick={() => openListing(listing)}
-                  className="grid w-full grid-cols-[1fr_100px_100px_100px] gap-4 px-4 py-3 text-left transition-colors hover:bg-secondary/50"
+                  className="grid w-full grid-cols-[1fr_75px_65px] gap-3 px-4 py-3 text-left transition-colors hover:bg-secondary/50 md:grid-cols-[1fr_100px_100px_100px] md:gap-4"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 md:gap-3">
                     {listing.outfit && listing.outfit.items.length > 0 && (
-                      <div className="flex shrink-0 -space-x-2">
+                      <div className="hidden shrink-0 -space-x-2 sm:flex">
                         {listing.outfit.items.slice(0, 4).map((item) => (
                           <div
                             key={item.id}
-                            className="relative size-10 overflow-hidden rounded-lg border-2 border-background bg-white"
+                            className="relative size-8 overflow-hidden rounded-lg border-2 border-background bg-white md:size-10"
                           >
                             <Image
                               src={item.cloudinaryUrl}
@@ -375,18 +375,18 @@ export default function MarketPage() {
                       <p className="truncate text-xs text-muted-foreground">{listing.name}</p>
                     </div>
                   </div>
-                  <p className="self-center text-right text-sm font-medium font-mono">
+                  <p className="self-center text-right text-xs font-medium font-mono md:text-sm">
                     {(listing.currentPrice / 100 / SOL_PRICE).toFixed(4)}
                   </p>
                   <p
                     className={cn(
-                      "self-center text-right text-sm font-medium",
+                      "self-center text-right text-xs font-medium md:text-sm",
                       isUp ? "text-green-500" : "text-red-500",
                     )}
                   >
                     {isUp ? "+" : ""}{changePercent.toFixed(2)}%
                   </p>
-                  <p className="self-center text-right text-sm text-muted-foreground">
+                  <p className="hidden self-center text-right text-sm text-muted-foreground md:block">
                     {listing.volume24h.toLocaleString()}
                   </p>
                 </button>

@@ -73,7 +73,7 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="relative mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-background ring-1 ring-border"
+          className="relative mx-4 flex max-h-[80vh] w-full max-w-2xl flex-col rounded-2xl bg-background ring-1 ring-border sm:max-h-[85vh]"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-5 py-4">

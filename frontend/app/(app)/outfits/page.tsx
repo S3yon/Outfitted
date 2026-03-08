@@ -78,20 +78,17 @@ export default function OutfitsPage() {
             <p className="text-xs text-muted-foreground">AI-styled combinations from your wardrobe</p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="lg" onClick={() => setShowBuilder(true)}>
-              <Plus className="size-4" />
-              Build
+            <Button variant="outline" onClick={() => setShowBuilder(true)} className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6">
+              <Plus className="size-4 shrink-0" />
+              <span className="hidden sm:inline">Build</span>
             </Button>
-            <Button size="lg" onClick={handleGenerate} disabled={generating}>
+            <Button onClick={handleGenerate} disabled={generating} className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6">
               {generating ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Generating...
-                </>
+                <Loader2 className="size-4 animate-spin" />
               ) : (
                 <>
-                  <Sparkles className="size-4" />
-                  Generate
+                  <Sparkles className="size-4 shrink-0" />
+                  <span className="hidden sm:inline">Generate</span>
                 </>
               )}
             </Button>

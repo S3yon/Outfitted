@@ -157,7 +157,7 @@ export default function ProfilePage() {
               </h1>
               <button
                 onClick={() => { setNameValue(displayName); setEditingName(true); }}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all"
+                className="p-1 text-muted-foreground transition-all hover:text-foreground md:opacity-0 md:group-hover:opacity-100"
               >
                 <Pencil className="size-3" />
               </button>
@@ -224,7 +224,7 @@ export default function ProfilePage() {
               <Badge
                 key={badge}
                 variant="outline"
-                className="border-gold/30 bg-gold/10 text-gold"
+                className="border-border bg-secondary"
               >
                 {badge}
               </Badge>
