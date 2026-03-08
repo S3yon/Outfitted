@@ -57,7 +57,7 @@ export default function Footer4() {
         viewport={{ once: true, margin: "-100px" }}
       >
         {/* Headline */}
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8">
           <motion.div variants={itemVariants} className="py-12">
             <h2 className="text-3xl font-medium tracking-tight leading-tight text-neutral-900 dark:text-white sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl">
               Your closet.
@@ -69,7 +69,7 @@ export default function Footer4() {
 
         {/* Two Column Layout with Borders */}
         <div className="border-y border-neutral-200 dark:border-neutral-800">
-          <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8">
             <motion.div
               variants={itemVariants}
               className="grid grid-cols-1 gap-0 lg:grid-cols-[1fr_1.5fr]"
@@ -132,7 +132,7 @@ export default function Footer4() {
         </div>
 
         {/* Bottom Section */}
-        <div className="mx-auto w-full max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8">
           <motion.div variants={itemVariants} className="py-8">
             {/* Logo */}
             <div className="mb-4">

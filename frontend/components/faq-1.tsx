@@ -41,7 +41,7 @@ export default function FAQ1() {
 
   return (
     <section className="w-full min-h-screen flex items-start py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950">
-      <div className="max-w-[1400px] mx-auto w-full">
+      <div className="max-w-[1100px] mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-12 lg:gap-16 xl:gap-20">
           {/* Left Column - Header */}
           <div className="flex flex-col space-y-2 lg:sticky lg:top-24 lg:self-start">

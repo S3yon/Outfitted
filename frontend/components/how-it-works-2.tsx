@@ -39,7 +39,7 @@ export function HowItWorks2() {
       className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950"
       aria-label="How it works"
     >
-      <div className="max-w-[1400px] mx-auto w-full">
+      <div className="max-w-[1100px] mx-auto w-full">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

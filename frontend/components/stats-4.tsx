@@ -29,7 +29,7 @@ const stats = [
 export default function Stats4() {
   return (
     <section className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950">
-      <div className="max-w-[1400px] mx-auto w-full">
+      <div className="max-w-[1100px] mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Left Column - Content */}
           <div className="flex flex-col lg:justify-between lg:min-h-[400px]">
