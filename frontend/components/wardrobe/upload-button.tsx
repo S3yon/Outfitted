@@ -84,7 +84,7 @@ export function UploadButton() {
         className="hidden"
         onChange={handleFileSelect}
       />
-      <Button onClick={() => inputRef.current?.click()} className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6">
+      <Button onClick={() => inputRef.current?.click()} className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-8">
         <Upload className="size-4 shrink-0" />
         <span className="hidden sm:inline">Upload</span>
       </Button>

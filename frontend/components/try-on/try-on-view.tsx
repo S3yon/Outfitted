@@ -340,8 +340,8 @@ export function TryOnView({
 
       {/* Outfit panel — bottom sheet on mobile, right sidebar on desktop */}
       <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
+        initial={{ x: 40, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
         className="flex h-[42vh] w-full shrink-0 flex-col overflow-y-auto border-t border-border bg-background md:h-auto md:w-[340px] md:overflow-hidden md:border-l md:border-t-0"
       >

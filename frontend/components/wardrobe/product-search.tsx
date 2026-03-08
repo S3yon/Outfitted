@@ -189,7 +189,7 @@ export function ProductSearch() {
       <Button
         variant="outline"
         onClick={() => setOpen(true)}
-        className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-6"
+        className="h-10 w-10 p-0 sm:h-11 sm:w-auto sm:gap-2 sm:px-8"
       >
         <Search className="size-4 shrink-0" />
         <span className="hidden sm:inline">Search Products</span>
