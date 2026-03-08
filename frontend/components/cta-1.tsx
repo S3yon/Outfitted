@@ -145,7 +145,7 @@ export default function CTA1() {
 
   return (
     <section
-      className="relative w-full min-h-screen flex items-center justify-center py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950 overflow-hidden"
+      className="relative w-full min-h-screen flex items-center justify-center py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
       onMouseMove={handleMouseMove}
     >
       {/* Background Cards Layer */}
@@ -200,7 +200,7 @@ export default function CTA1() {
           >
             <a
               href="/api/auth/login"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-md bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 font-medium text-base hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors duration-200"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-lg bg-neutral-800 dark:bg-white text-white dark:text-neutral-900 font-medium text-base hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors duration-200"
             >
               Get Started Free
             </a>
