@@ -58,7 +58,7 @@ export function Features1() {
 
   return (
     <section className="w-full py-16 px-4 md:px-32 lg:px-8 bg-white dark:bg-neutral-950">
-      <div className="max-w-[1400px] mx-auto">
+      <div className="max-w-[1100px] mx-auto">
         {/* Header */}
         <div className="mb-12 md:mb-16 lg:mb-20">
           <motion.p

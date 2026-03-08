@@ -35,7 +35,7 @@ export function Navigation7() {
   return (
     <>
       <nav className="w-full py-6 px-4 sm:px-6 lg:px-8 bg-transparent">
-        <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between gap-8">
+        <div className="max-w-[1100px] mx-auto w-full flex items-center justify-between gap-8">
           {/* Left side: Logo + Nav Items */}
           <div className="flex items-center gap-2">
             {/* Logo */}

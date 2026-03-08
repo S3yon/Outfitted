@@ -162,7 +162,7 @@ export default function CTA1() {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 max-w-[1400px] mx-auto w-full">
+      <div className="relative z-10 max-w-[1100px] mx-auto w-full">
         <div className="max-w-4xl mx-auto text-center">
           {/* Heading */}
           <motion.h1
