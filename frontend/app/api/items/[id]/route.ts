@@ -4,6 +4,40 @@ import { db } from "@/lib/db";
 import { users, clothingItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import cloudinary from "@/lib/cloudinary";
+import { replicate } from "@/lib/replicate";
+import sharp from "sharp";
+
+async function uploadBufferToCloudinary(
+  buffer: Buffer,
+): Promise<{ url: string; publicId: string }> {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader
+      .upload_stream(
+        { folder: "outfitted", resource_type: "image", format: "png" },
+        (error, result) => {
+          if (error || !result) reject(error ?? new Error("Upload failed"));
+          else resolve({ url: result.secure_url, publicId: result.public_id });
+        },
+      )
+      .end(buffer);
+  });
+}
+
+async function removeBackground(
+  imageUrl: string,
+): Promise<{ url: string; publicId: string }> {
+  const output = await replicate.run(
+    "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
+    { input: { image: imageUrl } },
+  );
+
+  const resultUrl = output as unknown as string;
+  const resultRes = await fetch(resultUrl);
+  const resultBuffer = Buffer.from(await resultRes.arrayBuffer());
+  const pngBuffer = await sharp(resultBuffer).png().toBuffer();
+
+  return uploadBufferToCloudinary(pngBuffer);
+}
 
 // PATCH /api/items/[id] — update status, notes, or wear level
 export async function PATCH(
@@ -19,6 +53,14 @@ export async function PATCH(
   const [user] = await db.select().from(users).where(eq(users.auth0Id, session.user.sub)).limit(1);
   if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  const [existing] = await db
+    .select()
+    .from(clothingItems)
+    .where(and(eq(clothingItems.id, id), eq(clothingItems.userId, user.id)))
+    .limit(1);
+
+  if (!existing) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+
   const body = await req.json();
   const { status, notes, wearLevel, nftMintAddress } = body;
 
@@ -28,13 +70,26 @@ export async function PATCH(
   if (wearLevel !== undefined) updates.wearLevel = wearLevel;
   if (nftMintAddress !== undefined) updates.nftMintAddress = nftMintAddress;
 
+  // When transitioning wishlisted → owned, run background removal on the image
+  if (status === "owned" && existing.status === "wishlisted") {
+    console.log(`[items] Removing background for: ${existing.notes}`);
+    const { url, publicId } = await removeBackground(existing.cloudinaryUrl);
+    updates.cloudinaryUrl = url;
+    updates.cloudinaryPublicId = publicId;
+
+    // Delete the old Cloudinary image
+    try {
+      await cloudinary.uploader.destroy(existing.cloudinaryPublicId);
+    } catch (err) {
+      console.error("[items] Old image cleanup failed:", err);
+    }
+  }
+
   const [updated] = await db
     .update(clothingItems)
     .set(updates)
     .where(and(eq(clothingItems.id, id), eq(clothingItems.userId, user.id)))
     .returning();
-
-  if (!updated) return NextResponse.json({ error: "Item not found" }, { status: 404 });
 
   return NextResponse.json(updated);
 }

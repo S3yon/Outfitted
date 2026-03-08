@@ -1,11 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { Trash2, Check, Heart } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Check, Heart, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ClothingItem } from "@/db/schema";
+
+const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
 
 const CATEGORIES = [null, "tops", "bottoms", "shoes", "outerwear", "accessories"] as const;
 const CATEGORY_LABELS: Record<string, string> = {
@@ -19,12 +25,19 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function WardrobeGrid() {
   const {
     wardrobeItems,
+    setWardrobeItems,
     activeCategory,
     setActiveCategory,
     activeStatus,
     setActiveStatus,
     removeWardrobeItem,
+    processingItemIds,
+    addProcessingItem,
+    removeProcessingItem,
   } = useAppStore();
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction, connected } = useWallet();
+  const { setVisible: openWalletModal } = useWalletModal();
 
   const filtered = wardrobeItems
     .filter((i) => (activeCategory ? i.category === activeCategory : true))
@@ -38,6 +51,93 @@ export function WardrobeGrid() {
     }
     removeWardrobeItem(item.id);
     toast.success("Item removed");
+  }
+
+  async function handleMarkOwned(item: ClothingItem) {
+    // Optimistic: instantly move to owned, show skeleton while processing
+    setWardrobeItems(
+      wardrobeItems.map((i) =>
+        i.id === item.id ? { ...i, status: "owned" } : i,
+      ),
+    );
+    addProcessingItem(item.id);
+
+    const res = await fetch(`/api/items/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "owned" }),
+    });
+
+    removeProcessingItem(item.id);
+
+    if (!res.ok) {
+      // Revert on failure
+      setWardrobeItems(
+        useAppStore.getState().wardrobeItems.map((i) =>
+          i.id === item.id ? { ...i, status: "wishlisted" } : i,
+        ),
+      );
+      toast.error("Failed to update item");
+      return;
+    }
+
+    const updated = await res.json();
+    setWardrobeItems(
+      useAppStore.getState().wardrobeItems.map((i) =>
+        i.id === item.id ? updated : i,
+      ),
+    );
+    toast.success("Moved to owned");
+  }
+
+  async function handleBuyWithSol(item: ClothingItem) {
+    if (!publicKey) {
+      openWalletModal(true);
+      return;
+    }
+
+    const priceStr = item.price?.replace(/[^0-9.]/g, "");
+    const priceUsd = priceStr ? parseFloat(priceStr) : 0;
+    if (priceUsd <= 0) {
+      toast.error("No valid price for this item");
+      return;
+    }
+
+    const solPrice = priceUsd / 150;
+    const lamports = Math.round(solPrice * LAMPORTS_PER_SOL);
+
+    const transaction = new Transaction().add(
+      SystemProgram.transfer({
+        fromPubkey: publicKey,
+        toPubkey: TREASURY_WALLET,
+        lamports,
+      }),
+    );
+
+    const signature = await sendTransaction(transaction, connection);
+    await connection.confirmTransaction(signature, "confirmed");
+
+    const res = await fetch(`/api/items/${item.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        status: "owned",
+        nftMintAddress: signature,
+      }),
+    });
+
+    if (!res.ok) {
+      toast.error("Payment succeeded but failed to update item status");
+      return;
+    }
+
+    const updated = await res.json();
+    setWardrobeItems(
+      wardrobeItems.map((i) => (i.id === item.id ? updated : i)),
+    );
+    toast.success(
+      `Purchased for ~${solPrice.toFixed(3)} SOL`,
+    );
   }
 
   return (
@@ -90,7 +190,15 @@ export function WardrobeGrid() {
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((item) => (
-            <ItemCard key={item.id} item={item} onDelete={handleDelete} />
+            <ItemCard
+              key={item.id}
+              item={item}
+              processing={processingItemIds.includes(item.id)}
+              onDelete={handleDelete}
+              onMarkOwned={handleMarkOwned}
+              onBuyWithSol={handleBuyWithSol}
+              walletConnected={connected}
+            />
           ))}
         </div>
       )}
@@ -100,13 +208,59 @@ export function WardrobeGrid() {
 
 function ItemCard({
   item,
+  processing,
   onDelete,
+  onMarkOwned,
+  onBuyWithSol,
+  walletConnected,
 }: {
   item: ClothingItem;
+  processing: boolean;
   onDelete: (item: ClothingItem) => void;
+  onMarkOwned: (item: ClothingItem) => void;
+  onBuyWithSol: (item: ClothingItem) => void;
+  walletConnected: boolean;
 }) {
+  const [busy, setBusy] = useState(false);
+  const isWishlisted = item.status === "wishlisted";
+  const hasPrice = Boolean(item.price);
+  const hasProductUrl = Boolean(item.productUrl);
+
+  async function handleBuy() {
+    setBusy(true);
+    try {
+      await onBuyWithSol(item);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Transaction failed");
+    }
+    setBusy(false);
+  }
+
+  async function handleOwn() {
+    await onMarkOwned(item);
+  }
+
+  if (processing) {
+    return (
+      <div className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white">
+        <div className="relative aspect-[3/4] animate-pulse bg-muted">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+            <p className="text-[10px] font-medium text-muted-foreground">
+              Removing background...
+            </p>
+          </div>
+        </div>
+        <div className="border-t border-black/5 bg-background p-2.5">
+          <div className="h-2.5 w-16 animate-pulse rounded bg-muted" />
+          <div className="mt-1.5 h-2 w-24 animate-pulse rounded bg-muted" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="group relative overflow-hidden rounded-xl border border-white/10 bg-white transition-shadow hover:shadow-lg hover:shadow-black/20">
+    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white transition-shadow hover:shadow-lg hover:shadow-black/20">
       {/* Status badge */}
       <div className="absolute left-2 top-2 z-10">
         {item.status === "owned" ? (
@@ -141,11 +295,63 @@ function ItemCard({
         />
       </div>
 
-      {/* Info overlay */}
-      <div className="absolute inset-x-0 bottom-0 translate-y-full bg-black/70 p-2.5 backdrop-blur-sm transition-transform group-hover:translate-y-0">
-        <p className="text-xs font-medium capitalize text-white">{item.category}</p>
+      {/* Info — always visible below image */}
+      <div className="border-t border-black/5 bg-background p-2.5">
+        {item.brand && (
+          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+            {item.brand}
+          </p>
+        )}
+        <p className="text-xs font-medium capitalize text-foreground">{item.category}</p>
         {item.notes && (
-          <p className="mt-0.5 truncate text-[10px] text-white/60">{item.notes}</p>
+          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.notes}</p>
+        )}
+        {hasPrice && (
+          <p className="mt-1 text-sm font-semibold text-foreground">{item.price}</p>
+        )}
+
+        {isWishlisted && (
+          <div className="mt-2 flex flex-col gap-1.5">
+            {hasPrice && (
+              <button
+                disabled={busy}
+                onClick={handleBuy}
+                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-purple-600 px-2 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50"
+              >
+                {busy ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <>Buy with SOL</>
+                )}
+              </button>
+            )}
+            <div className="flex gap-1.5">
+              <button
+                disabled={busy}
+                onClick={handleOwn}
+                className="flex flex-1 items-center justify-center gap-1 rounded-md bg-gold px-2 py-1.5 text-[11px] font-medium text-black transition-colors hover:bg-gold/80 disabled:opacity-50"
+              >
+                {busy ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <>
+                    <ArrowRightLeft className="size-3" />
+                    Mark Owned
+                  </>
+                )}
+              </button>
+              {hasProductUrl && (
+                <a
+                  href={item.productUrl!}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center rounded-md border border-border px-2 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ExternalLink className="size-3" />
+                </a>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

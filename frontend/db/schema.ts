@@ -39,6 +39,10 @@ export const clothingItems = sqliteTable("clothing_items", {
   notes: text("notes"),
   wearLevel: integer("wear_level").default(1),
   nftMintAddress: text("nft_mint_address"),
+  brand: text("brand"),
+  price: text("price"),
+  productUrl: text("product_url"),
+  solanaTxSignature: text("solana_tx_signature"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(datetime('now'))`),

@@ -31,6 +31,14 @@ pnpm-debug.log*
 # env files
 .env*.local
 
+# sqlite
+*.db
+*.db-shm
+*.db-wal
+
+# misc
+*.stackdump
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

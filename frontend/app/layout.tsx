@@ -5,6 +5,7 @@ import { Auth0Provider } from "@auth0/nextjs-auth0/client"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/sonner"
+import { SolanaProvider } from "@/providers/solana-provider"
 import { cn } from "@/lib/utils"
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" })
@@ -32,10 +33,12 @@ export default function RootLayout({
     >
       <body>
         <Auth0Provider>
-          <ThemeProvider>
-            {children}
-            <Toaster />
-          </ThemeProvider>
+          <SolanaProvider>
+            <ThemeProvider>
+              {children}
+              <Toaster />
+            </ThemeProvider>
+          </SolanaProvider>
         </Auth0Provider>
       </body>
     </html>

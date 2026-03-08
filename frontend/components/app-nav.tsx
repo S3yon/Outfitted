@@ -1,9 +1,18 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Shirt, Layers, User } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+const WalletMultiButton = dynamic(
+  () =>
+    import("@solana/wallet-adapter-react-ui").then(
+      (mod) => mod.WalletMultiButton,
+    ),
+  { ssr: false },
+)
 
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
@@ -40,6 +49,16 @@ export function AppNav() {
               </Link>
             )
           })}
+        </div>
+        <div className="ml-auto">
+          <WalletMultiButton
+            style={{
+              height: 36,
+              fontSize: 13,
+              borderRadius: 8,
+              backgroundColor: "hsl(var(--secondary))",
+            }}
+          />
         </div>
       </nav>
 

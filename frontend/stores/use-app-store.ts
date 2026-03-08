@@ -23,6 +23,10 @@ type AppStore = {
   outfits: PopulatedOutfit[];
   setOutfits: (outfits: PopulatedOutfit[]) => void;
 
+  processingItemIds: string[];
+  addProcessingItem: (id: string) => void;
+  removeProcessingItem: (id: string) => void;
+
   activeCategory: string | null;
   setActiveCategory: (category: string | null) => void;
   activeStatus: "owned" | "wishlisted" | null;
@@ -47,6 +51,14 @@ export const useAppStore = create<AppStore>((set) => ({
 
   outfits: [],
   setOutfits: (outfits) => set({ outfits }),
+
+  processingItemIds: [],
+  addProcessingItem: (id) =>
+    set((state) => ({ processingItemIds: [...state.processingItemIds, id] })),
+  removeProcessingItem: (id) =>
+    set((state) => ({
+      processingItemIds: state.processingItemIds.filter((i) => i !== id),
+    })),
 
   activeCategory: null,
   setActiveCategory: (category) => set({ activeCategory: category }),
