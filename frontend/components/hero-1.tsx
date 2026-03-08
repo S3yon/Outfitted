@@ -12,29 +12,32 @@ export function Hero1() {
   return (
     <section className="relative w-full h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden bg-neutral-950">
       {/* Grainient Background */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 w-full h-full">
         <Grainient
-          color1="#3a3a3a"
-          color2="#1a1a1a"
+          color1="#ffffff"
+          color2="#666666"
           color3="#000000"
-          timeSpeed={0.15}
-          warpStrength={0.8}
-          warpFrequency={3}
-          warpSpeed={1}
-          warpAmplitude={60}
-          rotationAmount={300}
-          noiseScale={1.5}
-          grainAmount={0.12}
+          timeSpeed={0.2}
+          warpStrength={1}
+          warpFrequency={4}
+          warpSpeed={1.5}
+          warpAmplitude={40}
+          rotationAmount={400}
+          noiseScale={2}
+          grainAmount={0.1}
           grainScale={2}
-          contrast={1.6}
+          contrast={1.5}
           gamma={1}
           saturation={0}
-          zoom={0.8}
+          zoom={0.9}
+          className="w-full h-full"
         />
       </div>
+      {/* Darken overlay so white text reads over bright grain areas */}
+      <div className="absolute inset-0 z-[1] bg-black/50" />
 
       {/* Content */}
-      <div className="relative z-10 max-w-[1100px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <div className="relative z-[2] max-w-[1100px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
         {/* Left - Text */}
         <div className="flex flex-col gap-6 sm:gap-8 text-center lg:text-left items-center lg:items-start">
           <motion.h1
