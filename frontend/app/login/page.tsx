@@ -134,7 +134,7 @@ export default function LoginPage() {
               {/* Auth card */}
               <div className="rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white/75 dark:bg-neutral-900/75 backdrop-blur-xl shadow-xl p-6 space-y-4">
                 <a
-                  href="/api/auth/login"
+                  href="/api/auth/login?returnTo=/wardrobe"
                   className="flex items-center justify-center gap-2.5 w-full px-5 py-3.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
                 >
                   Continue
