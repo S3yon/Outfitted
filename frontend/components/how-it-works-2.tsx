@@ -36,7 +36,7 @@ export function HowItWorks2() {
 
   return (
     <section
-      className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950"
+      className="w-full py-12 px-4 sm:px-6 lg:px-8"
       aria-label="How it works"
     >
       <div className="max-w-[1100px] mx-auto w-full">
@@ -56,7 +56,7 @@ export function HowItWorks2() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: idx * 0.1 }}
-              className="relative overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-900 min-h-[400px] sm:min-h-[450px] lg:min-h-[500px] flex flex-col cursor-pointer"
+              className="relative overflow-hidden rounded-2xl bg-white dark:bg-neutral-900 min-h-[400px] sm:min-h-[450px] lg:min-h-[500px] flex flex-col cursor-pointer border border-neutral-200/60 dark:border-neutral-800"
               onMouseEnter={() => setHoveredCard(card.number)}
               onMouseLeave={() => setHoveredCard(null)}
               aria-label={`Step ${card.number}: ${card.title}`}

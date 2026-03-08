@@ -28,7 +28,7 @@ const stats = [
 
 export default function Stats4() {
   return (
-    <section className="w-full py-12 px-4 sm:px-6 lg:px-8 bg-white dark:bg-neutral-950">
+    <section className="w-full py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-[1100px] mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center">
           {/* Left Column - Content */}
@@ -63,7 +63,7 @@ export default function Stats4() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
-                className="cursor-pointer inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-black dark:bg-white text-white dark:text-black font-medium text-sm sm:text-base hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors duration-200 w-fit"
+                className="cursor-pointer inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-neutral-800 dark:bg-white text-white dark:text-black font-medium text-sm sm:text-base hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors duration-200 w-fit"
               >
                 Start styling
                 <ArrowRight className="w-5 h-5" />
@@ -80,7 +80,7 @@ export default function Stats4() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
-                className="relative rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-md overflow-hidden p-6 min-h-[180px] sm:min-h-[200px] flex flex-col justify-between bg-white dark:bg-neutral-900"
+                className="relative rounded-3xl border border-neutral-200/60 dark:border-neutral-800 shadow-sm overflow-hidden p-6 min-h-[180px] sm:min-h-[200px] flex flex-col justify-between bg-white dark:bg-neutral-900"
               >
                 {/* Dotted Background */}
                 <div

@@ -49,7 +49,7 @@ export default function Footer4() {
   };
 
   return (
-    <footer className="w-full bg-white dark:bg-neutral-950">
+    <footer className="w-full">
       <motion.div
         variants={containerVariants}
         initial="hidden"
