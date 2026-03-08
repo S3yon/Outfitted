@@ -31,7 +31,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", outfit.variable)}
     >
-      <body>
+      <body suppressHydrationWarning>
         <Auth0Provider>
           <SolanaProvider>
             <ThemeProvider>
