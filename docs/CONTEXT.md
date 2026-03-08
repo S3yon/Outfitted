@@ -740,7 +740,6 @@ GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
 |---|---|
 | **No HTML5 Canvas** | CSS Grid + absolute positioning for outfit compositing |
 | **15 BG removal credits** | Fallback to raw upload URL if Cloudinary AI errors |
-| **14-hour window** | No unit tests. Optimize for demo-ability, not production hardening. |
 | **Local PostgreSQL** | Use pgAdmin for local DB — no cloud DB setup required |
 | **No separate backend server** | Everything runs as Next.js API routes in the same project |
 | **Gemini response format** | Always demand strict JSON. Strip code block wrappers before parsing. |
