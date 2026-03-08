@@ -3,6 +3,8 @@
 import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
+import { LineShadowText } from "@/components/ui/line-shadow-text";
+import { Highlighter } from "@/components/ui/highlighter";
 
 const ShaderReveal = dynamic(() => import("@/components/shader-reveal"), {
   ssr: false,
@@ -10,7 +12,7 @@ const ShaderReveal = dynamic(() => import("@/components/shader-reveal"), {
 
 export function Hero1() {
   return (
-    <section className="relative w-full h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden pt-16">
+    <section className="relative w-full h-svh flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="relative z-10 max-w-[1100px] mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
         {/* Left - Copy */}
         <div className="flex flex-col gap-8 text-center lg:text-left items-center lg:items-start">
@@ -22,7 +24,7 @@ export function Hero1() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
             >
-              Your
+              <span className="relative inline-flex after:absolute after:top-[0.04em] after:left-[0.04em] after:content-[attr(data-text)] after:-z-10 after:text-black/15 dark:after:text-white/15" data-text="Your">Your</span>
             </motion.h1>
             <motion.h1
               initial={{ opacity: 0 }}
@@ -30,7 +32,7 @@ export function Hero1() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
             >
-              wardrobe,
+              <span className="relative inline-flex after:absolute after:top-[0.04em] after:left-[0.04em] after:content-[attr(data-text)] after:-z-10 after:text-black/15 dark:after:text-white/15" data-text="wardrobe,">wardrobe,</span>
             </motion.h1>
             <motion.h1
               initial={{ opacity: 0 }}
@@ -38,7 +40,7 @@ export function Hero1() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-tighter text-neutral-900 dark:text-white leading-[0.95]"
             >
-              digitized.
+              <Highlighter action="underline" color="#f97316" strokeWidth={3} iterations={3} padding={6}><LineShadowText shadowColor="black">digitized.</LineShadowText></Highlighter>
             </motion.h1>
           </div>
 
@@ -51,7 +53,7 @@ export function Hero1() {
           >
             Upload your clothes. Take a style quiz.
             <br />
-            Get AI-curated outfits daily.
+            Get <Highlighter action="highlight" color="#ffd1dc">AI-curated outfits</Highlighter> daily.
           </motion.p>
 
           {/* CTA row */}
