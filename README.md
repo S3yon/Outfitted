@@ -8,7 +8,7 @@ Built for **Hack Canada** — targeting four tracks: **Best Use of Auth0**, **Be
 
 ## What It Is
 
-Outfitted is a high-end web app inspired by [Indyx](https://www.indyx.com). Users photograph their clothing, the app strips the background via AI, and stores every piece in a sleek virtual closet. Items can be marked as **Owned** (in your physical closet) or **Wishlisted** (items you want). From there, a Gemini-powered stylist reads your style profile and assembles curated outfit flatlay cards using only your owned items — and Solana records ownership of those items on-chain.
+Outfitted is a high-end web app where users photograph their clothing. The app strips the background via AI and stores every piece in a sleek virtual closet. Items can be marked as **Owned** (in your physical closet) or **Wishlisted** (items you want). From there, a Gemini-powered stylist reads your style profile and assembles curated outfit flatlay cards using only your owned items — and Solana records ownership of those items on-chain.
 
 ---
 
