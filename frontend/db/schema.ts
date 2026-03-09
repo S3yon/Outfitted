@@ -1,9 +1,9 @@
 import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
-export const users = sqliteTable("users", {
+export const users = pgTable("users", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -11,21 +11,19 @@ export const users = sqliteTable("users", {
   email: text("email").notNull(),
   displayName: text("display_name"),
   styleProfile: text("style_profile"),
-  onboardingCompleted: integer("onboarding_completed", { mode: "boolean" })
-    .notNull()
-    .default(false),
+  onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
   solanaWalletAddress: text("solana_wallet_address"),
   createdAt: text("created_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
   updatedAt: text("updated_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
 });
 
 // ─── Clothing Items ───────────────────────────────────────────────────────────
 
-export const clothingItems = sqliteTable("clothing_items", {
+export const clothingItems = pgTable("clothing_items", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -45,15 +43,15 @@ export const clothingItems = sqliteTable("clothing_items", {
   solanaTxSignature: text("solana_tx_signature"),
   createdAt: text("created_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
   updatedAt: text("updated_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
 });
 
 // ─── Outfits ──────────────────────────────────────────────────────────────────
 
-export const outfits = sqliteTable("outfits", {
+export const outfits = pgTable("outfits", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -64,12 +62,12 @@ export const outfits = sqliteTable("outfits", {
   modelImageUrl: text("model_image_url"),
   createdAt: text("created_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
 });
 
 // ─── Outfit Items (join table) ────────────────────────────────────────────────
 
-export const outfitItems = sqliteTable("outfit_items", {
+export const outfitItems = pgTable("outfit_items", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -117,7 +115,7 @@ export const outfitItemsRelations = relations(outfitItems, ({ one }) => ({
 
 // ─── Market Listings ─────────────────────────────────────────────────────────
 
-export const marketListings = sqliteTable("market_listings", {
+export const marketListings = pgTable("market_listings", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -136,12 +134,12 @@ export const marketListings = sqliteTable("market_listings", {
   change24h: integer("change_24h").notNull().default(0), // basis points (+250 = +2.5%)
   createdAt: text("created_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
 });
 
 // ─── Price History (OHLC candles) ────────────────────────────────────────────
 
-export const priceCandles = sqliteTable("price_candles", {
+export const priceCandles = pgTable("price_candles", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -158,7 +156,7 @@ export const priceCandles = sqliteTable("price_candles", {
 
 // ─── Holdings ────────────────────────────────────────────────────────────────
 
-export const holdings = sqliteTable("holdings", {
+export const holdings = pgTable("holdings", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -173,7 +171,7 @@ export const holdings = sqliteTable("holdings", {
 
 // ─── Trade History ───────────────────────────────────────────────────────────
 
-export const trades = sqliteTable("trades", {
+export const trades = pgTable("trades", {
   id: text("id")
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -188,7 +186,7 @@ export const trades = sqliteTable("trades", {
   price: integer("price").notNull(), // price per unit at time of trade
   createdAt: text("created_at")
     .notNull()
-    .default(sql`(datetime('now'))`),
+    .default(sql`(now() at time zone 'utc')`),
 });
 
 // ─── Market Relations ────────────────────────────────────────────────────────

@@ -3,7 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
 import { users, clothingItems, outfits, outfitItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { geminiModel, cleanGeminiJson, type GeminiResponse } from "@/lib/gemini";
+import { cleanGeminiJson, type GeminiResponse } from "@/lib/gemini";
 
 export async function POST() {
   const session = await auth0.getSession();
@@ -74,8 +74,30 @@ Rules:
 - Name each outfit with personality — match the naming vibe to the client's aesthetic.
 `.trim();
 
-  const result = await geminiModel.generateContent(prompt);
-  const raw = result.response.text();
+  let raw: string;
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.0-flash-001",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error("[outfits/generate] OpenRouter error:", err);
+      return NextResponse.json({ error: "AI service failed. Try again." }, { status: 502 });
+    }
+    const data = await res.json();
+    raw = data.choices?.[0]?.message?.content ?? "";
+  } catch (err) {
+    console.error("[outfits/generate] error:", err);
+    return NextResponse.json({ error: "AI service failed. Try again." }, { status: 502 });
+  }
   const cleaned = cleanGeminiJson(raw);
 
   let parsed: GeminiResponse;

@@ -1,20 +1,14 @@
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/postgres-js";
+import postgres from "postgres";
 import * as schema from "@/db/schema";
-import { join } from "path";
 
-const dbPath = join(process.cwd(), "db", "outfitted.db");
+const globalForDb = globalThis as unknown as { pg: postgres.Sql | undefined };
 
-const globalForDb = globalThis as unknown as { sqlite: Database.Database | undefined };
-
-const sqlite = globalForDb.sqlite ?? new Database(dbPath);
+const pg = globalForDb.pg ?? postgres(process.env.DATABASE_URL!);
 
 if (process.env.NODE_ENV !== "production") {
-  globalForDb.sqlite = sqlite;
+  globalForDb.pg = pg;
 }
 
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(pg, { schema });
 export type DB = typeof db;
