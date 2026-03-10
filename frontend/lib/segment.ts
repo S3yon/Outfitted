@@ -20,32 +20,52 @@ export async function segmentClothing(imageBuffer: Buffer): Promise<Buffer> {
   if (!res.ok) throw new Error(`Failed to fetch segmentation result: ${res.status}`);
   const resultBuffer = Buffer.from(await res.arrayBuffer());
 
-  // Check if output is already a transparent PNG (RGBA) or a mask
   const meta = await sharp(resultBuffer).metadata();
 
+  // Get mask data — either the alpha channel of an RGBA result, or the grayscale mask
+  let maskData: Buffer;
+  let width: number;
+  let height: number;
+
   if (meta.channels === 4) {
-    // Already has alpha — it's the isolated item
-    return resultBuffer;
+    // RGBA result — extract alpha as the mask
+    const { data, info } = await sharp(resultBuffer)
+      .extractChannel(3)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    maskData = Buffer.from(data);
+    width = info.width;
+    height = info.height;
+  } else {
+    // Grayscale mask
+    const { data, info } = await sharp(resultBuffer)
+      .grayscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    maskData = Buffer.from(data);
+    width = info.width;
+    height = info.height;
   }
 
-  // It's a grayscale mask — apply it as alpha to the original
-  const { data: orig, info } = await sharp(imageBuffer)
+  // Resize original to match mask dimensions and apply mask as alpha
+  const { data: orig } = await sharp(imageBuffer)
+    .resize(width, height)
     .ensureAlpha()
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  const { data: maskData } = await sharp(resultBuffer)
-    .resize(info.width, info.height)
-    .grayscale()
+  // Resize mask to match if needed (should already match)
+  const { data: resizedMask } = await sharp(maskData, { raw: { width, height, channels: 1 } })
     .raw()
     .toBuffer({ resolveWithObject: true });
 
-  for (let i = 0; i < info.width * info.height; i++) {
-    orig[i * 4 + 3] = maskData[i];
+  for (let i = 0; i < width * height; i++) {
+    // Binarize: threshold at 128 to avoid semi-transparent ghosting
+    orig[i * 4 + 3] = resizedMask[i] > 128 ? 255 : 0;
   }
 
   return sharp(orig, {
-    raw: { width: info.width, height: info.height, channels: 4 },
+    raw: { width, height, channels: 4 },
   })
     .png()
     .toBuffer();
