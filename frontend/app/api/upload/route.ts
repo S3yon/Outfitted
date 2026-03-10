@@ -5,6 +5,7 @@ import { users, clothingItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeClothingImage } from "@/lib/openrouter";
 import { removeBackground } from "@/lib/removebg";
+import { segmentClothing } from "@/lib/segment";
 import cloudinary from "@/lib/cloudinary";
 import sharp from "sharp";
 
@@ -128,8 +129,18 @@ export async function POST(req: Request) {
 
           step = performance.now();
           const cropBuffer = Buffer.from(cropBase64, "base64");
-          const isolatedBuffer = await removeBackground(cropBuffer);
-          console.log(`[upload] remove.bg "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
+
+          // Try clothing segmentation first (removes person/mannequin), fall back to remove.bg
+          let isolatedBuffer: Buffer;
+          try {
+            isolatedBuffer = await segmentClothing(cropBuffer);
+            console.log(`[upload] clothing segmentation "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
+          } catch (err) {
+            console.warn(`[upload] clothing segmentation failed, falling back to remove.bg:`, err);
+            step = performance.now();
+            isolatedBuffer = await removeBackground(cropBuffer);
+            console.log(`[upload] remove.bg fallback "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
+          }
 
           step = performance.now();
           const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
