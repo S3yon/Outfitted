@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { users, clothingItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { analyzeClothingImage } from "@/lib/openrouter";
-import { isolateItem } from "@/lib/replicate";
+import { removeBackground } from "@/lib/removebg";
 import cloudinary from "@/lib/cloudinary";
 import sharp from "sharp";
 
@@ -127,8 +127,9 @@ export async function POST(req: Request) {
           console.log(`[upload] bbox crop: ${(performance.now() - step).toFixed(0)}ms`);
 
           step = performance.now();
-          const isolatedBuffer = await isolateItem(cropBase64, cropMime, identified.description);
-          console.log(`[upload] Replicate isolate "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
+          const cropBuffer = Buffer.from(cropBase64, "base64");
+          const isolatedBuffer = await removeBackground(cropBuffer);
+          console.log(`[upload] remove.bg "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
 
           step = performance.now();
           const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
