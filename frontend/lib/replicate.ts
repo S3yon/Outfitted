@@ -20,7 +20,7 @@ export async function isolateItem(
       image: dataUri,
       mask_prompt: description,
       negative_mask_prompt: "",
-      adjustment_factor: 0,
+      adjustment_factor: 15,
     },
   }) as unknown[];
 
