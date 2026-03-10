@@ -102,11 +102,32 @@ export async function POST(req: Request) {
       const createdItems = await Promise.all(
         validItems.map(async (identified) => {
           let step = performance.now();
-          const isolatedBuffer = await isolateItem(
-            imageBase64,
-            mimeType,
-            identified.description,
-          );
+
+          // Crop to the bounding box of the identified item before background removal
+          let cropBase64 = imageBase64;
+          let cropMime = mimeType;
+          if (identified.bbox) {
+            const { x1, y1, x2, y2 } = identified.bbox;
+            const meta = await sharp(imageBuffer).metadata();
+            const imgW = meta.width ?? 1;
+            const imgH = meta.height ?? 1;
+            const left = Math.floor(Math.max(0, x1) * imgW);
+            const top = Math.floor(Math.max(0, y1) * imgH);
+            const width = Math.floor(Math.min(1, x2) * imgW) - left;
+            const height = Math.floor(Math.min(1, y2) * imgH) - top;
+            if (width > 0 && height > 0) {
+              const cropped = await sharp(imageBuffer)
+                .extract({ left, top, width, height })
+                .png()
+                .toBuffer();
+              cropBase64 = cropped.toString("base64");
+              cropMime = "image/png";
+            }
+          }
+          console.log(`[upload] bbox crop: ${(performance.now() - step).toFixed(0)}ms`);
+
+          step = performance.now();
+          const isolatedBuffer = await isolateItem(cropBase64, cropMime, identified.description);
           console.log(`[upload] Replicate isolate "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
 
           step = performance.now();

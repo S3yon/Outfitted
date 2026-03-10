@@ -4,6 +4,7 @@ const MODEL = "google/gemini-3.1-flash-image-preview";
 type IdentifiedItem = {
   category: "tops" | "bottoms" | "shoes" | "outerwear" | "accessories";
   description: string;
+  bbox: { x1: number; y1: number; x2: number; y2: number };
 };
 
 type AnalysisResult = {
@@ -37,6 +38,7 @@ export async function analyzeClothingImage(
 Provide:
 - "category": one of "tops", "bottoms", "shoes", "outerwear", "accessories"
 - "description": a short description (e.g. "white oversized t-shirt", "black leather chelsea boots")
+- "bbox": bounding box of the item as normalized coordinates (0.0–1.0) — { "x1": left, "y1": top, "x2": right, "y2": bottom }
 
 Category rules:
 - tops: t-shirts, shirts, blouses, tank tops, polos, sweaters, hoodies (without zipper/when worn as main top)
@@ -46,7 +48,7 @@ Category rules:
 - accessories: hats, bags, belts, jewelry, watches, sunglasses, scarves, necklaces, bracelets, glasses
 
 Respond ONLY with valid JSON, no markdown:
-{ "items": [{ "category": "tops", "description": "white t-shirt" }] }`,
+{ "items": [{ "category": "tops", "description": "white t-shirt", "bbox": { "x1": 0.1, "y1": 0.05, "x2": 0.9, "y2": 0.95 } }] }`,
             },
           ],
         },
