@@ -3,15 +3,15 @@
 import Image from "next/image";
 import { useState } from "react";
 import { Trash2, Check, Heart, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+// import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+// import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ClothingItem } from "@/db/schema";
 
-const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
+// const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
 
 const CATEGORIES = [null, "tops", "bottoms", "shoes", "outerwear", "accessories"] as const;
 const CATEGORY_LABELS: Record<string, string> = {
@@ -35,9 +35,9 @@ export function WardrobeGrid() {
     addProcessingItem,
     removeProcessingItem,
   } = useAppStore();
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction, connected } = useWallet();
-  const { setVisible: openWalletModal } = useWalletModal();
+  // const { connection } = useConnection();
+  // const { publicKey, sendTransaction, connected } = useWallet();
+  // const { setVisible: openWalletModal } = useWalletModal();
 
   const filtered = wardrobeItems
     .filter((i) => (activeCategory ? i.category === activeCategory : true))
@@ -90,55 +90,7 @@ export function WardrobeGrid() {
     toast.success("Moved to owned");
   }
 
-  async function handleBuyWithSol(item: ClothingItem) {
-    if (!publicKey) {
-      openWalletModal(true);
-      return;
-    }
-
-    const priceStr = item.price?.replace(/[^0-9.]/g, "");
-    const priceUsd = priceStr ? parseFloat(priceStr) : 0;
-    if (priceUsd <= 0) {
-      toast.error("No valid price for this item");
-      return;
-    }
-
-    const solPrice = priceUsd / 150;
-    const lamports = Math.round(solPrice * LAMPORTS_PER_SOL);
-
-    const transaction = new Transaction().add(
-      SystemProgram.transfer({
-        fromPubkey: publicKey,
-        toPubkey: TREASURY_WALLET,
-        lamports,
-      }),
-    );
-
-    const signature = await sendTransaction(transaction, connection);
-    await connection.confirmTransaction(signature, "confirmed");
-
-    const res = await fetch(`/api/items/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "owned",
-        nftMintAddress: signature,
-      }),
-    });
-
-    if (!res.ok) {
-      toast.error("Payment succeeded but failed to update item status");
-      return;
-    }
-
-    const updated = await res.json();
-    setWardrobeItems(
-      wardrobeItems.map((i) => (i.id === item.id ? updated : i)),
-    );
-    toast.success(
-      `Purchased for ~${solPrice.toFixed(3)} SOL`,
-    );
-  }
+  // async function handleBuyWithSol(item: ClothingItem) { /* Solana hidden */ }
 
   return (
     <div>
@@ -196,8 +148,6 @@ export function WardrobeGrid() {
               processing={processingItemIds.includes(item.id)}
               onDelete={handleDelete}
               onMarkOwned={handleMarkOwned}
-              onBuyWithSol={handleBuyWithSol}
-              walletConnected={connected}
             />
           ))}
         </div>
@@ -211,30 +161,16 @@ function ItemCard({
   processing,
   onDelete,
   onMarkOwned,
-  onBuyWithSol,
-  walletConnected,
 }: {
   item: ClothingItem;
   processing: boolean;
   onDelete: (item: ClothingItem) => void;
   onMarkOwned: (item: ClothingItem) => void;
-  onBuyWithSol: (item: ClothingItem) => void;
-  walletConnected: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const isWishlisted = item.status === "wishlisted";
   const hasPrice = Boolean(item.price);
   const hasProductUrl = Boolean(item.productUrl);
-
-  async function handleBuy() {
-    setBusy(true);
-    try {
-      await onBuyWithSol(item);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Transaction failed");
-    }
-    setBusy(false);
-  }
 
   async function handleOwn() {
     await onMarkOwned(item);
@@ -313,19 +249,13 @@ function ItemCard({
 
         {isWishlisted && (
           <div className="mt-2 flex flex-col gap-1.5">
+            {/* Buy with SOL hidden
             {hasPrice && (
-              <button
-                disabled={busy}
-                onClick={handleBuy}
-                className="flex w-full items-center justify-center gap-1.5 rounded-md bg-purple-600 px-2 py-1.5 text-[11px] font-medium text-white transition-colors hover:bg-purple-500 disabled:opacity-50"
-              >
-                {busy ? (
-                  <Loader2 className="size-3 animate-spin" />
-                ) : (
-                  <>Buy with SOL</>
-                )}
+              <button disabled={busy} onClick={handleBuy} className="...">
+                Buy with SOL
               </button>
             )}
+            */}
             <div className="flex gap-1.5">
               <button
                 disabled={busy}
