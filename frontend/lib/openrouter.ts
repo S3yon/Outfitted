@@ -32,9 +32,9 @@ export async function analyzeClothingImage(
             },
             {
               type: "text",
-              text: `Analyze this image and identify every distinct clothing item or accessory visible.
+              text: `Identify the single main clothing item or accessory that is the clear focus of this image. Ignore any items partially visible in the background or worn by other people.
 
-For each item, provide:
+Provide:
 - "category": one of "tops", "bottoms", "shoes", "outerwear", "accessories"
 - "description": a short description (e.g. "white oversized t-shirt", "black leather chelsea boots")
 
