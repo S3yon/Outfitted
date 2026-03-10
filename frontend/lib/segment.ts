@@ -60,8 +60,8 @@ export async function segmentClothing(imageBuffer: Buffer): Promise<Buffer> {
     .toBuffer({ resolveWithObject: true });
 
   for (let i = 0; i < width * height; i++) {
-    // Binarize: threshold at 128 to avoid semi-transparent ghosting
-    orig[i * 4 + 3] = resizedMask[i] > 128 ? 255 : 0;
+    // Mask is inverted: dark = clothing, light = background
+    orig[i * 4 + 3] = resizedMask[i] < 128 ? 255 : 0;
   }
 
   return sharp(orig, {
