@@ -37,6 +37,29 @@ export async function GET(req: Request) {
     );
   }
 
+  const BLOCKED_TERMS = [
+    // weapons
+    "knife", "knives", "blade", "sword", "dagger", "machete", "axe", "hatchet",
+    "gun", "guns", "firearm", "pistol", "rifle", "shotgun", "revolver", "glock",
+    "ammo", "ammunition", "bullet", "weapon", "weapons", "explosive", "grenade", "bomb",
+    // drugs
+    "drug", "drugs", "weed", "cannabis", "cocaine", "heroin", "meth",
+    // adult
+    "porn", "nude", "nsfw", "sex", "xxx",
+    // misc non-fashion
+    "food", "alcohol", "cigarette", "tobacco",
+  ];
+  const lowerQuery = query.toLowerCase();
+  if (BLOCKED_TERMS.some((term) => lowerQuery.includes(term))) {
+    return NextResponse.json(
+      { error: "Search query not allowed" },
+      { status: 400 },
+    );
+  }
+
+  // Append clothing context so results stay fashion-relevant
+  const safeQuery = `${query.trim()} clothing fashion apparel`;
+
   const res = await fetch(SERPER_URL, {
     method: "POST",
     headers: {
@@ -44,7 +67,7 @@ export async function GET(req: Request) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      q: query,
+      q: safeQuery,
       num: 20,
       gl: "us",
     }),

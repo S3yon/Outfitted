@@ -35,6 +35,8 @@ export async function analyzeClothingImage(
               type: "text",
               text: `Identify the single main clothing item or accessory that is the clear focus of this image. Ignore any items partially visible in the background or worn by other people.
 
+If the image does not contain a wearable clothing item or fashion accessory (e.g. it shows food, weapons, electronics, people without clothing focus, or anything unrelated to fashion), return { "items": [] }.
+
 Provide:
 - "category": one of "tops", "bottoms", "shoes", "outerwear", "accessories"
 - "description": a short description (e.g. "white oversized t-shirt", "black leather chelsea boots")
