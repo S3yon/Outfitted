@@ -9,7 +9,7 @@ export async function segmentClothing(imageBuffer: Buffer): Promise<Buffer> {
   const base64 = imageBuffer.toString("base64");
   const dataUri = `data:image/png;base64,${base64}`;
 
-  const output = await replicate.run("naklecha/clothing-segmentation", {
+  const output = await replicate.run("naklecha/clothing-segmentation:501aa8488496fffc6bbee9544729dc28654649f2e3c80de0bf08fb9fe71898f8", {
     input: { image: dataUri },
   }) as unknown;
 
