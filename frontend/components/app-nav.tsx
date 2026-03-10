@@ -1,23 +1,20 @@
 "use client"
 
-import dynamic from "next/dynamic"
+// import dynamic from "next/dynamic"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Shirt, Layers, TrendingUp, User } from "lucide-react"
+import { Shirt, Layers, User } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton,
-    ),
-  { ssr: false },
-)
+// const WalletMultiButton = dynamic(
+//   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+//   { ssr: false },
+// )
 
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
   { href: "/outfits", label: "Outfits", icon: Layers },
-  { href: "/market", label: "Market", icon: TrendingUp },
+  // { href: "/market", label: "Market", icon: TrendingUp },
   { href: "/profile", label: "Profile", icon: User },
 ] as const
 
@@ -51,6 +48,7 @@ export function AppNav() {
             )
           })}
         </div>
+        {/* Solana wallet button hidden
         <div className="ml-auto">
           <WalletMultiButton
             style={{
@@ -62,6 +60,7 @@ export function AppNav() {
             }}
           />
         </div>
+        */}
       </nav>
 
       {/* Mobile: bottom tabs */}
