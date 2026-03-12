@@ -281,24 +281,14 @@ export function TryOnView({
                 className="absolute inset-0 h-full w-full object-contain"
               />
 
-              {/* Before (original) — clipped from left */}
-              <div
-                className="absolute inset-0 overflow-hidden"
-                style={{ width: `${sliderPos}%` }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={capturedImage}
-                  alt="Original"
-                  className="h-full object-contain"
-                  style={{
-                    width: sliderRef.current
-                      ? `${sliderRef.current.offsetWidth}px`
-                      : "100vw",
-                    maxWidth: "none",
-                  }}
-                />
-              </div>
+              {/* Before (original) — clipped from right via clip-path */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={capturedImage}
+                alt="Original"
+                className="absolute inset-0 h-full w-full object-contain"
+                style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+              />
 
               {/* Slider handle */}
               <div
