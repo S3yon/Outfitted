@@ -47,12 +47,14 @@ export default function WardrobePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className="md:hidden text-xs text-muted-foreground">{wardrobeItems.length} {wardrobeItems.length === 1 ? "item" : "items"}</span>
           <ProductSearch />
           <CameraButton />
           <UploadButton />
         </div>
       </div>
+      <p className="md:hidden text-xs text-muted-foreground mt-1">
+        {wardrobeItems.length} {wardrobeItems.length === 1 ? "item" : "items"}
+      </p>
 
       <div className="mt-6">
         <WardrobeGrid />
