@@ -1,6 +1,8 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import { motion } from "motion/react";
+import useEmblaCarousel from "embla-carousel-react";
 import {
   Camera,
   Wand2,
@@ -56,11 +58,25 @@ export function Features1() {
     },
   ];
 
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "start" });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    emblaApi.on("select", onSelect);
+    onSelect();
+  }, [emblaApi, onSelect]);
+
   return (
-    <section className="w-full py-16 px-4 md:px-32 lg:px-8">
+    <section className="w-full py-16 px-5 md:px-8 lg:px-8">
       <div className="max-w-[1100px] mx-auto">
         {/* Header */}
-        <div className="mb-12 md:mb-16 lg:mb-20">
+        <div className="mb-10 md:mb-16 lg:mb-20">
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -93,8 +109,54 @@ export function Features1() {
           </motion.p>
         </div>
 
-        {/* Features Grid - 2 rows x 4 columns */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-12">
+        {/* Mobile: swipe carousel */}
+        <div className="md:hidden">
+          <div className="overflow-hidden -mx-5" ref={emblaRef}>
+            <div className="flex">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={index}
+                    className="flex-[0_0_80%] min-w-0 pl-5 pr-2 first:pl-5"
+                  >
+                    <div className="flex flex-col gap-3 p-5 rounded-2xl border border-neutral-200/60 dark:border-neutral-800 bg-white/60 dark:bg-neutral-950/60 h-full">
+                      <div className="inline-flex items-center justify-center w-11 h-11 rounded-xl border border-neutral-200/60 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
+                        <Icon className="w-5 h-5 text-neutral-900 dark:text-white" />
+                      </div>
+                      <h3 className="text-base font-medium tracking-tight text-neutral-900 dark:text-white">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-neutral-600 dark:text-neutral-400 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+              {/* trailing padding slide */}
+              <div className="flex-[0_0_5%] min-w-0" />
+            </div>
+          </div>
+
+          {/* Dots */}
+          <div className="flex items-center justify-center gap-1.5 mt-5">
+            {features.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => emblaApi?.scrollTo(index)}
+                className={`rounded-full transition-all duration-300 ${
+                  index === selectedIndex
+                    ? "w-4 h-1.5 bg-neutral-900 dark:bg-white"
+                    : "w-1.5 h-1.5 bg-neutral-300 dark:bg-neutral-700"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: original grid */}
+        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-8 md:gap-x-8 md:gap-y-12">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             return (
@@ -106,20 +168,14 @@ export function Features1() {
                 transition={{ duration: 0.4, delay: index * 0.05 }}
                 className="flex flex-col"
               >
-                {/* Icon and Title on same line */}
                 <div className="flex items-center gap-3 mb-2">
-                  {/* Icon with border and shadow */}
                   <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl border border-neutral-200/60 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
                     <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-neutral-900 dark:text-white" />
                   </div>
-
-                  {/* Title */}
                   <h3 className="text-base tracking-tight font-light text-neutral-900 dark:text-white">
                     {feature.title}
                   </h3>
                 </div>
-
-                {/* Description - max 2 lines */}
                 <p className="text-xs tracking-tight font-light max-w-[20ch] sm:text-base text-neutral-600 dark:text-neutral-400 leading-relaxed line-clamp-2">
                   {feature.description}
                 </p>

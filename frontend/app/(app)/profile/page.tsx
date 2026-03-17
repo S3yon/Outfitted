@@ -115,7 +115,7 @@ export default function ProfilePage() {
     .toUpperCase();
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-8 sm:px-6">
+    <div className="mx-auto max-w-lg px-5 py-8 sm:px-8">
       {/* Avatar + name + email */}
       <div className="flex items-center gap-4">
         <Avatar className="size-16 border-2 border-white/10 flex-shrink-0">

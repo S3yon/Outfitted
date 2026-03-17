@@ -125,31 +125,31 @@ interface GrainientProps {
   className?: string;
 }
 
-export default function Grainient({
-  timeSpeed = 0.25,
-  colorBalance = 0.0,
-  warpStrength = 1.0,
-  warpFrequency = 5.0,
-  warpSpeed = 2.0,
-  warpAmplitude = 50.0,
-  blendAngle = 0.0,
-  blendSoftness = 0.05,
-  rotationAmount = 500.0,
-  noiseScale = 2.0,
-  grainAmount = 0.1,
-  grainScale = 2.0,
-  grainAnimated = false,
-  contrast = 1.5,
-  gamma = 1.0,
-  saturation = 1.0,
-  centerX = 0.0,
-  centerY = 0.0,
-  zoom = 0.9,
-  color1 = "#FF9FFC",
-  color2 = "#5227FF",
-  color3 = "#B19EEF",
-  className = "",
-}: GrainientProps) {
+function GrainientWebGL({
+  timeSpeed,
+  colorBalance,
+  warpStrength,
+  warpFrequency,
+  warpSpeed,
+  warpAmplitude,
+  blendAngle,
+  blendSoftness,
+  rotationAmount,
+  noiseScale,
+  grainAmount,
+  grainScale,
+  grainAnimated,
+  contrast,
+  gamma,
+  saturation,
+  centerX,
+  centerY,
+  zoom,
+  color1,
+  color2,
+  color3,
+  className,
+}: Required<GrainientProps>) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -244,4 +244,52 @@ export default function Grainient({
   ]);
 
   return <div ref={containerRef} className={`grainient-container ${className}`.trim()} />;
+}
+
+export default function Grainient({
+  timeSpeed = 0.25,
+  colorBalance = 0.0,
+  warpStrength = 1.0,
+  warpFrequency = 5.0,
+  warpSpeed = 2.0,
+  warpAmplitude = 50.0,
+  blendAngle = 0.0,
+  blendSoftness = 0.05,
+  rotationAmount = 500.0,
+  noiseScale = 2.0,
+  grainAmount = 0.1,
+  grainScale = 2.0,
+  grainAnimated = false,
+  contrast = 1.5,
+  gamma = 1.0,
+  saturation = 1.0,
+  centerX = 0.0,
+  centerY = 0.0,
+  zoom = 0.9,
+  color1 = "#FF9FFC",
+  color2 = "#5227FF",
+  color3 = "#B19EEF",
+  className = "",
+}: GrainientProps) {
+  return (
+    <>
+      {/* Mobile: static gradient, no WebGL */}
+      <div
+        className={`md:hidden grainient-container ${className}`.trim()}
+        style={{ background: `linear-gradient(135deg, ${color1} 0%, ${color2} 50%, ${color3} 100%)` }}
+      />
+      {/* Desktop: animated WebGL shader */}
+      <div className={`hidden md:block grainient-container ${className}`.trim()}>
+        <GrainientWebGL
+          timeSpeed={timeSpeed} colorBalance={colorBalance} warpStrength={warpStrength}
+          warpFrequency={warpFrequency} warpSpeed={warpSpeed} warpAmplitude={warpAmplitude}
+          blendAngle={blendAngle} blendSoftness={blendSoftness} rotationAmount={rotationAmount}
+          noiseScale={noiseScale} grainAmount={grainAmount} grainScale={grainScale}
+          grainAnimated={grainAnimated} contrast={contrast} gamma={gamma} saturation={saturation}
+          centerX={centerX} centerY={centerY} zoom={zoom}
+          color1={color1} color2={color2} color3={color3} className="h-full w-full"
+        />
+      </div>
+    </>
+  );
 }

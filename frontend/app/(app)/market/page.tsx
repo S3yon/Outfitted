@@ -142,7 +142,7 @@ export default function MarketPage() {
     const isUp = selected.change24h >= 0;
 
     return (
-      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
         <button
           onClick={() => setSelected(null)}
           className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -259,7 +259,7 @@ export default function MarketPage() {
   const unlistedOutfits = outfits.filter((o) => !listedOutfitIds.has(o.id));
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Market</h1>

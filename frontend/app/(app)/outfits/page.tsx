@@ -71,10 +71,10 @@ export default function OutfitsPage() {
 
   return (
     <>
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">Outfits</h1>
+            <h1 className="text-xl font-semibold tracking-tight"><a href="/?home=1" className="md:hidden">Outfitted</a><span className="hidden md:inline">Outfits</span></h1>
             <p className="text-xs text-muted-foreground">AI-styled combinations from your wardrobe</p>
           </div>
           <div className="flex gap-2">

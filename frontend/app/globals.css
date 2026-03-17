@@ -161,6 +161,7 @@
   }
 }
 
+
 /* Solana wallet modal must sit above all dialogs */
 .wallet-adapter-modal-wrapper {
   z-index: 9999 !important;
