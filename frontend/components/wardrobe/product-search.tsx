@@ -318,33 +318,90 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
             />
             <motion.div
               key="mobile-panel"
-              className="md:hidden fixed inset-x-0 bottom-0 z-50 flex flex-col bg-background rounded-t-2xl overflow-hidden"
+              className="md:hidden fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-2xl"
               style={{ height: "92dvh" }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
             >
-              {/* Handle bar */}
-              <div className="flex justify-center pt-3 pb-1 shrink-0">
-                <div className="h-1 w-10 rounded-full bg-border" />
-              </div>
-
-              {/* Header */}
-              <div className="flex items-center gap-3 px-4 pb-3 shrink-0">
-                <button
-                  onClick={() => setOpen(false)}
-                  className="flex size-8 items-center justify-center rounded-full hover:bg-secondary transition-colors"
-                >
-                  <ArrowLeft className="size-4" />
-                </button>
-                <h2 className="text-base font-semibold">Find Items</h2>
-              </div>
-
-              <div className="flex flex-col gap-3 px-4 pb-4 flex-1 min-h-0">
+              {/* Sticky header: handle + back + search */}
+              <div className="sticky top-0 z-10 bg-background rounded-t-2xl px-4 pt-3 pb-3 space-y-3">
+                <div className="flex justify-center">
+                  <div className="h-1 w-10 rounded-full bg-border" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="flex size-8 shrink-0 items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                  >
+                    <ArrowLeft className="size-4" />
+                  </button>
+                  <h2 className="text-base font-semibold">Find Items</h2>
+                </div>
                 {searchBar}
+              </div>
+
+              {/* Scrollable content */}
+              <div className="h-full overflow-y-auto px-4 pb-8 space-y-3" style={{ height: "calc(92dvh - 9rem)" }}>
                 {brandChips}
-                {resultsArea}
+                {!searching && products.length === 0 && query && (
+                  <p className="py-12 text-center text-sm text-muted-foreground">
+                    No products found. Try a different search.
+                  </p>
+                )}
+                {searching && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                  </div>
+                )}
+                <AnimatePresence>
+                  {hasResults && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      className="grid grid-cols-2 gap-3"
+                    >
+                      {products.map((product, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 12 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04, duration: 0.2 }}
+                          className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
+                        >
+                          <div className="relative aspect-square bg-white">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={product.imageUrl} alt={product.title} className="h-full w-full object-contain p-2" />
+                          </div>
+                          <div className="p-2.5">
+                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{product.source}</p>
+                            <p className="mt-0.5 line-clamp-2 text-xs text-foreground">{product.title}</p>
+                            <p className="mt-1 text-sm font-semibold text-foreground">{product.price}</p>
+                          </div>
+                          <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
+                            <Button size="sm" variant="default" className="w-full text-xs"
+                              disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
+                              onClick={() => handleAddToWardrobe(product, i)}>
+                              {addingToWardrobeIdx === i ? <Loader2 className="size-3 animate-spin" /> : addedToWardrobe.has(i) ? <Check className="size-3" /> : <Shirt className="size-3" />}
+                              {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
+                            </Button>
+                            <div className="flex gap-1.5">
+                              <Button size="sm" variant="outline" className="flex-1 text-xs"
+                                disabled={addingIdx === i} onClick={() => handleAddToWishlist(product, i)}>
+                                {addingIdx === i ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
+                                Wishlist
+                              </Button>
+                              <a href={product.link} target="_blank" rel="noopener noreferrer">
+                                <Button size="sm" variant="outline" className="text-xs"><ExternalLink className="size-3" /></Button>
+                              </a>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           </>
@@ -353,13 +410,15 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
 
       {/* Desktop: Dialog */}
       <Dialog open={isDesktop && open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col gap-3">
-          <DialogHeader>
-            <DialogTitle>Search Products</DialogTitle>
-          </DialogHeader>
-          {searchBar}
-          {brandChips}
-          {resultsArea}
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden p-0">
+          <div className="flex flex-col gap-3 p-4 h-full max-h-[85vh]">
+            <DialogHeader>
+              <DialogTitle>Search Products</DialogTitle>
+            </DialogHeader>
+            {searchBar}
+            {brandChips}
+            {resultsArea}
+          </div>
         </DialogContent>
       </Dialog>
     </>
