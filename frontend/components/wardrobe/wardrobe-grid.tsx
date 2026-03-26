@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Trash2, Check, Heart, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
 // import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 // import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -35,9 +35,9 @@ export function WardrobeGrid() {
     addProcessingItem,
     removeProcessingItem,
   } = useAppStore();
-  // const { connection } = useConnection();
-  // const { publicKey, sendTransaction, connected } = useWallet();
-  // const { setVisible: openWalletModal } = useWalletModal();
+  const markOwnedQueue = useRef<ClothingItem[]>([]);
+  const isProcessingQueue = useRef(false);
+  const [queuedItemIds, setQueuedItemIds] = useState<Set<string>>(new Set());
 
   const filtered = wardrobeItems
     .filter((i) => (activeCategory ? i.category === activeCategory : true))
@@ -53,41 +53,55 @@ export function WardrobeGrid() {
     toast.success("Item removed");
   }
 
-  async function handleMarkOwned(item: ClothingItem) {
-    // Optimistic: instantly move to owned, show skeleton while processing
+  async function processMarkOwnedQueue() {
+    if (isProcessingQueue.current) return;
+    isProcessingQueue.current = true;
+
+    while (markOwnedQueue.current.length > 0) {
+      const item = markOwnedQueue.current.shift()!;
+      setQueuedItemIds((prev) => { const s = new Set(prev); s.delete(item.id); return s; });
+      addProcessingItem(item.id);
+
+      const res = await fetch(`/api/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "owned" }),
+      });
+
+      removeProcessingItem(item.id);
+
+      if (!res.ok) {
+        setWardrobeItems(
+          useAppStore.getState().wardrobeItems.map((i) =>
+            i.id === item.id ? { ...i, status: "wishlisted" } : i,
+          ),
+        );
+        toast.error(`Failed to update ${item.category}`);
+      } else {
+        const updated = await res.json();
+        setWardrobeItems(
+          useAppStore.getState().wardrobeItems.map((i) =>
+            i.id === item.id ? updated : i,
+          ),
+        );
+      }
+    }
+
+    isProcessingQueue.current = false;
+    toast.success("All items moved to owned");
+  }
+
+  function handleMarkOwned(item: ClothingItem) {
+    // Optimistic UI update immediately
     setWardrobeItems(
-      wardrobeItems.map((i) =>
+      useAppStore.getState().wardrobeItems.map((i) =>
         i.id === item.id ? { ...i, status: "owned" } : i,
       ),
     );
-    addProcessingItem(item.id);
-
-    const res = await fetch(`/api/items/${item.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "owned" }),
-    });
-
-    removeProcessingItem(item.id);
-
-    if (!res.ok) {
-      // Revert on failure
-      setWardrobeItems(
-        useAppStore.getState().wardrobeItems.map((i) =>
-          i.id === item.id ? { ...i, status: "wishlisted" } : i,
-        ),
-      );
-      toast.error("Failed to update item");
-      return;
-    }
-
-    const updated = await res.json();
-    setWardrobeItems(
-      useAppStore.getState().wardrobeItems.map((i) =>
-        i.id === item.id ? updated : i,
-      ),
-    );
-    toast.success("Moved to owned");
+    // Add to visual queue and processing queue
+    setQueuedItemIds((prev) => new Set(prev).add(item.id));
+    markOwnedQueue.current.push(item);
+    processMarkOwnedQueue();
   }
 
   // async function handleBuyWithSol(item: ClothingItem) { /* Solana hidden */ }
@@ -146,6 +160,7 @@ export function WardrobeGrid() {
               key={item.id}
               item={item}
               processing={processingItemIds.includes(item.id)}
+              queued={queuedItemIds.has(item.id)}
               onDelete={handleDelete}
               onMarkOwned={handleMarkOwned}
             />
@@ -159,22 +174,19 @@ export function WardrobeGrid() {
 function ItemCard({
   item,
   processing,
+  queued,
   onDelete,
   onMarkOwned,
 }: {
   item: ClothingItem;
   processing: boolean;
+  queued: boolean;
   onDelete: (item: ClothingItem) => void;
   onMarkOwned: (item: ClothingItem) => void;
 }) {
-  const [busy, setBusy] = useState(false);
   const isWishlisted = item.status === "wishlisted";
   const hasPrice = Boolean(item.price);
   const hasProductUrl = Boolean(item.productUrl);
-
-  async function handleOwn() {
-    await onMarkOwned(item);
-  }
 
   if (processing) {
     return (
@@ -183,7 +195,7 @@ function ItemCard({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
             <p className="text-[10px] font-medium text-muted-foreground">
-              Removing background...
+              Updating...
             </p>
           </div>
         </div>
@@ -258,12 +270,15 @@ function ItemCard({
             */}
             <div className="flex gap-1.5">
               <button
-                disabled={busy}
-                onClick={handleOwn}
+                disabled={queued}
+                onClick={() => onMarkOwned(item)}
                 className="flex flex-1 items-center justify-center gap-1 rounded-md bg-gold px-2 py-1.5 text-[11px] font-medium text-black transition-colors hover:bg-gold/80 disabled:opacity-50"
               >
-                {busy ? (
-                  <Loader2 className="size-3 animate-spin" />
+                {queued ? (
+                  <>
+                    <Loader2 className="size-3 animate-spin" />
+                    Queued
+                  </>
                 ) : (
                   <>
                     <ArrowRightLeft className="size-3" />
