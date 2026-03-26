@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw, RefreshCw } from "lucide-react";
+import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw, RefreshCw, Timer, TimerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ export function TryOnView({
   const [showHint, setShowHint] = useState(false);
   const [isPortrait, setIsPortrait] = useState(true);
   const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
+  const [timerEnabled, setTimerEnabled] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -221,6 +222,7 @@ export function TryOnView({
   }
 
   function handleSliderDrag(e: React.PointerEvent) {
+    e.preventDefault();
     setShowHint(false);
     const container = sliderRef.current;
     if (!container) return;
@@ -309,9 +311,16 @@ export function TryOnView({
                 transition={{ delay: 0.3 }}
                 className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-4"
               >
+                <button
+                  onClick={() => setTimerEnabled((v) => !v)}
+                  className="flex size-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+                  title={timerEnabled ? "Disable timer" : "Enable timer"}
+                >
+                  {timerEnabled ? <Timer className="size-5" /> : <TimerOff className="size-5 opacity-50" />}
+                </button>
                 <Button
                   size="lg"
-                  onClick={startCountdown}
+                  onClick={timerEnabled ? startCountdown : captureAndProcess}
                   className="rounded-full px-8 shadow-lg"
                 >
                   <Camera className="size-5" />
@@ -351,6 +360,7 @@ export function TryOnView({
             <div
               ref={sliderRef}
               className="relative h-full cursor-col-resize select-none"
+              style={{ touchAction: "none" }}
               onPointerDown={handleSliderDrag}
             >
               {/* After (result) — full behind */}
