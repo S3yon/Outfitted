@@ -324,10 +324,18 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              drag="y"
+              dragConstraints={{ top: 0 }}
+              dragElastic={{ top: 0.05, bottom: 0.3 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.y > 120 || info.velocity.y > 500) {
+                  setOpen(false);
+                }
+              }}
             >
               {/* Sticky header: handle + back + search */}
               <div className="sticky top-0 z-10 bg-background rounded-t-2xl px-4 pt-3 pb-3 space-y-3">
-                <div className="flex justify-center">
+                <div className="flex justify-center cursor-grab active:cursor-grabbing">
                   <div className="h-1 w-10 rounded-full bg-border" />
                 </div>
                 <div className="flex items-center gap-3">
