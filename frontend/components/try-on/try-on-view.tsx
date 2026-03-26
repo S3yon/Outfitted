@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
 import { toast } from "sonner";
@@ -34,9 +34,11 @@ export function TryOnView({
   const [imagesReady, setImagesReady] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [isPortrait, setIsPortrait] = useState(true);
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("user");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const facingModeRef = useRef<"user" | "environment">("user");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
 
@@ -56,7 +58,7 @@ export function TryOnView({
     streamRef.current = null;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "user" }, width: { ideal: 1080 }, height: { ideal: 1440 } },
+        video: { facingMode: { ideal: facingModeRef.current }, width: { ideal: 1080 }, height: { ideal: 1440 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -150,6 +152,11 @@ export function TryOnView({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // Mirror front camera to match what the user sees
+    if (facingModeRef.current === "user") {
+      ctx.translate(canvas.width, 0);
+      ctx.scale(-1, 1);
+    }
     ctx.drawImage(video, 0, 0);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
 
@@ -183,6 +190,13 @@ export function TryOnView({
         o.id === selected.id ? { ...o, modelImageUrl: data.resultUrl } : o,
       ),
     );
+  }
+
+  async function flipCamera() {
+    const next = facingModeRef.current === "user" ? "environment" : "user";
+    facingModeRef.current = next;
+    setFacingMode(next);
+    await startCamera();
   }
 
   async function handleRetake() {
@@ -239,7 +253,7 @@ export function TryOnView({
       {/* Top (mobile) / Left (desktop): webcam / result */}
       <div
         className="relative shrink-0 md:h-auto md:flex-1 transition-all duration-300"
-        style={{ height: `${isPortrait ? 68 : 42}vh` }}
+        style={{ height: `${isPortrait ? 78 : 55}vh` }}
       >
         {/* Back button */}
         <button
@@ -260,7 +274,7 @@ export function TryOnView({
               playsInline
               muted
               className="h-full w-full object-cover"
-              style={{ transform: "scaleX(-1)" }}
+              style={{ transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
             />
 
             <AnimatePresence mode="wait">
@@ -293,7 +307,7 @@ export function TryOnView({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="absolute inset-x-0 bottom-5 flex justify-center"
+                className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-4"
               >
                 <Button
                   size="lg"
@@ -303,6 +317,12 @@ export function TryOnView({
                   <Camera className="size-5" />
                   Capture
                 </Button>
+                <button
+                  onClick={flipCamera}
+                  className="flex size-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+                >
+                  <RefreshCw className="size-5" />
+                </button>
               </motion.div>
             )}
           </div>
