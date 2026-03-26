@@ -4,41 +4,7 @@ import { db } from "@/lib/db";
 import { clothingItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
-import cloudinary from "@/lib/cloudinary";
-import { replicate } from "@/lib/replicate";
-import sharp from "sharp";
-
-async function uploadBufferToCloudinary(
-  buffer: Buffer,
-): Promise<{ url: string; publicId: string }> {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        { folder: "outfitted", resource_type: "image", format: "png" },
-        (error, result) => {
-          if (error || !result) reject(error ?? new Error("Upload failed"));
-          else resolve({ url: result.secure_url, publicId: result.public_id });
-        },
-      )
-      .end(buffer);
-  });
-}
-
-async function removeBackground(
-  imageUrl: string,
-): Promise<{ url: string; publicId: string }> {
-  const output = await replicate.run(
-    "cjwbw/rembg:fb8af171cfa1616ddcf1242c093f9c46bcada5ad4cf6f2fbe8b81b330ec5c003",
-    { input: { image: imageUrl } },
-  );
-
-  const resultUrl = output as unknown as string;
-  const resultRes = await fetch(resultUrl);
-  const resultBuffer = Buffer.from(await resultRes.arrayBuffer());
-  const pngBuffer = await sharp(resultBuffer).png().toBuffer();
-
-  return uploadBufferToCloudinary(pngBuffer);
-}
+import cloudinary, { uploadWithBgRemoval } from "@/lib/cloudinary";
 
 // PATCH /api/items/[id] — update status, notes, or wear level
 export async function PATCH(
@@ -73,15 +39,19 @@ export async function PATCH(
   // When transitioning wishlisted → owned, run background removal on the image
   if (status === "owned" && existing.status === "wishlisted") {
     console.log(`[items] Removing background for: ${existing.notes}`);
-    const { url, publicId } = await removeBackground(existing.cloudinaryUrl);
-    updates.cloudinaryUrl = url;
-    updates.cloudinaryPublicId = publicId;
-
-    // Delete the old Cloudinary image
     try {
-      await cloudinary.uploader.destroy(existing.cloudinaryPublicId);
+      const imgRes = await fetch(existing.cloudinaryUrl);
+      const buffer = Buffer.from(await imgRes.arrayBuffer());
+      const { url, publicId } = await uploadWithBgRemoval(buffer, existing.category);
+      updates.cloudinaryUrl = url;
+      updates.cloudinaryPublicId = publicId;
+      try {
+        await cloudinary.uploader.destroy(existing.cloudinaryPublicId);
+      } catch (err) {
+        console.error("[items] Old image cleanup failed:", err);
+      }
     } catch (err) {
-      console.error("[items] Old image cleanup failed:", err);
+      console.error("[items] Background removal failed, keeping original:", err);
     }
   }
 

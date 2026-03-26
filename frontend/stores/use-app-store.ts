@@ -18,6 +18,7 @@ type AppStore = {
   wardrobeItems: ClothingItem[];
   setWardrobeItems: (items: ClothingItem[]) => void;
   addWardrobeItem: (item: ClothingItem) => void;
+  updateWardrobeItem: (id: string, updates: Partial<ClothingItem>) => void;
   removeWardrobeItem: (id: string) => void;
 
   outfits: PopulatedOutfit[];
@@ -46,7 +47,14 @@ export const useAppStore = create<AppStore>((set) => ({
   wardrobeItems: [],
   setWardrobeItems: (items) => set({ wardrobeItems: items }),
   addWardrobeItem: (item) =>
-    set((state) => ({ wardrobeItems: [item, ...state.wardrobeItems] })),
+    set((state) => {
+      if (state.wardrobeItems.some((i) => i.id === item.id)) return {};
+      return { wardrobeItems: [item, ...state.wardrobeItems] };
+    }),
+  updateWardrobeItem: (id, updates) =>
+    set((state) => ({
+      wardrobeItems: state.wardrobeItems.map((i) => i.id === id ? { ...i, ...updates } : i),
+    })),
   removeWardrobeItem: (id) =>
     set((state) => ({
       wardrobeItems: state.wardrobeItems.filter((i) => i.id !== id),

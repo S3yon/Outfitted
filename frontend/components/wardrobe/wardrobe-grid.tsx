@@ -11,21 +11,21 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ClothingItem } from "@/db/schema";
 
-// Module-level queue — survives React re-renders and component remounts
-type QueueEntry = {
+// Module-level queues — survive React re-renders and component remounts
+type OwnedEntry = {
   item: ClothingItem;
   onStart: (id: string) => void;
   onDone: (id: string, updated: ClothingItem | null) => void;
 };
-const _queue: QueueEntry[] = [];
-let _processing = false;
+const _ownedQueue: OwnedEntry[] = [];
+let _ownedProcessing = false;
 
-async function drainQueue() {
-  if (_processing) return;
-  _processing = true;
+async function drainOwnedQueue() {
+  if (_ownedProcessing) return;
+  _ownedProcessing = true;
   let successCount = 0;
-  while (_queue.length > 0) {
-    const { item, onStart, onDone } = _queue.shift()!;
+  while (_ownedQueue.length > 0) {
+    const { item, onStart, onDone } = _ownedQueue.shift()!;
     onStart(item.id);
     try {
       const res = await fetch(`/api/items/${item.id}`, {
@@ -46,10 +46,29 @@ async function drainQueue() {
       toast.error(`Failed to update ${item.category}`);
     }
   }
-  _processing = false;
+  _ownedProcessing = false;
   if (successCount > 0) {
     toast.success(successCount === 1 ? "Item moved to owned" : `${successCount} items moved to owned`);
   }
+}
+
+type DeleteEntry = { id: string; onDone: (id: string, success: boolean) => void };
+const _deleteQueue: DeleteEntry[] = [];
+let _deleteProcessing = false;
+
+async function drainDeleteQueue() {
+  if (_deleteProcessing) return;
+  _deleteProcessing = true;
+  while (_deleteQueue.length > 0) {
+    const { id, onDone } = _deleteQueue.shift()!;
+    try {
+      const res = await fetch(`/api/items/${id}`, { method: "DELETE" });
+      onDone(id, res.ok);
+    } catch {
+      onDone(id, false);
+    }
+  }
+  _deleteProcessing = false;
 }
 
 // const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
@@ -66,7 +85,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 export function WardrobeGrid() {
   const {
     wardrobeItems,
-    setWardrobeItems,
+    updateWardrobeItem,
     activeCategory,
     setActiveCategory,
     activeStatus,
@@ -77,31 +96,35 @@ export function WardrobeGrid() {
     removeProcessingItem,
   } = useAppStore();
   const [queuedItemIds, setQueuedItemIds] = useState<Set<string>>(new Set());
+  const [deletingItemIds, setDeletingItemIds] = useState<Set<string>>(new Set());
 
   const filtered = wardrobeItems
     .filter((i) => (activeCategory ? i.category === activeCategory : true))
     .filter((i) => (activeStatus ? i.status === activeStatus : true));
 
-  async function handleDelete(item: ClothingItem) {
-    const res = await fetch(`/api/items/${item.id}`, { method: "DELETE" });
-    if (!res.ok) {
-      toast.error("Failed to delete item");
-      return;
-    }
-    removeWardrobeItem(item.id);
-    toast.success("Item removed");
+  function handleDelete(item: ClothingItem) {
+    setDeletingItemIds((prev) => new Set(prev).add(item.id));
+    _deleteQueue.push({
+      id: item.id,
+      onDone: (id, success) => {
+        setDeletingItemIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+        if (success) {
+          removeWardrobeItem(id);
+          toast.success("Item removed");
+        } else {
+          toast.error("Failed to delete item");
+        }
+      },
+    });
+    drainDeleteQueue();
   }
 
   function handleMarkOwned(item: ClothingItem) {
-    // Optimistic UI: mark as owned immediately so it disappears from wishlist filter
-    setWardrobeItems(
-      useAppStore.getState().wardrobeItems.map((i) =>
-        i.id === item.id ? { ...i, status: "owned" } : i,
-      ),
-    );
+    // Optimistic UI: mark as owned immediately
+    updateWardrobeItem(item.id, { status: "owned" });
     setQueuedItemIds((prev) => new Set(prev).add(item.id));
 
-    _queue.push({
+    _ownedQueue.push({
       item,
       onStart: (id) => {
         setQueuedItemIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
@@ -110,21 +133,15 @@ export function WardrobeGrid() {
       onDone: (id, updated) => {
         removeProcessingItem(id);
         if (updated) {
-          setWardrobeItems(
-            useAppStore.getState().wardrobeItems.map((i) => i.id === id ? updated : i),
-          );
+          updateWardrobeItem(id, updated);
         } else {
           // Revert optimistic update on failure
-          setWardrobeItems(
-            useAppStore.getState().wardrobeItems.map((i) =>
-              i.id === id ? { ...i, status: "wishlisted" } : i,
-            ),
-          );
+          updateWardrobeItem(id, { status: "wishlisted" });
         }
       },
     });
 
-    drainQueue();
+    drainOwnedQueue();
   }
 
   // async function handleBuyWithSol(item: ClothingItem) { /* Solana hidden */ }
@@ -184,6 +201,7 @@ export function WardrobeGrid() {
               item={item}
               processing={processingItemIds.includes(item.id)}
               queued={queuedItemIds.has(item.id)}
+              deleting={deletingItemIds.has(item.id)}
               onDelete={handleDelete}
               onMarkOwned={handleMarkOwned}
             />
@@ -198,12 +216,14 @@ function ItemCard({
   item,
   processing,
   queued,
+  deleting,
   onDelete,
   onMarkOwned,
 }: {
   item: ClothingItem;
   processing: boolean;
   queued: boolean;
+  deleting: boolean;
   onDelete: (item: ClothingItem) => void;
   onMarkOwned: (item: ClothingItem) => void;
 }) {
@@ -249,10 +269,11 @@ function ItemCard({
 
       {/* Delete button */}
       <button
-        onClick={() => onDelete(item)}
-        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 transition-opacity hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        onClick={() => !deleting && onDelete(item)}
+        disabled={deleting}
+        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 transition-opacity hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-40"
       >
-        <Trash2 className="size-3.5" />
+        {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
       </button>
 
       {/* Image */}
