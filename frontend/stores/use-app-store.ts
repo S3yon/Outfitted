@@ -23,6 +23,9 @@ type AppStore = {
   outfits: PopulatedOutfit[];
   setOutfits: (outfits: PopulatedOutfit[]) => void;
 
+  capturedImages: Record<string, string>;
+  setCapturedImage: (outfitId: string, dataUrl: string) => void;
+
   processingItemIds: string[];
   addProcessingItem: (id: string) => void;
   removeProcessingItem: (id: string) => void;
@@ -51,6 +54,10 @@ export const useAppStore = create<AppStore>((set) => ({
 
   outfits: [],
   setOutfits: (outfits) => set({ outfits }),
+
+  capturedImages: {},
+  setCapturedImage: (outfitId, dataUrl) =>
+    set((state) => ({ capturedImages: { ...state.capturedImages, [outfitId]: dataUrl } })),
 
   processingItemIds: [],
   addProcessingItem: (id) =>

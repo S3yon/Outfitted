@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Trash2, Shirt } from "lucide-react";
+import { Trash2, Shirt, SlidersHorizontal } from "lucide-react";
+import { useAppStore } from "@/stores/use-app-store";
 import type { PopulatedOutfit } from "@/stores/use-app-store";
 
 const CATEGORY_ORDER = ["accessories", "outerwear", "tops", "bottoms", "shoes"];
@@ -15,6 +16,9 @@ export function OutfitCard({
   onDelete: (id: string) => void;
   onClick: () => void;
 }) {
+  const { capturedImages } = useAppStore();
+  const hasSlider = !!(outfit.modelImageUrl && capturedImages[outfit.id]);
+
   const sortedItems = [...outfit.items].sort(
     (a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category),
   );
@@ -63,13 +67,23 @@ export function OutfitCard({
         {/* Right: try-on result or empty */}
         <div className="relative min-h-[280px] flex-1">
           {outfit.modelImageUrl ? (
-            <Image
-              src={outfit.modelImageUrl}
-              alt="Try-on result"
-              fill
-              className="object-cover"
-              sizes="400px"
-            />
+            <>
+              <Image
+                src={outfit.modelImageUrl}
+                alt="Try-on result"
+                fill
+                className="object-cover"
+                sizes="400px"
+              />
+              {hasSlider && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition-all group-hover:bg-black/30 group-hover:opacity-100">
+                  <div className="flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-xs font-medium text-black">
+                    <SlidersHorizontal className="size-3.5" />
+                    View slider
+                  </div>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 bg-secondary/20">
               <Shirt className="size-8 text-muted-foreground/30" />

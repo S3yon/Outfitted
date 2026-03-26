@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Camera, Loader2, RotateCcw } from "lucide-react";
+import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
 import { toast } from "sonner";
@@ -20,13 +20,19 @@ export function TryOnView({
   outfit: PopulatedOutfit;
   onBack: () => void;
 }) {
-  const { outfits, setOutfits } = useAppStore();
+  const { outfits, setOutfits, capturedImages, setCapturedImage: storeCapture } = useAppStore();
   const [selectedId, setSelectedId] = useState(initialOutfit.id);
-  const [stage, setStage] = useState<Stage>("webcam");
+
+  const storedCapture = capturedImages[initialOutfit.id] ?? null;
+  const hasExistingResult = !!(initialOutfit.modelImageUrl && storedCapture);
+
+  const [stage, setStage] = useState<Stage>(hasExistingResult ? "result" : "webcam");
   const [countdown, setCountdown] = useState(COUNTDOWN_SECONDS);
-  const [resultUrl, setResultUrl] = useState<string | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [sliderPos, setSliderPos] = useState(100);
+  const [resultUrl, setResultUrl] = useState<string | null>(initialOutfit.modelImageUrl ?? null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(storedCapture);
+  const [sliderPos, setSliderPos] = useState(50);
+  const [imagesReady, setImagesReady] = useState(0);
+  const [showHint, setShowHint] = useState(false);
   const [isPortrait, setIsPortrait] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -72,9 +78,17 @@ export function TryOnView({
   }, []);
 
   useEffect(() => {
+    if (hasExistingResult) return;
     startCamera();
     return () => stopCamera();
-  }, [startCamera, stopCamera]);
+  }, [startCamera, stopCamera, hasExistingResult]);
+
+  // Re-attach stream to video element after it mounts (e.g. after Retake)
+  useEffect(() => {
+    if (stage === "webcam" && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [stage]);
 
   // Detect portrait/landscape from the video stream dimensions
   useEffect(() => {
@@ -86,6 +100,14 @@ export function TryOnView({
     video.addEventListener("loadedmetadata", onMeta);
     return () => video.removeEventListener("loadedmetadata", onMeta);
   }, []);
+
+  // Show hint bubble once both images are decoded, auto-dismiss after 2.5s
+  useEffect(() => {
+    if (imagesReady < 2) return;
+    setShowHint(true);
+    const t = setTimeout(() => setShowHint(false), 2500);
+    return () => clearTimeout(t);
+  }, [imagesReady]);
 
   // Also update on device orientation change
   useEffect(() => {
@@ -152,6 +174,9 @@ export function TryOnView({
     setResultUrl(data.resultUrl);
     setStage("result");
 
+    // Persist captured image so user can re-open the slider later
+    storeCapture(selected.id, dataUrl);
+
     // Update outfit in store
     setOutfits(
       outfits.map((o) =>
@@ -163,7 +188,9 @@ export function TryOnView({
   async function handleRetake() {
     setResultUrl(null);
     setCapturedImage(null);
-    setSliderPos(100);
+    setSliderPos(50);
+    setImagesReady(0);
+    setShowHint(false);
     await startCamera();
   }
 
@@ -171,13 +198,16 @@ export function TryOnView({
     setSelectedId(id);
     setResultUrl(null);
     setCapturedImage(null);
-    setSliderPos(100);
+    setSliderPos(50);
+    setImagesReady(0);
+    setShowHint(false);
     if (stage === "result") {
       startCamera();
     }
   }
 
   function handleSliderDrag(e: React.PointerEvent) {
+    setShowHint(false);
     const container = sliderRef.current;
     if (!container) return;
 
@@ -307,36 +337,60 @@ export function TryOnView({
               <img
                 src={resultUrl}
                 alt="Try-on result"
-                className="absolute inset-0 h-full w-full object-contain"
+                className="absolute inset-0 h-full w-full object-cover"
+                onLoad={() => setImagesReady((r) => r + 1)}
               />
 
-              {/* Before (original) — clipped from right via clip-path */}
+              {/* Before (original) — clipped from left via clip-path */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={capturedImage}
                 alt="Original"
-                className="absolute inset-0 h-full w-full object-contain"
+                className="absolute inset-0 h-full w-full object-cover"
                 style={{ clipPath: `inset(0 ${100 - sliderPos}% 0 0)` }}
+                onLoad={() => setImagesReady((r) => r + 1)}
               />
+
+              {/* Loading overlay — visible until both images decoded */}
+              {imagesReady < 2 && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black">
+                  <Loader2 className="size-8 animate-spin text-white/40" />
+                </div>
+              )}
 
               {/* Slider handle */}
               <div
-                className="absolute top-0 bottom-0 z-10 w-0.5 bg-white/80"
+                className="absolute top-0 bottom-0 z-10 w-px bg-white/90"
                 style={{ left: `${sliderPos}%` }}
               >
-                <div className="absolute top-1/2 left-1/2 flex size-10 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-white shadow-lg">
-                  <span className="text-sm font-bold text-black">&#x2194;</span>
+                <div className="absolute top-1/2 left-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-0.5 rounded-full bg-white shadow-xl ring-1 ring-black/10">
+                  <ChevronLeft className="size-3.5 text-black" />
+                  <ChevronRight className="size-3.5 text-black" />
                 </div>
+                {/* Hint bubble */}
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      transition={{ duration: 0.25 }}
+                      className="absolute top-[calc(50%+32px)] left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-black/70 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm"
+                    >
+                      Drag to compare
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Labels */}
               {sliderPos > 8 && (
-                <span className="absolute left-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                <span className="absolute left-3 bottom-20 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
                   Before
                 </span>
               )}
               {sliderPos < 92 && (
-                <span className="absolute right-3 top-3 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
+                <span className="absolute right-3 bottom-20 rounded-full bg-black/60 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-sm">
                   After
                 </span>
               )}
