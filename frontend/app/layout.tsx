@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Geist_Mono, Outfit } from "next/font/google"
 import { Auth0Provider } from "@auth0/nextjs-auth0/client"
 
@@ -18,6 +18,16 @@ const fontMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Outfitted",
   description: "Your wardrobe, digitized. AI-powered personal styling.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Outfitted",
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#ffffff",
+  viewportFit: "cover",
 }
 
 export default function RootLayout({
