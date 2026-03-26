@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Loader2, ExternalLink, X } from "lucide-react";
+import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt } from "lucide-react";
 // import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 // import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 // import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -49,6 +49,8 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
   const [products, setProducts] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
   const [addingIdx, setAddingIdx] = useState<number | null>(null);
+  const [addingToWardrobeIdx, setAddingToWardrobeIdx] = useState<number | null>(null);
+  const [addedToWardrobe, setAddedToWardrobe] = useState<Set<number>>(new Set());
   // const [buyingIdx, setBuyingIdx] = useState<number | null>(null);
 
   async function handleSearch(searchQuery?: string) {
@@ -102,6 +104,34 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
     setWardrobeItems([item, ...wardrobeItems]);
     toast.success("Added to wishlist");
     setAddingIdx(null);
+  }
+
+  async function handleAddToWardrobe(product: Product, index: number) {
+    setAddingToWardrobeIdx(index);
+    try {
+      const blob = await fetch(product.imageUrl).then((r) => r.blob());
+      const ext = blob.type.includes("png") ? "png" : "jpg";
+      const file = new File([blob], `product-${index}.${ext}`, { type: blob.type });
+      const formData = new FormData();
+      formData.append("files", file);
+      formData.append("status", "owned");
+
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to add" }));
+        toast.error(err.error ?? "Failed to add to wardrobe");
+        setAddingToWardrobeIdx(null);
+        return;
+      }
+
+      const newItems = await res.json();
+      setWardrobeItems([...newItems, ...wardrobeItems]);
+      setAddedToWardrobe((prev) => new Set(prev).add(index));
+      toast.success("Added to wardrobe");
+    } catch {
+      toast.error("Could not fetch product image");
+    }
+    setAddingToWardrobeIdx(null);
   }
 
   // async function handleBuyWithSol(product: Product, index: number) { /* Solana hidden */ }
@@ -209,7 +239,22 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
 
                     {/* Action buttons */}
                     <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
-                      {/* Buy with SOL hidden */}
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full text-xs"
+                        disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
+                        onClick={() => handleAddToWardrobe(product, i)}
+                      >
+                        {addingToWardrobeIdx === i ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : addedToWardrobe.has(i) ? (
+                          <Check className="size-3" />
+                        ) : (
+                          <Shirt className="size-3" />
+                        )}
+                        {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
+                      </Button>
                       <div className="flex gap-1.5">
                         <Button
                           size="sm"
@@ -225,11 +270,7 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
                           )}
                           Wishlist
                         </Button>
-                        <a
-                          href={product.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
+                        <a href={product.link} target="_blank" rel="noopener noreferrer">
                           <Button size="sm" variant="outline" className="text-xs">
                             <ExternalLink className="size-3" />
                           </Button>

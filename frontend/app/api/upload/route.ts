@@ -3,30 +3,10 @@ import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
 import { clothingItems } from "@/db/schema";
 import { analyzeClothingImage } from "@/lib/openrouter";
-import { removeBackground } from "@/lib/removebg";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
-import cloudinary from "@/lib/cloudinary";
+import { uploadWithBgRemoval } from "@/lib/cloudinary";
 import sharp from "sharp";
 
-async function uploadBufferToCloudinary(
-  buffer: Buffer,
-): Promise<{ url: string; publicId: string }> {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader
-      .upload_stream(
-        {
-          folder: "outfitted",
-          resource_type: "image",
-          format: "png",
-        },
-        (error, result) => {
-          if (error || !result) reject(error ?? new Error("Upload failed"));
-          else resolve({ url: result.secure_url, publicId: result.public_id });
-        },
-      )
-      .end(buffer);
-  });
-}
 
 export async function POST(req: Request) {
   try {
@@ -97,7 +77,6 @@ export async function POST(req: Request) {
 
           // Crop to the bounding box of the identified item before background removal
           let cropBase64 = imageBase64;
-          let cropMime = mimeType;
           if (identified.bbox) {
             const { x1, y1, x2, y2 } = identified.bbox;
             const meta = await sharp(imageBuffer).metadata();
@@ -113,7 +92,6 @@ export async function POST(req: Request) {
                 .png()
                 .toBuffer();
               cropBase64 = cropped.toString("base64");
-              cropMime = "image/png";
             }
           }
           console.log(`[upload] bbox crop: ${(performance.now() - step).toFixed(0)}ms`);
@@ -121,16 +99,8 @@ export async function POST(req: Request) {
           step = performance.now();
           const cropBuffer = Buffer.from(cropBase64, "base64");
 
-          const isolatedBuffer = await removeBackground(cropBuffer);
-          console.log(`[upload] remove.bg "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
-
-          step = performance.now();
-          const pngBuffer = await sharp(isolatedBuffer).png().toBuffer();
-          console.log(`[upload] sharp png convert: ${(performance.now() - step).toFixed(0)}ms`);
-
-          step = performance.now();
-          const { url, publicId } = await uploadBufferToCloudinary(pngBuffer);
-          console.log(`[upload] Cloudinary upload: ${(performance.now() - step).toFixed(0)}ms`);
+          const { url, publicId } = await uploadWithBgRemoval(cropBuffer, identified.category);
+          console.log(`[upload] Cloudinary upload+bgremoval "${identified.description}": ${(performance.now() - step).toFixed(0)}ms`);
 
           step = performance.now();
           const [item] = await db
