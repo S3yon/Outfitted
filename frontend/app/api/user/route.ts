@@ -16,7 +16,7 @@ export async function GET() {
   return NextResponse.json(user);
 }
 
-// PATCH /api/user — update style profile or solana wallet
+// PATCH /api/user — update style profile or display name
 export async function PATCH(req: Request) {
   const session = await auth0.getSession();
   if (!session?.user) {
@@ -24,12 +24,11 @@ export async function PATCH(req: Request) {
   }
 
   const body = await req.json();
-  const { displayName, styleProfile, solanaWalletAddress, onboardingCompleted } = body;
+  const { displayName, styleProfile, onboardingCompleted } = body;
 
   const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
   if (displayName !== undefined) updates.displayName = displayName;
   if (styleProfile !== undefined) updates.styleProfile = styleProfile;
-  if (solanaWalletAddress !== undefined) updates.solanaWalletAddress = solanaWalletAddress;
   if (onboardingCompleted !== undefined) updates.onboardingCompleted = onboardingCompleted;
 
   const [updated] = await db

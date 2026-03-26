@@ -12,7 +12,6 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   styleProfile: text("style_profile"),
   onboardingCompleted: boolean("onboarding_completed").notNull().default(false),
-  solanaWalletAddress: text("solana_wallet_address"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(now() at time zone 'utc')`),

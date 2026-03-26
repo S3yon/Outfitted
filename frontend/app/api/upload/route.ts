@@ -164,7 +164,8 @@ export async function POST(req: Request) {
     return NextResponse.json(allCreatedItems, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error("[upload] Error:", message);
+    const cause = err instanceof Error && err.cause ? String(err.cause) : null;
+    console.error("[upload] Error:", message, cause ? `| cause: ${cause}` : "");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
