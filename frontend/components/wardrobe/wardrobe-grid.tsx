@@ -215,7 +215,7 @@ function ItemCard({
       {/* Delete button */}
       <button
         onClick={() => onDelete(item)}
-        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 opacity-0 transition-opacity hover:text-red-400 group-hover:opacity-100"
+        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 transition-opacity hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
       >
         <Trash2 className="size-3.5" />
       </button>
