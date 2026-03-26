@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,14 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
   const [addingIdx, setAddingIdx] = useState<number | null>(null);
   const [addingToWardrobeIdx, setAddingToWardrobeIdx] = useState<number | null>(null);
   const [addedToWardrobe, setAddedToWardrobe] = useState<Set<number>>(new Set());
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
 
   async function handleSearch(searchQuery?: string) {
     const q = searchQuery ?? query;
@@ -344,8 +352,8 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
       </AnimatePresence>
 
       {/* Desktop: Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col gap-3 hidden md:grid">
+      <Dialog open={isDesktop && open} onOpenChange={setOpen}>
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col gap-3">
           <DialogHeader>
             <DialogTitle>Search Products</DialogTitle>
           </DialogHeader>
