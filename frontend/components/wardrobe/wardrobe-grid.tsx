@@ -243,7 +243,7 @@ function ItemCard({
         {item.notes && (
           <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.notes}</p>
         )}
-        {hasPrice && (
+        {isWishlisted && hasPrice && (
           <p className="mt-1 text-sm font-semibold text-foreground">{item.price}</p>
         )}
 
