@@ -97,7 +97,8 @@ export default function WardrobePage() {
       {/* Mobile FAB */}
       <button
         onClick={() => setSheetOpen(true)}
-        className="md:hidden fixed bottom-20 right-5 z-40 flex size-14 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg"
+        className="md:hidden fixed right-5 z-40 flex size-14 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg"
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
       >
         <Plus className="size-6" />
       </button>
@@ -120,7 +121,8 @@ export default function WardrobePage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-background pb-8 pt-4 shadow-xl"
+              className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-background pt-4 shadow-xl"
+              style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
             >
               <div className="mb-4 flex items-center justify-between px-5">
                 <p className="text-base font-semibold">Add to wardrobe</p>

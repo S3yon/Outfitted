@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt } from "lucide-react";
-// import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-// import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-// import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,8 +13,6 @@ import {
 import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-
-// const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
 
 type Product = {
   title: string;
@@ -51,7 +47,6 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
   const [addingIdx, setAddingIdx] = useState<number | null>(null);
   const [addingToWardrobeIdx, setAddingToWardrobeIdx] = useState<number | null>(null);
   const [addedToWardrobe, setAddedToWardrobe] = useState<Set<number>>(new Set());
-  // const [buyingIdx, setBuyingIdx] = useState<number | null>(null);
 
   async function handleSearch(searchQuery?: string) {
     const q = searchQuery ?? query;
@@ -134,7 +129,160 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
     setAddingToWardrobeIdx(null);
   }
 
-  // async function handleBuyWithSol(product: Product, index: number) { /* Solana hidden */ }
+  const hasResults = !searching && products.length > 0;
+
+  const searchBar = (
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <input
+        type="text"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+        placeholder="Search by brand, item, style..."
+        // font-size 16px prevents iOS Safari from zooming on focus
+        style={{ fontSize: 16 }}
+        className="w-full rounded-xl border border-border bg-secondary py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-shadow"
+      />
+      {query && (
+        <button
+          onClick={() => { setQuery(""); setProducts([]); }}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+      )}
+    </div>
+  );
+
+  const brandChips = (
+    <AnimatePresence initial={false}>
+      {!hasResults && (
+        <motion.div
+          key="brands"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: "auto" }}
+          exit={{ opacity: 0, height: 0 }}
+          transition={{ duration: 0.2 }}
+          className="overflow-hidden"
+        >
+          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {BRANDS.map((brand) => (
+              <button
+                key={brand}
+                onClick={() => handleBrandClick(brand)}
+                className={cn(
+                  "shrink-0 rounded-full border px-3 py-1 text-xs transition-all",
+                  query === brand
+                    ? "border-foreground bg-foreground text-background"
+                    : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
+                )}
+              >
+                {brand}
+              </button>
+            ))}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const resultsArea = (
+    <div className="flex-1 overflow-y-auto min-h-0">
+      {searching && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+        </div>
+      )}
+
+      {!searching && products.length === 0 && query && !searching && (
+        <p className="py-12 text-center text-sm text-muted-foreground">
+          No products found. Try a different search.
+        </p>
+      )}
+
+      <AnimatePresence>
+        {hasResults && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="grid grid-cols-2 gap-3"
+          >
+            {products.map((product, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.2 }}
+                className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
+              >
+                <div className="relative aspect-square bg-white">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={product.imageUrl}
+                    alt={product.title}
+                    className="h-full w-full object-contain p-2"
+                  />
+                </div>
+
+                <div className="p-2.5">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                    {product.source}
+                  </p>
+                  <p className="mt-0.5 line-clamp-2 text-xs text-foreground">
+                    {product.title}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-foreground">
+                    {product.price}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
+                  <Button
+                    size="sm"
+                    variant="default"
+                    className="w-full text-xs"
+                    disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
+                    onClick={() => handleAddToWardrobe(product, i)}
+                  >
+                    {addingToWardrobeIdx === i ? (
+                      <Loader2 className="size-3 animate-spin" />
+                    ) : addedToWardrobe.has(i) ? (
+                      <Check className="size-3" />
+                    ) : (
+                      <Shirt className="size-3" />
+                    )}
+                    {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
+                  </Button>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="flex-1 text-xs"
+                      disabled={addingIdx === i}
+                      onClick={() => handleAddToWishlist(product, i)}
+                    >
+                      {addingIdx === i ? (
+                        <Loader2 className="size-3 animate-spin" />
+                      ) : (
+                        <Plus className="size-3" />
+                      )}
+                      Wishlist
+                    </Button>
+                    <a href={product.link} target="_blank" rel="noopener noreferrer">
+                      <Button size="sm" variant="outline" className="text-xs">
+                        <ExternalLink className="size-3" />
+                      </Button>
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
     <>
@@ -148,140 +296,62 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
         Find Items
       </Button>
 
+      {/* Mobile: full-screen slide-in panel */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              key="mobile-backdrop"
+              className="md:hidden fixed inset-0 z-50 bg-black/40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+            />
+            <motion.div
+              key="mobile-panel"
+              className="md:hidden fixed inset-x-0 bottom-0 z-50 flex flex-col bg-background rounded-t-2xl overflow-hidden"
+              style={{ height: "92dvh" }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            >
+              {/* Handle bar */}
+              <div className="flex justify-center pt-3 pb-1 shrink-0">
+                <div className="h-1 w-10 rounded-full bg-border" />
+              </div>
+
+              {/* Header */}
+              <div className="flex items-center gap-3 px-4 pb-3 shrink-0">
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex size-8 items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                >
+                  <ArrowLeft className="size-4" />
+                </button>
+                <h2 className="text-base font-semibold">Find Items</h2>
+              </div>
+
+              <div className="flex flex-col gap-3 px-4 pb-4 flex-1 min-h-0">
+                {searchBar}
+                {brandChips}
+                {resultsArea}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop: Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col">
+        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden flex flex-col gap-3 hidden md:grid">
           <DialogHeader>
             <DialogTitle>Search Products</DialogTitle>
           </DialogHeader>
-
-          {/* Search input */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Search by brand, item, style..."
-              className="w-full rounded-lg border border-border bg-secondary py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold"
-            />
-            {query && (
-              <button
-                onClick={() => { setQuery(""); setProducts([]); }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Brand quick-select */}
-          <div className="flex flex-wrap gap-1.5">
-            {BRANDS.map((brand) => (
-              <button
-                key={brand}
-                onClick={() => handleBrandClick(brand)}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs transition-all",
-                  query === brand
-                    ? "border-gold bg-gold/10 text-foreground"
-                    : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
-                )}
-              >
-                {brand}
-              </button>
-            ))}
-          </div>
-
-          {/* Results */}
-          <div className="flex-1 overflow-y-auto min-h-0">
-            {searching && (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="size-6 animate-spin text-muted-foreground" />
-              </div>
-            )}
-
-            {!searching && products.length === 0 && query && (
-              <p className="py-12 text-center text-sm text-muted-foreground">
-                No products found. Try a different search.
-              </p>
-            )}
-
-            {!searching && products.length > 0 && (
-              <div className="grid grid-cols-2 gap-3">
-                {products.map((product, i) => (
-                  <div
-                    key={i}
-                    className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
-                  >
-                    {/* Product image */}
-                    <div className="relative aspect-square bg-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="h-full w-full object-contain p-2"
-                      />
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-2.5">
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                        {product.source}
-                      </p>
-                      <p className="mt-0.5 line-clamp-2 text-xs text-foreground">
-                        {product.title}
-                      </p>
-                      <p className="mt-1 text-sm font-semibold text-foreground">
-                        {product.price}
-                      </p>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="w-full text-xs"
-                        disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
-                        onClick={() => handleAddToWardrobe(product, i)}
-                      >
-                        {addingToWardrobeIdx === i ? (
-                          <Loader2 className="size-3 animate-spin" />
-                        ) : addedToWardrobe.has(i) ? (
-                          <Check className="size-3" />
-                        ) : (
-                          <Shirt className="size-3" />
-                        )}
-                        {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
-                      </Button>
-                      <div className="flex gap-1.5">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="flex-1 text-xs"
-                          disabled={addingIdx === i}
-                          onClick={() => handleAddToWishlist(product, i)}
-                        >
-                          {addingIdx === i ? (
-                            <Loader2 className="size-3 animate-spin" />
-                          ) : (
-                            <Plus className="size-3" />
-                          )}
-                          Wishlist
-                        </Button>
-                        <a href={product.link} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" variant="outline" className="text-xs">
-                            <ExternalLink className="size-3" />
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          {searchBar}
+          {brandChips}
+          {resultsArea}
         </DialogContent>
       </Dialog>
     </>
