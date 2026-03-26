@@ -29,6 +29,7 @@ export function AppNav() {
               <Link
                 key={href}
                 href={href}
+                onClick={active ? () => window.scrollTo({ top: 0, behavior: "smooth" }) : undefined}
                 className={cn(
                   "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors duration-150",
                   active
@@ -55,6 +56,7 @@ export function AppNav() {
             <Link
               key={href}
               href={href}
+              onClick={active ? () => window.scrollTo({ top: 0, behavior: "smooth" }) : undefined}
               className="relative flex flex-1 flex-col items-center gap-0.5 py-3 text-xs"
             >
               {active && (
