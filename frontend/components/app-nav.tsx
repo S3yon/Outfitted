@@ -1,20 +1,14 @@
 "use client"
 
-// import dynamic from "next/dynamic"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Shirt, Layers, User } from "lucide-react"
+import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
-
-// const WalletMultiButton = dynamic(
-//   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
-//   { ssr: false },
-// )
 
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
   { href: "/outfits", label: "Outfits", icon: Layers },
-  // { href: "/market", label: "Market", icon: TrendingUp },
   { href: "/profile", label: "Profile", icon: User },
 ] as const
 
@@ -48,38 +42,32 @@ export function AppNav() {
             )
           })}
         </div>
-        {/* Solana wallet button hidden
-        <div className="ml-auto">
-          <WalletMultiButton
-            style={{
-              height: 36,
-              fontSize: 13,
-              borderRadius: 8,
-              backgroundColor: "hsl(var(--secondary))",
-              color: "hsl(var(--foreground))",
-            }}
-          />
-        </div>
-        */}
       </nav>
 
       {/* Mobile: bottom tabs */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around h-14 border-t border-border bg-background">
+      <nav
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-background/95 backdrop-blur-sm"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href)
           return (
             <Link
               key={href}
               href={href}
-              className={cn(
-                "flex flex-col items-center gap-0.5 py-1 px-4 text-xs transition-colors duration-150",
-                active
-                  ? "text-foreground"
-                  : "text-muted-foreground"
-              )}
+              className="relative flex flex-1 flex-col items-center gap-0.5 py-3 text-xs"
             >
-              <Icon className="size-5" />
-              {label}
+              {active && (
+                <motion.div
+                  layoutId="tab-pill"
+                  className="absolute inset-x-3 inset-y-1.5 rounded-xl bg-secondary"
+                  transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                />
+              )}
+              <Icon className={cn("relative z-10 size-5 transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")} />
+              <span className={cn("relative z-10 transition-colors duration-150", active ? "text-foreground font-medium" : "text-muted-foreground")}>
+                {label}
+              </span>
             </Link>
           )
         })}
