@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/use-app-store";
 import { toast } from "sonner";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 
 const BADGE_RULES: Array<{ match: string; label: string }> = [
   { match: "Minimalist", label: "Minimalist" },
@@ -46,18 +47,17 @@ export default function ProfilePage() {
   const [styleValue, setStyleValue] = useState("");
   const [savingStyle, setSavingStyle] = useState(false);
 
+  async function fetchUser() {
+    const res = await fetch("/api/user");
+    if (res.ok) setUser(await res.json());
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!auth0User) return;
-    async function fetchUser() {
-      const res = await fetch("/api/user");
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      }
-      setLoading(false);
-    }
     fetchUser();
-  }, [auth0User, setUser]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth0User]);
 
   async function saveName() {
     if (!nameValue.trim()) return;
@@ -115,6 +115,7 @@ export default function ProfilePage() {
     .toUpperCase();
 
   return (
+    <PullToRefresh onRefresh={fetchUser}>
     <div className="mx-auto max-w-lg px-5 py-8 sm:px-8">
       {/* Avatar + name + email */}
       <div className="flex items-center gap-4">
@@ -258,5 +259,6 @@ export default function ProfilePage() {
         </Button>
       </section>
     </div>
+    </PullToRefresh>
   );
 }

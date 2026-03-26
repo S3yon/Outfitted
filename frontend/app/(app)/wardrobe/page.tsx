@@ -9,6 +9,7 @@ import { UploadButton } from "@/components/wardrobe/upload-button";
 import { CameraButton } from "@/components/wardrobe/camera-button";
 import { ProductSearch } from "@/components/wardrobe/product-search";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 
 export default function WardrobePage() {
   const { user: auth0User, isLoading: authLoading } = useUser();
@@ -19,18 +20,17 @@ export default function WardrobePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const uploadTriggerRef = useRef<(() => void) | undefined>(undefined);
 
+  async function fetchWardrobe() {
+    const res = await fetch("/api/wardrobe");
+    if (res.ok) setWardrobeItems(await res.json());
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!auth0User) return;
-    async function fetchWardrobe() {
-      const res = await fetch("/api/wardrobe");
-      if (res.ok) {
-        const items = await res.json();
-        setWardrobeItems(items);
-      }
-      setLoading(false);
-    }
     fetchWardrobe();
-  }, [auth0User, setWardrobeItems]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth0User]);
 
   if (authLoading || loading) {
     return (
@@ -62,6 +62,7 @@ export default function WardrobePage() {
   ];
 
   return (
+    <PullToRefresh onRefresh={fetchWardrobe}>
     <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
       <div className="flex items-center justify-between">
         <div>
@@ -152,5 +153,6 @@ export default function WardrobePage() {
         )}
       </AnimatePresence>
     </div>
+    </PullToRefresh>
   );
 }

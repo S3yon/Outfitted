@@ -10,6 +10,7 @@ import { OutfitCard } from "@/components/outfits/outfit-card";
 import { OutfitBuilder } from "@/components/outfits/outfit-builder";
 import { TryOnView } from "@/components/try-on/try-on-view";
 import { toast } from "sonner";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 
 export default function OutfitsPage() {
   const { user: auth0User, isLoading: authLoading } = useUser();
@@ -19,21 +20,21 @@ export default function OutfitsPage() {
   const [selectedOutfit, setSelectedOutfit] = useState<PopulatedOutfit | null>(null);
   const [showBuilder, setShowBuilder] = useState(false);
 
+  async function fetchData() {
+    const [outfitsRes, itemsRes] = await Promise.all([
+      fetch("/api/outfits"),
+      fetch("/api/items"),
+    ]);
+    if (outfitsRes.ok) setOutfits(await outfitsRes.json());
+    if (itemsRes.ok) setWardrobeItems(await itemsRes.json());
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (!auth0User) return;
-
-    async function fetchData() {
-      const [outfitsRes, itemsRes] = await Promise.all([
-        fetch("/api/outfits"),
-        wardrobeItems.length === 0 ? fetch("/api/items") : null,
-      ]);
-      if (outfitsRes.ok) setOutfits(await outfitsRes.json());
-      if (itemsRes?.ok) setWardrobeItems(await itemsRes.json());
-      setLoading(false);
-    }
-
     fetchData();
-  }, [auth0User, setOutfits, setWardrobeItems, wardrobeItems.length]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auth0User]);
 
   async function handleGenerate() {
     setGenerating(true);
@@ -70,7 +71,7 @@ export default function OutfitsPage() {
   }
 
   return (
-    <>
+    <PullToRefresh onRefresh={fetchData}>
       <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8">
         <div className="flex items-center justify-between">
           <div>
@@ -142,6 +143,6 @@ export default function OutfitsPage() {
           <p className="text-sm text-neutral-300">Your AI stylist is working...</p>
         </div>
       )}
-    </>
+    </PullToRefresh>
   );
 }
