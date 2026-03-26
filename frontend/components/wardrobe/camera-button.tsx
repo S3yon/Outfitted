@@ -15,9 +15,11 @@ import { useAppStore } from "@/stores/use-app-store";
 
 type Stage = "webcam" | "countdown" | "captured" | "confirm";
 
-export function CameraButton() {
+export function CameraButton({ open: controlledOpen, onOpenChange }: { open?: boolean; onOpenChange?: (v: boolean) => void } = {}) {
   const { setWardrobeItems, wardrobeItems } = useAppStore();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
   const [stage, setStage] = useState<Stage>("webcam");
   const [countdown, setCountdown] = useState(3);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
@@ -165,7 +167,7 @@ export function CameraButton() {
 
   return (
     <>
-      <Button size="lg" variant="outline" onClick={() => setOpen(true)}>
+      <Button size="lg" variant="outline" onClick={() => setOpen(true)} className="hidden md:flex">
         <Camera className="size-4" data-icon="inline-start" />
         Camera
       </Button>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -8,7 +8,7 @@ import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export function UploadButton() {
+export function UploadButton({ onTrigger }: { onTrigger?: (fn: () => void) => void } = {}) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { setWardrobeItems, wardrobeItems } = useAppStore();
   const [files, setFiles] = useState<File[]>([]);
@@ -16,6 +16,11 @@ export function UploadButton() {
   const [status, setStatus] = useState<"owned" | "wishlisted">("owned");
   const [uploading, setUploading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    onTrigger?.(() => inputRef.current?.click());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const selected = Array.from(e.target.files ?? []);
@@ -84,7 +89,7 @@ export function UploadButton() {
         className="hidden"
         onChange={handleFileSelect}
       />
-      <Button size="lg" onClick={() => inputRef.current?.click()}>
+      <Button size="lg" variant="outline" onClick={() => inputRef.current?.click()} className="hidden md:flex">
         <Upload className="size-4" data-icon="inline-start" />
         Upload
       </Button>

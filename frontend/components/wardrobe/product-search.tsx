@@ -40,12 +40,11 @@ const BRANDS = [
   "New Balance",
 ] as const;
 
-export function ProductSearch() {
+export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: boolean; onOpenChange?: (v: boolean) => void } = {}) {
   const { setWardrobeItems, wardrobeItems } = useAppStore();
-  // const { connection } = useConnection();
-  // const { publicKey, sendTransaction } = useWallet();
-  // const { setVisible: openWalletModal } = useWalletModal();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
@@ -113,9 +112,10 @@ export function ProductSearch() {
         size="lg"
         variant="outline"
         onClick={() => setOpen(true)}
+        className="hidden md:flex"
       >
         <Search className="size-4" data-icon="inline-start" />
-        Search Products
+        Find Items
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
