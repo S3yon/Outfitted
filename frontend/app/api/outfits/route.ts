@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, clothingItems, outfits, outfitItems } from "@/db/schema";
+import { clothingItems, outfits, outfitItems } from "@/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 
 // GET /api/outfits — fetch all saved outfits with populated clothing items
 export async function GET() {
@@ -11,15 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const user = await getOrCreateUser(session.user);
 
   // Fetch all outfits for the user
   const userOutfits = await db
@@ -59,14 +52,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Select at least 2 items" }, { status: 400 });
   }
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const user = await getOrCreateUser(session.user);
 
   // Verify all items belong to this user
   const items = await db

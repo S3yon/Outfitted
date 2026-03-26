@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, outfits, outfitItems, clothingItems } from "@/db/schema";
+import { outfits, outfitItems, clothingItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 import cloudinary from "@/lib/cloudinary";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -26,14 +27,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "personImage and outfitId required" }, { status: 400 });
   }
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const user = await getOrCreateUser(session.user);
 
   // Verify outfit belongs to user
   const [outfit] = await db

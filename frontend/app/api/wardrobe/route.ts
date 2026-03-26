@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, clothingItems } from "@/db/schema";
+import { clothingItems } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 
 // GET /api/wardrobe?status=owned&category=tops
 // status:   "owned" | "wishlisted" (omit for all)
@@ -13,15 +14,7 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const user = await getOrCreateUser(session.user);
 
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, clothingItems, outfits, outfitItems } from "@/db/schema";
+import { clothingItems, outfits, outfitItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 import { cleanGeminiJson, type GeminiResponse } from "@/lib/gemini";
 
 export async function POST() {
@@ -12,15 +13,7 @@ export async function POST() {
   }
 
   // Fetch user
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  const user = await getOrCreateUser(session.user);
 
   // Only owned items — can't style with things you don't have
   const ownedItems = await db

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, outfits } from "@/db/schema";
+import { outfits } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 
 // DELETE /api/outfits/[id] — delete an outfit (outfitItems cascade via FK)
 export async function DELETE(
@@ -15,13 +16,7 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.auth0Id, session.user.sub))
-    .limit(1);
-
-  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  const user = await getOrCreateUser(session.user);
 
   const [deleted] = await db
     .delete(outfits)

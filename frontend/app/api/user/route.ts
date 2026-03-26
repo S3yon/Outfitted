@@ -3,6 +3,7 @@ import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 
 // GET /api/user — fetch current user's DB record, creating it on first login
 export async function GET() {
@@ -11,30 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { sub: auth0Id, email, name } = session.user;
-
-  // Upsert — safe to call on every login
-  const [user] = await db
-    .insert(users)
-    .values({
-      auth0Id,
-      email: email ?? "",
-      displayName: name ?? null,
-      onboardingCompleted: false,
-    })
-    .onConflictDoNothing()
-    .returning();
-
-  // If upsert returned nothing, user already existed — fetch them
-  if (!user) {
-    const [existing] = await db
-      .select()
-      .from(users)
-      .where(eq(users.auth0Id, auth0Id))
-      .limit(1);
-    return NextResponse.json(existing);
-  }
-
+  const user = await getOrCreateUser(session.user);
   return NextResponse.json(user);
 }
 

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { users, clothingItems } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { clothingItems } from "@/db/schema";
 import { analyzeClothingImage } from "@/lib/openrouter";
 import { removeBackground } from "@/lib/removebg";
+import { getOrCreateUser } from "@/lib/get-or-create-user";
 import cloudinary from "@/lib/cloudinary";
 import sharp from "sharp";
 
@@ -55,16 +55,8 @@ export async function POST(req: Request) {
     }
 
     t = performance.now();
-    const [user] = await db
-      .select()
-      .from(users)
-      .where(eq(users.auth0Id, session.user.sub))
-      .limit(1);
+    const user = await getOrCreateUser(session.user);
     console.log(`[upload] db user lookup: ${(performance.now() - t).toFixed(0)}ms`);
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     const validCategories = new Set([
       "tops",
