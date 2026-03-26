@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Trash2, Check, Heart, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
 // import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 // import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -10,6 +10,47 @@ import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { ClothingItem } from "@/db/schema";
+
+// Module-level queue — survives React re-renders and component remounts
+type QueueEntry = {
+  item: ClothingItem;
+  onStart: (id: string) => void;
+  onDone: (id: string, updated: ClothingItem | null) => void;
+};
+const _queue: QueueEntry[] = [];
+let _processing = false;
+
+async function drainQueue() {
+  if (_processing) return;
+  _processing = true;
+  let successCount = 0;
+  while (_queue.length > 0) {
+    const { item, onStart, onDone } = _queue.shift()!;
+    onStart(item.id);
+    try {
+      const res = await fetch(`/api/items/${item.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "owned" }),
+      });
+      if (!res.ok) {
+        onDone(item.id, null);
+        toast.error(`Failed to update ${item.category}`);
+      } else {
+        const updated: ClothingItem = await res.json();
+        onDone(item.id, updated);
+        successCount++;
+      }
+    } catch {
+      onDone(item.id, null);
+      toast.error(`Failed to update ${item.category}`);
+    }
+  }
+  _processing = false;
+  if (successCount > 0) {
+    toast.success(successCount === 1 ? "Item moved to owned" : `${successCount} items moved to owned`);
+  }
+}
 
 // const TREASURY_WALLET = new PublicKey("11111111111111111111111111111112");
 
@@ -35,8 +76,6 @@ export function WardrobeGrid() {
     addProcessingItem,
     removeProcessingItem,
   } = useAppStore();
-  const markOwnedQueue = useRef<ClothingItem[]>([]);
-  const isProcessingQueue = useRef(false);
   const [queuedItemIds, setQueuedItemIds] = useState<Set<string>>(new Set());
 
   const filtered = wardrobeItems
@@ -53,55 +92,39 @@ export function WardrobeGrid() {
     toast.success("Item removed");
   }
 
-  async function processMarkOwnedQueue() {
-    if (isProcessingQueue.current) return;
-    isProcessingQueue.current = true;
-
-    while (markOwnedQueue.current.length > 0) {
-      const item = markOwnedQueue.current.shift()!;
-      setQueuedItemIds((prev) => { const s = new Set(prev); s.delete(item.id); return s; });
-      addProcessingItem(item.id);
-
-      const res = await fetch(`/api/items/${item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "owned" }),
-      });
-
-      removeProcessingItem(item.id);
-
-      if (!res.ok) {
-        setWardrobeItems(
-          useAppStore.getState().wardrobeItems.map((i) =>
-            i.id === item.id ? { ...i, status: "wishlisted" } : i,
-          ),
-        );
-        toast.error(`Failed to update ${item.category}`);
-      } else {
-        const updated = await res.json();
-        setWardrobeItems(
-          useAppStore.getState().wardrobeItems.map((i) =>
-            i.id === item.id ? updated : i,
-          ),
-        );
-      }
-    }
-
-    isProcessingQueue.current = false;
-    toast.success("All items moved to owned");
-  }
-
   function handleMarkOwned(item: ClothingItem) {
-    // Optimistic UI update immediately
+    // Optimistic UI: mark as owned immediately so it disappears from wishlist filter
     setWardrobeItems(
       useAppStore.getState().wardrobeItems.map((i) =>
         i.id === item.id ? { ...i, status: "owned" } : i,
       ),
     );
-    // Add to visual queue and processing queue
     setQueuedItemIds((prev) => new Set(prev).add(item.id));
-    markOwnedQueue.current.push(item);
-    processMarkOwnedQueue();
+
+    _queue.push({
+      item,
+      onStart: (id) => {
+        setQueuedItemIds((prev) => { const s = new Set(prev); s.delete(id); return s; });
+        addProcessingItem(id);
+      },
+      onDone: (id, updated) => {
+        removeProcessingItem(id);
+        if (updated) {
+          setWardrobeItems(
+            useAppStore.getState().wardrobeItems.map((i) => i.id === id ? updated : i),
+          );
+        } else {
+          // Revert optimistic update on failure
+          setWardrobeItems(
+            useAppStore.getState().wardrobeItems.map((i) =>
+              i.id === id ? { ...i, status: "wishlisted" } : i,
+            ),
+          );
+        }
+      },
+    });
+
+    drainQueue();
   }
 
   // async function handleBuyWithSol(item: ClothingItem) { /* Solana hidden */ }
