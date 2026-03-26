@@ -244,7 +244,8 @@ export function TryOnView({
         {/* Back button */}
         <button
           onClick={onBack}
-          className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+          className="absolute left-4 z-20 flex items-center gap-2 rounded-full bg-black/50 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm transition-colors hover:bg-black/70"
+          style={{ top: "calc(1rem + env(safe-area-inset-top))" }}
         >
           <ArrowLeft className="size-4" />
           Back
