@@ -27,6 +27,7 @@ export function TryOnView({
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [sliderPos, setSliderPos] = useState(100);
+  const [isPortrait, setIsPortrait] = useState(true);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -74,6 +75,31 @@ export function TryOnView({
     startCamera();
     return () => stopCamera();
   }, [startCamera, stopCamera]);
+
+  // Detect portrait/landscape from the video stream dimensions
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    function onMeta() {
+      setIsPortrait(video!.videoHeight >= video!.videoWidth);
+    }
+    video.addEventListener("loadedmetadata", onMeta);
+    return () => video.removeEventListener("loadedmetadata", onMeta);
+  }, []);
+
+  // Also update on device orientation change
+  useEffect(() => {
+    function onOrientationChange() {
+      const landscape = window.matchMedia("(orientation: landscape)").matches;
+      setIsPortrait(!landscape);
+    }
+    window.addEventListener("orientationchange", onOrientationChange);
+    window.addEventListener("resize", onOrientationChange);
+    return () => {
+      window.removeEventListener("orientationchange", onOrientationChange);
+      window.removeEventListener("resize", onOrientationChange);
+    };
+  }, []);
 
   // Countdown timer
   useEffect(() => {
@@ -176,12 +202,15 @@ export function TryOnView({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex bg-background"
+      className="fixed inset-0 z-50 flex flex-col md:flex-row bg-background"
     >
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* Left: webcam / result */}
-      <div className="relative flex-1">
+      {/* Top (mobile) / Left (desktop): webcam / result */}
+      <div
+        className="relative shrink-0 md:h-auto md:flex-1 transition-all duration-300"
+        style={{ height: `${isPortrait ? 68 : 42}vh` }}
+      >
         {/* Back button */}
         <button
           onClick={onBack}
@@ -233,7 +262,7 @@ export function TryOnView({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="absolute inset-x-0 bottom-8 flex justify-center"
+                className="absolute inset-x-0 bottom-5 flex justify-center"
               >
                 <Button
                   size="lg"
@@ -328,46 +357,30 @@ export function TryOnView({
         )}
       </div>
 
-      {/* Right: outfit panel */}
+      {/* Bottom (mobile) / Right (desktop): outfit panel */}
       <motion.div
-        initial={{ x: 40, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex w-[340px] shrink-0 flex-col border-l border-border bg-background"
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto border-t border-border bg-background md:w-[340px] md:shrink-0 md:flex-none md:border-l md:border-t-0"
       >
-        {/* Selected outfit */}
-        <div className="shrink-0 p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Current Outfit
-          </p>
-          <p className="mt-1 text-lg font-semibold tracking-tight">
-            {selected.outfit_description ?? selected.explanation}
-          </p>
-
-          <div className="mt-4 flex flex-col gap-2">
+        {/* Current outfit items */}
+        <div className="shrink-0 px-4 py-3">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Current Outfit</p>
+          <div className="flex gap-2">
             {sortedItems.map((item) => (
               <motion.div
                 key={item.id}
                 layout
-                className="flex items-center gap-3 rounded-xl bg-secondary/50 p-2"
+                className="relative size-14 shrink-0 overflow-hidden rounded-xl bg-secondary"
               >
-                <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-background">
-                  <Image
-                    src={item.cloudinaryUrl}
-                    alt={item.notes ?? item.category}
-                    fill
-                    className="object-contain p-1"
-                    sizes="64px"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    {item.category}
-                  </p>
-                  {item.notes && (
-                    <p className="truncate text-sm text-foreground">{item.notes}</p>
-                  )}
-                </div>
+                <Image
+                  src={item.cloudinaryUrl}
+                  alt={item.category}
+                  fill
+                  className="object-contain p-1"
+                  sizes="56px"
+                />
               </motion.div>
             ))}
           </div>
@@ -375,11 +388,9 @@ export function TryOnView({
 
         {/* Other outfits */}
         {otherOutfits.length > 0 && (
-          <div className="flex min-h-0 flex-1 flex-col border-t border-border p-4">
-            <p className="mb-3 shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              Other Outfits
-            </p>
-            <div className="flex flex-col gap-2 overflow-y-auto pr-1">
+          <div className="border-t border-border px-4 py-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Other Outfits</p>
+            <div className="flex gap-3 overflow-x-auto pb-1">
               {otherOutfits.map((o) => {
                 const thumbItems = [...o.items]
                   .sort((a, b) => CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category))
@@ -388,24 +399,20 @@ export function TryOnView({
                   <button
                     key={o.id}
                     onClick={() => handleSwitchOutfit(o.id)}
-                    className="flex shrink-0 items-center gap-3 rounded-lg border-2 border-border bg-secondary p-2 transition-all hover:border-foreground"
+                    className="grid shrink-0 grid-cols-2 gap-0.5 rounded-xl border-2 border-border bg-secondary p-1 transition-all hover:border-foreground"
+                    style={{ width: 60, height: 60 }}
                   >
-                    <div className="grid shrink-0 grid-cols-2 gap-0.5" style={{ width: 56, height: 56 }}>
-                      {thumbItems.map((item) => (
-                        <div key={item.id} className="relative overflow-hidden rounded bg-background">
-                          <Image
-                            src={item.cloudinaryUrl}
-                            alt={item.category}
-                            fill
-                            className="object-contain p-0.5"
-                            sizes="28px"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <p className="min-w-0 truncate text-left text-xs text-muted-foreground">
-                      {o.outfit_description ?? o.explanation}
-                    </p>
+                    {thumbItems.map((item) => (
+                      <div key={item.id} className="relative overflow-hidden rounded bg-background">
+                        <Image
+                          src={item.cloudinaryUrl}
+                          alt={item.category}
+                          fill
+                          className="object-contain p-0.5"
+                          sizes="28px"
+                        />
+                      </div>
+                    ))}
                   </button>
                 );
               })}
