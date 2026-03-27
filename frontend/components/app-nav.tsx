@@ -26,11 +26,9 @@ export function AppNav() {
       setNavBottom(Math.max(0, window.innerHeight - vv!.offsetTop - vv!.height))
     }
     vv.addEventListener("resize", update)
-    vv.addEventListener("scroll", update)
     update()
     return () => {
       vv!.removeEventListener("resize", update)
-      vv!.removeEventListener("scroll", update)
     }
   }, [])
 
