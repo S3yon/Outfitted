@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft } from "lucide-react";
+import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,17 +36,170 @@ const BRANDS = [
   "New Balance",
 ] as const;
 
-export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: boolean; onOpenChange?: (v: boolean) => void } = {}) {
-  const { setWardrobeItems, wardrobeItems } = useAppStore();
-  const [internalOpen, setInternalOpen] = useState(false);
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
-  const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
-  const [query, setQuery] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [searching, setSearching] = useState(false);
+// Module-level recommendation cache — survives re-renders, deduplicates
+// concurrent fetches from the two mounted instances of this component
+let _recCache: Product[] | null = null;
+let _recPromise: Promise<Product[]> | null = null;
+
+async function fetchRecommendations(): Promise<Product[]> {
+  if (_recCache !== null) return _recCache;
+  if (!_recPromise) {
+    _recPromise = fetch("/api/recommendations")
+      .then((r) => (r.ok ? r.json() : { products: [] }))
+      .then((d) => {
+        _recCache = d.products ?? [];
+        return _recCache!;
+      })
+      .catch(() => {
+        _recCache = [];
+        return [];
+      });
+  }
+  return _recPromise;
+}
+
+// Self-contained product grid — manages its own add-to-wardrobe/wishlist state
+// so recommendations and search results don't share indices
+function ProductGrid({ products }: { products: Product[] }) {
+  const { wardrobeItems, setWardrobeItems } = useAppStore();
   const [addingIdx, setAddingIdx] = useState<number | null>(null);
   const [addingToWardrobeIdx, setAddingToWardrobeIdx] = useState<number | null>(null);
   const [addedToWardrobe, setAddedToWardrobe] = useState<Set<number>>(new Set());
+
+  async function handleAddToWishlist(product: Product, index: number) {
+    setAddingIdx(index);
+    const res = await fetch("/api/wishlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: product.title,
+        imageUrl: product.imageUrl,
+        price: product.price,
+        source: product.source,
+        link: product.link,
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: "Failed to add" }));
+      toast.error(err.error ?? "Failed to add to wishlist");
+    } else {
+      const item = await res.json();
+      setWardrobeItems([item, ...wardrobeItems]);
+      toast.success("Added to wishlist");
+    }
+    setAddingIdx(null);
+  }
+
+  async function handleAddToWardrobe(product: Product, index: number) {
+    setAddingToWardrobeIdx(index);
+    try {
+      const blob = await fetch(product.imageUrl).then((r) => r.blob());
+      const ext = blob.type.includes("png") ? "png" : "jpg";
+      const file = new File([blob], `product-${index}.${ext}`, { type: blob.type });
+      const formData = new FormData();
+      formData.append("files", file);
+      formData.append("status", "owned");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Failed to add" }));
+        toast.error(err.error ?? "Failed to add to wardrobe");
+      } else {
+        const newItems = await res.json();
+        setWardrobeItems([...newItems, ...wardrobeItems]);
+        setAddedToWardrobe((prev) => new Set(prev).add(index));
+        toast.success("Added to wardrobe");
+      }
+    } catch {
+      toast.error("Could not fetch product image");
+    }
+    setAddingToWardrobeIdx(null);
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {products.map((product, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.04, duration: 0.2 }}
+          className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
+        >
+          <div className="relative aspect-square bg-white">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="h-full w-full object-contain p-2"
+            />
+          </div>
+          <div className="p-2.5">
+            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              {product.source}
+            </p>
+            <p className="mt-0.5 line-clamp-2 text-xs text-foreground">{product.title}</p>
+            <p className="mt-1 text-sm font-semibold text-foreground">{product.price}</p>
+          </div>
+          <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
+            <Button
+              size="sm"
+              variant="default"
+              className="w-full text-xs"
+              disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
+              onClick={() => handleAddToWardrobe(product, i)}
+            >
+              {addingToWardrobeIdx === i ? (
+                <Loader2 className="size-3 animate-spin" />
+              ) : addedToWardrobe.has(i) ? (
+                <Check className="size-3" />
+              ) : (
+                <Shirt className="size-3" />
+              )}
+              {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
+            </Button>
+            <div className="flex gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 text-xs"
+                disabled={addingIdx === i}
+                onClick={() => handleAddToWishlist(product, i)}
+              >
+                {addingIdx === i ? (
+                  <Loader2 className="size-3 animate-spin" />
+                ) : (
+                  <Plus className="size-3" />
+                )}
+                Wishlist
+              </Button>
+              <a href={product.link} target="_blank" rel="noopener noreferrer">
+                <Button size="sm" variant="outline" className="text-xs">
+                  <ExternalLink className="size-3" />
+                </Button>
+              </a>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+export function ProductSearch({
+  open: controlledOpen,
+  onOpenChange,
+}: { open?: boolean; onOpenChange?: (v: boolean) => void } = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
+
+  const [query, setQuery] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [searching, setSearching] = useState(false);
+
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
+
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -66,13 +219,25 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
     return () => { document.body.style.overflow = ""; };
   }, [open, isDesktop]);
 
+  // Auto-fetch recommendations when panel opens
+  useEffect(() => {
+    if (!open) return;
+    if (_recCache !== null) {
+      setRecommendations(_recCache);
+      return;
+    }
+    setLoadingRecs(true);
+    fetchRecommendations().then((recs) => {
+      setRecommendations(recs);
+      setLoadingRecs(false);
+    });
+  }, [open]);
+
   async function handleSearch(searchQuery?: string) {
     const q = searchQuery ?? query;
     if (q.trim().length === 0) return;
-
     setSearching(true);
     setProducts([]);
-
     const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Search failed" }));
@@ -80,7 +245,6 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
       setSearching(false);
       return;
     }
-
     const data = await res.json();
     setProducts(data.products);
     setSearching(false);
@@ -91,63 +255,8 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
     handleSearch(brand);
   }
 
-  async function handleAddToWishlist(product: Product, index: number) {
-    setAddingIdx(index);
-
-    const res = await fetch("/api/wishlist", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: product.title,
-        imageUrl: product.imageUrl,
-        price: product.price,
-        source: product.source,
-        link: product.link,
-      }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({ error: "Failed to add" }));
-      toast.error(err.error ?? "Failed to add to wishlist");
-      setAddingIdx(null);
-      return;
-    }
-
-    const item = await res.json();
-    setWardrobeItems([item, ...wardrobeItems]);
-    toast.success("Added to wishlist");
-    setAddingIdx(null);
-  }
-
-  async function handleAddToWardrobe(product: Product, index: number) {
-    setAddingToWardrobeIdx(index);
-    try {
-      const blob = await fetch(product.imageUrl).then((r) => r.blob());
-      const ext = blob.type.includes("png") ? "png" : "jpg";
-      const file = new File([blob], `product-${index}.${ext}`, { type: blob.type });
-      const formData = new FormData();
-      formData.append("files", file);
-      formData.append("status", "owned");
-
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Failed to add" }));
-        toast.error(err.error ?? "Failed to add to wardrobe");
-        setAddingToWardrobeIdx(null);
-        return;
-      }
-
-      const newItems = await res.json();
-      setWardrobeItems([...newItems, ...wardrobeItems]);
-      setAddedToWardrobe((prev) => new Set(prev).add(index));
-      toast.success("Added to wardrobe");
-    } catch {
-      toast.error("Could not fetch product image");
-    }
-    setAddingToWardrobeIdx(null);
-  }
-
   const hasResults = !searching && products.length > 0;
+  const showRecs = !query.trim() && !searching;
 
   const searchBar = (
     <div className="relative">
@@ -158,7 +267,6 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         placeholder="Search by brand, item, style..."
-        // font-size 16px prevents iOS Safari from zooming on focus
         style={{ fontSize: 16 }}
         className="w-full rounded-xl border border-border bg-secondary py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-shadow"
       />
@@ -174,128 +282,91 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
   );
 
   const brandChips = (
-    <AnimatePresence initial={false}>
-      {!hasResults && (
-        <motion.div
-          key="brands"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          exit={{ opacity: 0, height: 0 }}
-          transition={{ duration: 0.2 }}
-          className="overflow-hidden"
+    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+      {BRANDS.map((brand) => (
+        <button
+          key={brand}
+          onClick={() => handleBrandClick(brand)}
+          className={cn(
+            "shrink-0 rounded-full border px-3 py-1 text-xs transition-all",
+            query === brand
+              ? "border-foreground bg-foreground text-background"
+              : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
+          )}
         >
-          <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-            {BRANDS.map((brand) => (
-              <button
-                key={brand}
-                onClick={() => handleBrandClick(brand)}
-                className={cn(
-                  "shrink-0 rounded-full border px-3 py-1 text-xs transition-all",
-                  query === brand
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
-                )}
-              >
-                {brand}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          {brand}
+        </button>
+      ))}
+    </div>
   );
 
-  const resultsArea = (
-    <div className="flex-1 overflow-y-auto min-h-0">
+  // Shared content for both mobile and desktop
+  const content = (
+    <div className="flex flex-col gap-3 min-h-0">
+      {/* Brand chips — always visible when no search results */}
+      <AnimatePresence initial={false}>
+        {!hasResults && (
+          <motion.div
+            key="brands"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            {brandChips}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Search loading */}
       {searching && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="size-6 animate-spin text-muted-foreground" />
         </div>
       )}
 
-      {!searching && products.length === 0 && query && !searching && (
+      {/* No search results */}
+      {!searching && products.length === 0 && query.trim() && (
         <p className="py-12 text-center text-sm text-muted-foreground">
           No products found. Try a different search.
         </p>
       )}
 
+      {/* Search results */}
       <AnimatePresence>
         {hasResults && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <ProductGrid products={products} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Recommendations (shown when query is empty) */}
+      <AnimatePresence>
+        {showRecs && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="grid grid-cols-2 gap-3"
+            exit={{ opacity: 0 }}
+            className="flex flex-col gap-3"
           >
-            {products.map((product, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.2 }}
-                className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
-              >
-                <div className="relative aspect-square bg-white">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="h-full w-full object-contain p-2"
-                  />
-                </div>
-
-                <div className="p-2.5">
-                  <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                    {product.source}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-xs text-foreground">
-                    {product.title}
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-foreground">
-                    {product.price}
+            {loadingRecs && (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
+            {!loadingRecs && recommendations.length > 0 && (
+              <>
+                <div className="flex items-center gap-1.5">
+                  <Sparkles className="size-3.5 text-amber-400" />
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    For You
                   </p>
                 </div>
-
-                <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="w-full text-xs"
-                    disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
-                    onClick={() => handleAddToWardrobe(product, i)}
-                  >
-                    {addingToWardrobeIdx === i ? (
-                      <Loader2 className="size-3 animate-spin" />
-                    ) : addedToWardrobe.has(i) ? (
-                      <Check className="size-3" />
-                    ) : (
-                      <Shirt className="size-3" />
-                    )}
-                    {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
-                  </Button>
-                  <div className="flex gap-1.5">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-xs"
-                      disabled={addingIdx === i}
-                      onClick={() => handleAddToWishlist(product, i)}
-                    >
-                      {addingIdx === i ? (
-                        <Loader2 className="size-3 animate-spin" />
-                      ) : (
-                        <Plus className="size-3" />
-                      )}
-                      Wishlist
-                    </Button>
-                    <a href={product.link} target="_blank" rel="noopener noreferrer">
-                      <Button size="sm" variant="outline" className="text-xs">
-                        <ExternalLink className="size-3" />
-                      </Button>
-                    </a>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                <ProductGrid products={recommendations} />
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -338,12 +409,10 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
               dragConstraints={{ top: 0 }}
               dragElastic={{ top: 0.05, bottom: 0.3 }}
               onDragEnd={(_, info) => {
-                if (info.offset.y > 120 || info.velocity.y > 500) {
-                  setOpen(false);
-                }
+                if (info.offset.y > 120 || info.velocity.y > 500) setOpen(false);
               }}
             >
-              {/* Sticky header: handle + back + search */}
+              {/* Sticky header */}
               <div className="sticky top-0 z-10 bg-background rounded-t-2xl px-4 pt-3 pb-3 space-y-3">
                 <div className="flex justify-center cursor-grab active:cursor-grabbing">
                   <div className="h-1 w-10 rounded-full bg-border" />
@@ -361,65 +430,11 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
               </div>
 
               {/* Scrollable content */}
-              <div className="h-full overflow-y-auto px-4 pb-8 space-y-3" style={{ height: "calc(92dvh - 9rem)" }}>
-                {brandChips}
-                {!searching && products.length === 0 && query && (
-                  <p className="py-12 text-center text-sm text-muted-foreground">
-                    No products found. Try a different search.
-                  </p>
-                )}
-                {searching && (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
-                  </div>
-                )}
-                <AnimatePresence>
-                  {hasResults && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      className="grid grid-cols-2 gap-3"
-                    >
-                      {products.map((product, i) => (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, y: 12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.04, duration: 0.2 }}
-                          className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
-                        >
-                          <div className="relative aspect-square bg-white">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={product.imageUrl} alt={product.title} className="h-full w-full object-contain p-2" />
-                          </div>
-                          <div className="p-2.5">
-                            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{product.source}</p>
-                            <p className="mt-0.5 line-clamp-2 text-xs text-foreground">{product.title}</p>
-                            <p className="mt-1 text-sm font-semibold text-foreground">{product.price}</p>
-                          </div>
-                          <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
-                            <Button size="sm" variant="default" className="w-full text-xs"
-                              disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
-                              onClick={() => handleAddToWardrobe(product, i)}>
-                              {addingToWardrobeIdx === i ? <Loader2 className="size-3 animate-spin" /> : addedToWardrobe.has(i) ? <Check className="size-3" /> : <Shirt className="size-3" />}
-                              {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
-                            </Button>
-                            <div className="flex gap-1.5">
-                              <Button size="sm" variant="outline" className="flex-1 text-xs"
-                                disabled={addingIdx === i} onClick={() => handleAddToWishlist(product, i)}>
-                                {addingIdx === i ? <Loader2 className="size-3 animate-spin" /> : <Plus className="size-3" />}
-                                Wishlist
-                              </Button>
-                              <a href={product.link} target="_blank" rel="noopener noreferrer">
-                                <Button size="sm" variant="outline" className="text-xs"><ExternalLink className="size-3" /></Button>
-                              </a>
-                            </div>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              <div
+                className="overflow-y-auto px-4 pb-8"
+                style={{ height: "calc(92dvh - 9rem)" }}
+              >
+                {content}
               </div>
             </motion.div>
           </>
@@ -434,8 +449,9 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
               <DialogTitle>Search Products</DialogTitle>
             </DialogHeader>
             {searchBar}
-            {brandChips}
-            {resultsArea}
+            <div className="flex-1 overflow-y-auto min-h-0">
+              {content}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
