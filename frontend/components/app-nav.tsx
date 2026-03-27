@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Shirt, Layers, User } from "lucide-react"
 import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
@@ -14,6 +15,24 @@ const NAV_ITEMS = [
 
 export function AppNav() {
   const pathname = usePathname()
+
+  // Track browser chrome at the bottom (toolbar sliding in on scroll-up)
+  // and push the nav above it so it's never hidden
+  const [navBottom, setNavBottom] = useState(0)
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!vv) return
+    function update() {
+      setNavBottom(Math.max(0, window.innerHeight - vv!.offsetTop - vv!.height))
+    }
+    vv.addEventListener("resize", update)
+    vv.addEventListener("scroll", update)
+    update()
+    return () => {
+      vv!.removeEventListener("resize", update)
+      vv!.removeEventListener("scroll", update)
+    }
+  }, [])
 
   return (
     <>
@@ -47,8 +66,8 @@ export function AppNav() {
 
       {/* Mobile: bottom tabs */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-background/95 backdrop-blur-sm"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="md:hidden fixed left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-background/95 backdrop-blur-sm transform-gpu"
+        style={{ bottom: navBottom, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href)
