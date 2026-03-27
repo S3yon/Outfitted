@@ -56,6 +56,16 @@ export function ProductSearch({ open: controlledOpen, onOpenChange }: { open?: b
     return () => mq.removeEventListener("change", handler);
   }, []);
 
+  // Lock body scroll when mobile panel is open
+  useEffect(() => {
+    if (!isDesktop && open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open, isDesktop]);
+
   async function handleSearch(searchQuery?: string) {
     const q = searchQuery ?? query;
     if (q.trim().length === 0) return;
