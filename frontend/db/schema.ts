@@ -59,6 +59,8 @@ export const outfits = pgTable("outfits", {
     .references(() => users.id, { onDelete: "cascade" }),
   explanation: text("explanation").notNull(),
   modelImageUrl: text("model_image_url"),
+  season: text("season"),
+  occasion: text("occasion"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(now() at time zone 'utc')`),

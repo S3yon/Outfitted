@@ -9,6 +9,8 @@ export type PopulatedOutfit = {
   modelImageUrl?: string | null;
   items: ClothingItem[];
   createdAt: string;
+  season?: string | null;
+  occasion?: string | null;
 };
 
 type AppStore = {

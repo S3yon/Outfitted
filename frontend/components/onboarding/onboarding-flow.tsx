@@ -23,14 +23,16 @@ const COLORS = [
   { name: "Pink", value: "#EC4899" },
 ] as const;
 
-const TOTAL_STEPS = 8;
-const DEFAULT_STYLE = "Vibe: Classic. Fit preference: Relaxed. Occasions: Casual.";
+const SEASONS_FOCUS = ["All Seasons", "Spring/Summer", "Fall/Winter", "Tropical"] as const;
+const TOTAL_STEPS = 9;
+const DEFAULT_STYLE = "Vibe: Classic. Fit preference: Relaxed. Occasions: Casual. Season focus: All seasons.";
 
 type Answers = {
   vibe: string | null;
   fit: string | null;
   occasions: string[];
   colors: string[];
+  seasonFocus: string | null;
   influences: string;
 };
 
@@ -40,6 +42,7 @@ function buildStyleString(answers: Answers): string {
     `Fit preference: ${answers.fit ?? "Relaxed"}`,
     `Occasions: ${answers.occasions.length > 0 ? answers.occasions.join(", ") : "Casual"}`,
     `Preferred colors: ${answers.colors.length > 0 ? answers.colors.join(", ") : "neutral tones"}`,
+    `Season focus: ${answers.seasonFocus ?? "All seasons"}`,
     `Influences: ${answers.influences || "None specified"}`,
   ].join(". ") + ".";
 }
@@ -53,6 +56,7 @@ export function OnboardingFlow() {
     fit: null,
     occasions: [],
     colors: [],
+    seasonFocus: null,
     influences: "",
   });
 
@@ -226,6 +230,21 @@ export function OnboardingFlow() {
             </QuestionStep>
           )}
           {step === 7 && (
+            <QuestionStep title="Which seasons do you dress for most?">
+              <div className="grid grid-cols-2 gap-2">
+                {SEASONS_FOCUS.map((s) => (
+                  <PillButton
+                    key={s}
+                    label={s}
+                    active={answers.seasonFocus === s}
+                    onClick={() => setAnswers((prev) => ({ ...prev, seasonFocus: s }))}
+                  />
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">This helps the AI suggest appropriate fabrics and layering.</p>
+            </QuestionStep>
+          )}
+          {step === 8 && (
             <QuestionStep title="Any style icons or brands you love?">
               <Input
                 placeholder="e.g. Acne Studios, Rick Owens..."

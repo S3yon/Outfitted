@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw, RefreshCw, Timer, TimerOff } from "lucide-react";
+import { ArrowLeft, Camera, ChevronLeft, ChevronRight, Loader2, RotateCcw, RefreshCw, Share2, Timer, TimerOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
 import { toast } from "sonner";
@@ -427,7 +427,7 @@ export function TryOnView({
               )}
             </div>
 
-            <div className="absolute inset-x-0 bottom-8 flex justify-center">
+            <div className="absolute inset-x-0 bottom-8 flex justify-center gap-3">
               <Button
                 variant="outline"
                 size="lg"
@@ -436,6 +436,31 @@ export function TryOnView({
               >
                 <RotateCcw className="size-4" />
                 Retake
+              </Button>
+              <Button
+                size="lg"
+                onClick={async () => {
+                  if (!resultUrl) return;
+                  if (typeof navigator !== "undefined" && navigator.canShare) {
+                    try {
+                      const blob = await fetch(resultUrl).then((r) => r.blob());
+                      const file = new File([blob], "outfitted-tryon.png", { type: blob.type });
+                      if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: "My outfit on Outfitted" });
+                        return;
+                      }
+                    } catch {}
+                  }
+                  const a = document.createElement("a");
+                  a.href = resultUrl;
+                  a.download = "outfitted-tryon.png";
+                  a.target = "_blank";
+                  a.click();
+                }}
+                className="rounded-full bg-white/90 text-black backdrop-blur-sm hover:bg-white"
+              >
+                <Share2 className="size-4" />
+                Share
               </Button>
             </div>
           </motion.div>

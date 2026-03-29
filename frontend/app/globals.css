@@ -162,6 +162,22 @@
 }
 
 
+/* Sonner toasts — full-width pill on mobile, compact on desktop */
+[data-sonner-toaster][data-theme] {
+  --width: min(calc(100vw - 2rem), 380px);
+}
+
+@media (max-width: 640px) {
+  [data-sonner-toaster][data-theme] {
+    --width: calc(100vw - 2rem);
+  }
+  [data-sonner-toast] {
+    border-radius: 14px !important;
+    font-size: 0.8125rem !important;
+    padding: 12px 14px !important;
+  }
+}
+
 /* Hide scrollbar while keeping scroll functionality */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

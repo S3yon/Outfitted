@@ -6,11 +6,24 @@ import { eq } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
 import { cleanGeminiJson, type GeminiResponse } from "@/lib/gemini";
 
-export async function POST() {
+const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
+const OCCASIONS = ["Casual", "Work", "Night Out", "Gym", "Formal"];
+
+function randomPick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+export async function POST(req: Request) {
   const session = await auth0.getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const body = await req.json().catch(() => ({}));
+  const surpriseMe: boolean = body.surpriseMe ?? false;
+  const season: string = surpriseMe ? randomPick(SEASONS) : (body.season ?? "any season");
+  const occasion: string | null = surpriseMe ? randomPick(OCCASIONS) : (body.occasion ?? null);
+  const anchorItemIds: string[] = Array.isArray(body.anchorItemIds) ? body.anchorItemIds : [];
 
   // Fetch user
   const user = await getOrCreateUser(session.user);
@@ -39,14 +52,27 @@ export async function POST() {
     notes: i.notes ?? "",
   }));
 
+  const contextLines = [
+    `Season: ${season} — prioritize fabrics, layering weight, and color palette appropriate for ${season}.`,
+    occasion ? `Occasion: ${occasion} — every outfit must work specifically for this setting.` : null,
+  ].filter(Boolean).join("\n");
+
+  const anchorLines =
+    anchorItemIds.length > 0
+      ? `\nAnchor items (MUST appear in every outfit): ${anchorItemIds.join(", ")}`
+      : "";
+
   const prompt = `
 You are a personal stylist AI. Study this client's style profile carefully:
 "${styleProfile}"
 
+Generation context:
+${contextLines}${anchorLines}
+
 Their wardrobe (JSON array — use ONLY these items):
 ${JSON.stringify(itemsForPrompt, null, 2)}
 
-Generate exactly 3 outfit combinations. Each outfit should feel like it was curated specifically for this person.
+Generate exactly 3 outfit combinations. Each outfit should feel like it was curated specifically for this person for the season and occasion above.
 
 Respond ONLY with valid JSON, no markdown:
 {
@@ -62,9 +88,11 @@ Rules:
 - Only use item IDs from the wardrobe JSON above. Never invent IDs.
 - Every outfit MUST have at least one "tops" item AND one "bottoms" item.
 - Each outfit should have 2-5 items. Layer with shoes, outerwear, or accessories when available.
-- Vary the outfits — each should work for a different mood or occasion from the client's profile.
-- Actively respect the client's stated vibe, fit preference, color preferences, and influences when choosing items. If they listed preferred colors, prioritize items whose descriptions match those colors. If they prefer oversized fits, pick items described as oversized or relaxed. If they dress primarily for casual occasions, don't build a formal look.
-- Name each outfit with personality — match the naming vibe to the client's aesthetic.
+- Vary the outfits — each should work for a different mood within the specified occasion and season.
+- Actively respect the client's stated vibe, fit preference, color preferences, and influences.
+- For the season: lean into appropriate layering (outerwear in Fall/Winter, lighter pieces in Spring/Summer).
+- Name each outfit with personality — match the naming vibe to the client's aesthetic and the season.
+${anchorItemIds.length > 0 ? `- The anchor item IDs listed above MUST appear in every single outfit.` : ""}
 `.trim();
 
   let raw: string;
@@ -107,13 +135,19 @@ Rules:
 
   // Build a set of valid item IDs for validation
   const validIds = new Set(owned.map((i) => i.id));
-
   const itemCategoryMap = new Map(owned.map((i) => [i.id, i.category]));
 
   // Persist each outfit to DB
   const createdOutfits = await Promise.all(
     parsed.outfits.map(async (geminiOutfit) => {
-      const safeItemIds = geminiOutfit.item_ids.filter((id) => validIds.has(id));
+      let safeItemIds = geminiOutfit.item_ids.filter((id) => validIds.has(id));
+
+      // Ensure anchored items are always included
+      for (const anchorId of anchorItemIds) {
+        if (validIds.has(anchorId) && !safeItemIds.includes(anchorId)) {
+          safeItemIds = [anchorId, ...safeItemIds];
+        }
+      }
 
       if (safeItemIds.length === 0) return null;
 
@@ -126,6 +160,8 @@ Rules:
         .values({
           userId: user.id,
           explanation: geminiOutfit.outfit_description,
+          season,
+          occasion: occasion ?? undefined,
         })
         .returning();
 
