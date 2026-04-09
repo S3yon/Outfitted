@@ -9,6 +9,7 @@ import { UploadButton } from "@/components/wardrobe/upload-button";
 import { CameraButton } from "@/components/wardrobe/camera-button";
 import { ProductSearch } from "@/components/wardrobe/product-search";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
+import { DailyOutfitCard } from "@/components/wardrobe/daily-outfit-card";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 
 export default function WardrobePage() {
@@ -92,6 +93,7 @@ export default function WardrobePage() {
       </p>
 
       <div className="mt-6">
+        <DailyOutfitCard />
         <WardrobeGrid />
       </div>
 

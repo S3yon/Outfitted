@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
+import { db } from "@/lib/db";
+import { recommendationCache } from "@/db/schema";
+import { and, eq } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
 import { cleanGeminiJson } from "@/lib/gemini";
 
@@ -38,6 +41,21 @@ export async function GET() {
   }
 
   const user = await getOrCreateUser(session.user);
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Check DB cache first — return immediately if fresh entry exists
+  const cached = await db
+    .select()
+    .from(recommendationCache)
+    .where(and(eq(recommendationCache.userId, user.id), eq(recommendationCache.date, today)))
+    .limit(1);
+
+  if (cached.length > 0) {
+    return NextResponse.json(
+      { products: JSON.parse(cached[0].productsJson), hasProfile: true },
+      { headers: { "Cache-Control": "private, max-age=3600" } },
+    );
+  }
 
   if (!user.styleProfile) {
     return NextResponse.json({ products: [], hasProfile: false });
@@ -113,6 +131,13 @@ User style profile: "${user.styleProfile}"`,
       imageUrl: r.imageUrl,
       rating: r.rating,
     }));
+
+  // Persist to DB cache — ignore conflict if a concurrent request already saved
+  await db.insert(recommendationCache).values({
+    userId: user.id,
+    date: today,
+    productsJson: JSON.stringify(products),
+  }).onConflictDoNothing();
 
   return NextResponse.json(
     { products, hasProfile: true },

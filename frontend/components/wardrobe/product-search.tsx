@@ -116,7 +116,7 @@ function ProductGrid({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
       {products.map((product, i) => (
         <motion.div
           key={i}
@@ -219,11 +219,18 @@ export function ProductSearch({
     return () => { document.body.style.overflow = ""; };
   }, [open, isDesktop]);
 
-  // Auto-fetch recommendations when panel opens
+  // Prefetch on mount so results are ready before the panel opens
+  useEffect(() => {
+    fetchRecommendations().then((recs) => setRecommendations(recs));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When panel opens, populate from cache (likely already ready)
   useEffect(() => {
     if (!open) return;
     if (_recCache !== null) {
       setRecommendations(_recCache);
+      setLoadingRecs(false);
       return;
     }
     setLoadingRecs(true);
@@ -443,10 +450,10 @@ export function ProductSearch({
 
       {/* Desktop: Dialog */}
       <Dialog open={isDesktop && open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[85vh] max-w-2xl overflow-hidden p-0">
-          <div className="flex flex-col gap-3 p-4 h-full max-h-[85vh]">
+        <DialogContent className="h-[85vh] max-w-5xl overflow-hidden p-0">
+          <div className="flex flex-col gap-3 p-6 h-full">
             <DialogHeader>
-              <DialogTitle>Search Products</DialogTitle>
+              <DialogTitle>Find Items</DialogTitle>
             </DialogHeader>
             {searchBar}
             <div className="flex-1 overflow-y-auto min-h-0">

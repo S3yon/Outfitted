@@ -1,5 +1,5 @@
 import { relations, sql } from "drizzle-orm";
-import { pgTable, text, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -80,11 +80,46 @@ export const outfitItems = pgTable("outfit_items", {
     .references(() => clothingItems.id, { onDelete: "cascade" }),
 });
 
+// ─── Recommendation Cache ─────────────────────────────────────────────────────
+
+export const recommendationCache = pgTable(
+  "recommendation_cache",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // YYYY-MM-DD UTC
+    productsJson: text("products_json").notNull(),
+  },
+  (t) => [uniqueIndex("rec_cache_user_date_idx").on(t.userId, t.date)],
+);
+
+// ─── Daily Suggestions ────────────────────────────────────────────────────────
+
+export const dailySuggestions = pgTable(
+  "daily_suggestions",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    outfitId: text("outfit_id")
+      .notNull()
+      .references(() => outfits.id, { onDelete: "cascade" }),
+    date: text("date").notNull(), // YYYY-MM-DD UTC
+  },
+  (t) => [uniqueIndex("daily_suggestions_user_date_idx").on(t.userId, t.date)],
+);
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
   clothingItems: many(clothingItems),
   outfits: many(outfits),
+  dailySuggestions: many(dailySuggestions),
 }));
 
 export const clothingItemsRelations = relations(clothingItems, ({ one, many }) => ({
@@ -233,6 +268,11 @@ export const tradesRelations = relations(trades, ({ one }) => ({
     fields: [trades.listingId],
     references: [marketListings.id],
   }),
+}));
+
+export const dailySuggestionsRelations = relations(dailySuggestions, ({ one }) => ({
+  user: one(users, { fields: [dailySuggestions.userId], references: [users.id] }),
+  outfit: one(outfits, { fields: [dailySuggestions.outfitId], references: [outfits.id] }),
 }));
 
 // ─── Inferred Types ───────────────────────────────────────────────────────────

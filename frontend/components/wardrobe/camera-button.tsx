@@ -50,16 +50,18 @@ export function CameraButton({ open: controlledOpen, onOpenChange }: { open?: bo
 
   async function startCamera() {
     stopCamera();
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" }, width: { ideal: 1080 }, height: { ideal: 1080 } },
+        video: isMobile
+          ? { facingMode: { ideal: "environment" }, width: { ideal: 1080 }, height: { ideal: 1080 } }
+          : { width: { ideal: 1920 }, height: { ideal: 1080 } },
       });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
     } catch {
-      // Fallback: try without any constraints
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         streamRef.current = stream;
@@ -178,7 +180,7 @@ export function CameraButton({ open: controlledOpen, onOpenChange }: { open?: bo
           if (!uploading) setOpen(v);
         }}
       >
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm md:max-w-xl">
           <DialogHeader>
             <DialogTitle>Snap a Clothing Item</DialogTitle>
           </DialogHeader>
@@ -187,13 +189,13 @@ export function CameraButton({ open: controlledOpen, onOpenChange }: { open?: bo
 
           {/* Webcam / countdown */}
           {(stage === "webcam" || stage === "countdown") && (
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-black">
+            <div className="relative aspect-square md:aspect-video overflow-hidden rounded-lg bg-black">
               <video
                 ref={videoRef}
                 autoPlay
                 playsInline
                 muted
-                className="size-full object-cover"
+                className="size-full object-contain"
               />
               {stage === "countdown" && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/40">
@@ -214,12 +216,12 @@ export function CameraButton({ open: controlledOpen, onOpenChange }: { open?: bo
           {/* Captured preview */}
           {stage === "captured" && capturedImage && (
             <div className="flex flex-col gap-3">
-              <div className="relative aspect-square overflow-hidden rounded-lg bg-black">
+              <div className="relative aspect-square md:aspect-video overflow-hidden rounded-lg bg-black">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={capturedImage}
                   alt="Captured clothing"
-                  className="size-full object-cover"
+                  className="size-full object-contain"
                 />
               </div>
 

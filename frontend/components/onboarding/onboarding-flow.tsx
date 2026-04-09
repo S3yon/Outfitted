@@ -1,11 +1,106 @@
 "use client";
 
-import { useState } from "react";
-import { Camera, Sparkles, Shirt, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Camera, Sparkles, Shirt, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+
+const BRAND_CATALOG: { name: string; domain: string }[] = [
+  { name: "Acne Studios", domain: "acnestudios.com" },
+  { name: "Balenciaga", domain: "balenciaga.com" },
+  { name: "Bottega Veneta", domain: "bottegaveneta.com" },
+  { name: "Burberry", domain: "burberry.com" },
+  { name: "Calvin Klein", domain: "calvinklein.com" },
+  { name: "Canada Goose", domain: "canadagoose.com" },
+  { name: "Carhartt", domain: "carhartt.com" },
+  { name: "Chrome Hearts", domain: "chromehearts.com" },
+  { name: "Comme des Garçons", domain: "comme-des-garcons.com" },
+  { name: "Dior", domain: "dior.com" },
+  { name: "Fear of God", domain: "fearofgod.com" },
+  { name: "Givenchy", domain: "givenchy.com" },
+  { name: "Gucci", domain: "gucci.com" },
+  { name: "H&M", domain: "hm.com" },
+  { name: "Heron Preston", domain: "heronpreston.com" },
+  { name: "Helmut Lang", domain: "helmutlang.com" },
+  { name: "Jacquemus", domain: "jacquemus.com" },
+  { name: "Kith", domain: "kith.com" },
+  { name: "Loewe", domain: "loewe.com" },
+  { name: "Louis Vuitton", domain: "louisvuitton.com" },
+  { name: "Maison Margiela", domain: "maisonmargiela.com" },
+  { name: "Moncler", domain: "moncler.com" },
+  { name: "New Balance", domain: "newbalance.com" },
+  { name: "Nike", domain: "nike.com" },
+  { name: "Norse Projects", domain: "norseprojects.com" },
+  { name: "Off-White", domain: "off---white.com" },
+  { name: "Our Legacy", domain: "ourlegacy.se" },
+  { name: "Palace", domain: "palaceskateboards.com" },
+  { name: "Patagonia", domain: "patagonia.com" },
+  { name: "Polo Ralph Lauren", domain: "ralphlauren.com" },
+  { name: "Prada", domain: "prada.com" },
+  { name: "Represent", domain: "representclo.com" },
+  { name: "Rick Owens", domain: "rickowens.eu" },
+  { name: "Raf Simons", domain: "rafsimons.com" },
+  { name: "Saint Laurent", domain: "ysl.com" },
+  { name: "Stone Island", domain: "stoneisland.com" },
+  { name: "Stüssy", domain: "stussy.com" },
+  { name: "Supreme", domain: "supremenewyork.com" },
+  { name: "The North Face", domain: "thenorthface.com" },
+  { name: "Thom Browne", domain: "thombrowne.com" },
+  { name: "Tom Ford", domain: "tomford.com" },
+  { name: "Uniqlo", domain: "uniqlo.com" },
+  { name: "Valentino", domain: "valentino.com" },
+  { name: "Versace", domain: "versace.com" },
+  { name: "Visvim", domain: "visvim.tv" },
+  { name: "Yeezy", domain: "adidas.com" },
+  { name: "Zara", domain: "zara.com" },
+  { name: "Arc'teryx", domain: "arcteryx.com" },
+  { name: "A.P.C.", domain: "apc.fr" },
+  { name: "Ami Paris", domain: "amiparis.com" },
+  { name: "Amiri", domain: "amiri.com" },
+  { name: "Adidas", domain: "adidas.com" },
+  { name: "Aesop", domain: "aesop.com" },
+  { name: "Lemaire", domain: "lemaire.fr" },
+  { name: "Marni", domain: "marni.com" },
+  { name: "Nanushka", domain: "nanushka.com" },
+  { name: "Entireworld", domain: "theentireworld.com" },
+  { name: "Sporty & Rich", domain: "sportyandrich.com" },
+  { name: "COS", domain: "cosstores.com" },
+  { name: "Club Monaco", domain: "clubmonaco.com" },
+  { name: "Everlane", domain: "everlane.com" },
+  { name: "Todd Snyder", domain: "toddsnyder.com" },
+  { name: "Levi's", domain: "levi.com" },
+  { name: "Tommy Hilfiger", domain: "tommy.com" },
+  { name: "Gap", domain: "gap.com" },
+  { name: "J.Crew", domain: "jcrew.com" },
+  { name: "Banana Republic", domain: "bananarepublic.com" },
+  { name: "Abercrombie & Fitch", domain: "abercrombie.com" },
+  { name: "Hollister", domain: "hollisterco.com" },
+  { name: "American Eagle", domain: "ae.com" },
+  { name: "Free People", domain: "freepeople.com" },
+  { name: "Urban Outfitters", domain: "urbanoutfitters.com" },
+  { name: "ASOS", domain: "asos.com" },
+  { name: "PrettyLittleThing", domain: "prettylittlething.com" },
+  { name: "Shein", domain: "shein.com" },
+  { name: "Reformation", domain: "thereformation.com" },
+  { name: "Madewell", domain: "madewell.com" },
+  { name: "Anthropologie", domain: "anthropologie.com" },
+  { name: "Lululemon", domain: "lululemon.com" },
+  { name: "Gymshark", domain: "gymshark.com" },
+  { name: "Vuori", domain: "vuoriclothing.com" },
+  { name: "Alo Yoga", domain: "aloyoga.com" },
+  { name: "Puma", domain: "puma.com" },
+  { name: "Converse", domain: "converse.com" },
+  { name: "Vans", domain: "vans.com" },
+  { name: "Dr. Martens", domain: "drmartens.com" },
+  { name: "UGG", domain: "ugg.com" },
+  { name: "Timberland", domain: "timberland.com" },
+  { name: "Columbia", domain: "columbia.com" },
+  { name: "Dickies", domain: "dickies.com" },
+  { name: "Wrangler", domain: "wrangler.com" },
+  { name: "Lee", domain: "lee.com" },
+];
 
 const VIBES = ["Streetwear", "Minimalist", "Preppy", "Bohemian", "Corporate", "Eclectic"] as const;
 const FITS = ["Oversized", "Slim/Fitted", "Relaxed", "Tailored"] as const;
@@ -33,7 +128,7 @@ type Answers = {
   occasions: string[];
   colors: string[];
   seasonFocus: string | null;
-  influences: string;
+  influences: string[];
 };
 
 function buildStyleString(answers: Answers): string {
@@ -43,7 +138,7 @@ function buildStyleString(answers: Answers): string {
     `Occasions: ${answers.occasions.length > 0 ? answers.occasions.join(", ") : "Casual"}`,
     `Preferred colors: ${answers.colors.length > 0 ? answers.colors.join(", ") : "neutral tones"}`,
     `Season focus: ${answers.seasonFocus ?? "All seasons"}`,
-    `Influences: ${answers.influences || "None specified"}`,
+    `Influences: ${answers.influences.length > 0 ? answers.influences.join(", ") : "None specified"}`,
   ].join(". ") + ".";
 }
 
@@ -57,7 +152,7 @@ export function OnboardingFlow() {
     occasions: [],
     colors: [],
     seasonFocus: null,
-    influences: "",
+    influences: [],
   });
 
   if (!showOnboarding) return null;
@@ -245,16 +340,11 @@ export function OnboardingFlow() {
             </QuestionStep>
           )}
           {step === 8 && (
-            <QuestionStep title="Any style icons or brands you love?">
-              <Input
-                placeholder="e.g. Acne Studios, Rick Owens..."
-                value={answers.influences}
-                onChange={(e) =>
-                  setAnswers((prev) => ({ ...prev, influences: e.target.value }))
-                }
-                className="bg-secondary"
+            <QuestionStep title="Any brands or style icons you love?">
+              <BrandPicker
+                selected={answers.influences}
+                onChange={(brands) => setAnswers((prev) => ({ ...prev, influences: brands }))}
               />
-              <p className="mt-2 text-xs text-muted-foreground">Optional. This helps the AI understand your taste.</p>
             </QuestionStep>
           )}
         </div>
@@ -336,5 +426,175 @@ function PillButton({
     >
       {label}
     </button>
+  );
+}
+
+const BLOCKED_TERMS = [
+  // Slurs & hate speech
+  "nigger","nigga","faggot","fag","retard","chink","spic","kike","tranny",
+  "dyke","wetback","gook","raghead","towelhead","cracker","honky","beaner",
+  "coon","jap","nazi","spook","zipperhead","mongoloid","trannies",
+  // Sexual / genitalia
+  "penis","vagina","vulva","cock","dick","pussy","cunt","ass","anus","rectum",
+  "testicle","scrotum","clitoris","boob","tit","nipple","butthole","asshole",
+  "phallus","cum","jizz","boner","erection","orgasm","masturbat","pornograph",
+];
+
+function isDerogatory(text: string): boolean {
+  // Brand catalog entries are always allowed
+  if (BRAND_CATALOG.some((b) => b.name.toLowerCase() === text.toLowerCase())) return false;
+  const lower = text.toLowerCase().replace(/[^a-z]/g, "");
+  return BLOCKED_TERMS.some((term) => lower.includes(term));
+}
+
+function BrandLogo({ domain, name }: { domain: string; name: string }) {
+  const [err, setErr] = useState(false);
+  if (err) {
+    return (
+      <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[9px] font-bold uppercase text-muted-foreground">
+        {name.slice(0, 2)}
+      </div>
+    );
+  }
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`https://logo.clearbit.com/${domain}?size=48`}
+      alt={name}
+      className="size-6 shrink-0 rounded-full object-contain bg-white"
+      onError={() => setErr(true)}
+    />
+  );
+}
+
+function BrandPicker({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (brands: string[]) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const suggestions = query.trim().length === 0
+    ? []
+    : BRAND_CATALOG.filter(
+        (b) =>
+          b.name.toLowerCase().includes(query.toLowerCase()) &&
+          !selected.includes(b.name),
+      ).slice(0, 7);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  function addBrand(name: string) {
+    if (isDerogatory(name)) {
+      toast.error("That entry isn't allowed.");
+      setQuery("");
+      return;
+    }
+    if (!selected.includes(name)) onChange([...selected, name]);
+    setQuery("");
+    setOpen(false);
+    inputRef.current?.focus();
+  }
+
+  function removeBrand(name: string) {
+    onChange(selected.filter((b) => b !== name));
+  }
+
+  const domainFor = (name: string) =>
+    BRAND_CATALOG.find((b) => b.name === name)?.domain ?? "";
+
+  return (
+    <div className="flex flex-col gap-3">
+      {/* Selected brand chips */}
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {selected.map((brand) => (
+            <div
+              key={brand}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-secondary pl-1.5 pr-2.5 py-1"
+            >
+              <BrandLogo domain={domainFor(brand)} name={brand} />
+              <span className="text-xs font-medium text-foreground">{brand}</span>
+              <button
+                onClick={() => removeBrand(brand)}
+                className="ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="size-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Search input */}
+      <div ref={containerRef} className="relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const trimmed = query.trim();
+                if (trimmed && !selected.includes(trimmed)) {
+                  addBrand(trimmed);
+                }
+              }
+            }}
+            placeholder="Search brands or type a style icon..."
+            style={{ fontSize: 16 }}
+            className="w-full rounded-xl border border-border bg-secondary py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+          />
+        </div>
+
+        {/* Suggestions dropdown */}
+        {open && query.trim().length > 0 && (
+          <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
+            {suggestions.map((brand) => (
+              <button
+                key={brand.name}
+                onMouseDown={(e) => { e.preventDefault(); addBrand(brand.name); }}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-secondary transition-colors"
+              >
+                <BrandLogo domain={brand.domain} name={brand.name} />
+                <span className="text-foreground">{brand.name}</span>
+              </button>
+            ))}
+            {/* Always show "Add custom" option if query isn't already selected */}
+            {!selected.includes(query.trim()) && (
+              <button
+                onMouseDown={(e) => { e.preventDefault(); addBrand(query.trim()); }}
+                className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-secondary transition-colors border-t border-border"
+              >
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary border border-border text-muted-foreground">
+                  <span className="text-xs">+</span>
+                </div>
+                <span className="text-muted-foreground">Add &ldquo;<span className="text-foreground font-medium">{query.trim()}</span>&rdquo;</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs text-muted-foreground">Optional — helps the AI match your aesthetic.</p>
+    </div>
   );
 }
