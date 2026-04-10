@@ -4,19 +4,21 @@ import { auth0 } from "@/lib/auth0";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Protected app routes — redirect to landing if not authenticated
+  // Let Auth0 handle session refresh / cookie management first
+  const authRes = await auth0.middleware(request);
+
+  // Protected app routes — redirect unauthenticated users to landing page
   const protectedPaths = ["/wardrobe", "/outfits", "/market", "/profile"];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
   if (isProtected) {
-    const session = await auth0.getSession();
+    const session = await auth0.getSession(request);
     if (!session?.user) {
-      const landing = new URL("/", request.url);
-      return Response.redirect(landing);
+      return Response.redirect(new URL("/", request.url));
     }
   }
 
-  return auth0.middleware(request);
+  return authRes;
 }
 
 export const config = {
