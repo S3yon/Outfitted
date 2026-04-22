@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, Sparkles } from "lucide-react";
+import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -204,6 +204,20 @@ export function ProductSearch({
   const [recommendations, setRecommendations] = useState<Product[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
 
+  async function handleRefreshRecs() {
+    _recCache = null;
+    _recPromise = null;
+    setLoadingRecs(true);
+    setRecommendations([]);
+    _recPromise = fetch("/api/recommendations?refresh=1")
+      .then((r) => (r.ok ? r.json() : { products: [] }))
+      .then((d) => { _recCache = d.products ?? []; return _recCache!; })
+      .catch(() => { _recCache = []; return []; });
+    const recs = await _recPromise;
+    setRecommendations(recs);
+    setLoadingRecs(false);
+  }
+
   const [isDesktop, setIsDesktop] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 768px)");
@@ -369,11 +383,20 @@ export function ProductSearch({
             )}
             {!loadingRecs && recommendations.length > 0 && (
               <>
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="size-3.5 text-amber-400" />
-                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                    For You
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="size-3.5 text-amber-400" />
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      For You
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleRefreshRecs}
+                    className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <RefreshCw className="size-3" />
+                    Refresh
+                  </button>
                 </div>
                 <ProductGrid products={recommendations} />
               </>
@@ -467,13 +490,13 @@ export function ProductSearch({
 
       {/* Desktop: Dialog */}
       <Dialog open={isDesktop && open} onOpenChange={setOpen}>
-        <DialogContent className="h-[85vh] w-[90vw] !max-w-5xl overflow-hidden p-0">
-          <div className="flex flex-col gap-3 p-6 h-full">
-            <DialogHeader>
+        <DialogContent className="h-[85vh] w-[90vw] !max-w-5xl overflow-hidden p-0 !grid-rows-[1fr]">
+          <div className="flex flex-col gap-3 p-6 min-h-0 h-full overflow-hidden">
+            <DialogHeader className="shrink-0">
               <DialogTitle>Find Items</DialogTitle>
             </DialogHeader>
-            {searchBar}
-            <div className="flex-1 overflow-y-auto min-h-0">
+            <div className="shrink-0">{searchBar}</div>
+            <div className="flex-1 overflow-y-auto min-h-0 pr-1">
               {content}
             </div>
           </div>

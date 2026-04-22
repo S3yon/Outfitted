@@ -34,7 +34,7 @@ async function serperSearch(query: string): Promise<SerperResult[]> {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth0.getSession();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -42,6 +42,14 @@ export async function GET() {
 
   const user = await getOrCreateUser(session.user);
   const today = new Date().toISOString().slice(0, 10);
+  const refresh = new URL(req.url).searchParams.has("refresh");
+
+  // Delete stale cache entry if refresh requested
+  if (refresh) {
+    await db
+      .delete(recommendationCache)
+      .where(and(eq(recommendationCache.userId, user.id), eq(recommendationCache.date, today)));
+  }
 
   // Check DB cache first — return immediately if fresh entry exists
   const cached = await db
@@ -75,16 +83,16 @@ export async function GET() {
         messages: [
           {
             role: "user",
-            content: `You are a fashion stylist. Based on the user's style profile below, generate 5 specific product search queries for clothing items they would love to add to their wardrobe.
+            content: `You are a fashion stylist. Based on the user's style profile, generate exactly 5 product search queries — one per category in this exact order: tops, bottoms, shoes, outerwear, accessories.
 
-Each query must:
-- Be 2-5 words
-- Reference a specific clothing item or accessory
-- Match the user's stated aesthetic and fit preferences
-- Vary across different clothing categories (tops, bottoms, shoes, outerwear, accessories)
+Rules:
+- Each query must be 2-5 words
+- Each query must match the user's vibe, fit preference, and color palette
+- Factor in their occasion needs and style influences
+- One query per category — no repeating categories
 
-Return ONLY a JSON array of strings, nothing else. No markdown, no explanation.
-Example: ["slim black trousers", "white linen overshirt", "minimalist leather sneakers", "merino crewneck sweater", "tapered cargo pants"]
+Return ONLY a JSON array of 5 strings in order [tops, bottoms, shoes, outerwear, accessories]. No markdown, no explanation.
+Example: ["relaxed linen shirt", "straight leg chinos", "white leather sneakers", "lightweight bomber jacket", "silver chain necklace"]
 
 User style profile: "${user.styleProfile}"`,
           },
