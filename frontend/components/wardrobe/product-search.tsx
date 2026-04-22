@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -192,6 +192,10 @@ export function ProductSearch({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = (v: boolean) => { setInternalOpen(v); onOpenChange?.(v); };
+
+  const dragControls = useDragControls();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
 
   const [query, setQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -413,15 +417,20 @@ export function ProductSearch({
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               drag="y"
+              dragControls={dragControls}
+              dragListener={false}
               dragConstraints={{ top: 0 }}
               dragElastic={{ top: 0.05, bottom: 0.3 }}
               onDragEnd={(_, info) => {
                 if (info.offset.y > 120 || info.velocity.y > 500) setOpen(false);
               }}
             >
-              {/* Sticky header */}
+              {/* Sticky header — drag handle only */}
               <div className="sticky top-0 z-10 bg-background rounded-t-2xl px-4 pt-3 pb-3 space-y-3">
-                <div className="flex justify-center cursor-grab active:cursor-grabbing">
+                <div
+                  className="flex justify-center cursor-grab active:cursor-grabbing touch-none"
+                  onPointerDown={(e) => dragControls.start(e)}
+                >
                   <div className="h-1 w-10 rounded-full bg-border" />
                 </div>
                 <div className="flex items-center gap-3">
@@ -436,10 +445,18 @@ export function ProductSearch({
                 {searchBar}
               </div>
 
-              {/* Scrollable content */}
+              {/* Scrollable content — dismiss when pulling down from top */}
               <div
+                ref={scrollRef}
                 className="overflow-y-auto px-4 pb-8"
                 style={{ height: "calc(92dvh - 9rem)" }}
+                onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
+                onTouchMove={(e) => {
+                  const el = scrollRef.current;
+                  if (!el || el.scrollTop > 2) return;
+                  const dy = e.touches[0].clientY - touchStartY.current;
+                  if (dy > 80) setOpen(false);
+                }}
               >
                 {content}
               </div>
