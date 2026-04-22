@@ -59,7 +59,7 @@ export function OutfitCard({
             e.stopPropagation();
             onDelete(outfit.id);
           }}
-          className="rounded-full bg-secondary p-1.5 text-muted-foreground opacity-0 transition-all hover:text-red-500 group-hover:opacity-100"
+          className="rounded-full bg-secondary p-1.5 text-muted-foreground transition-all hover:text-red-500 md:opacity-0 md:group-hover:opacity-100"
         >
           <Trash2 className="size-3.5" />
         </button>
@@ -117,7 +117,7 @@ export function OutfitCard({
               <button
                 onClick={handleRemovePhoto}
                 disabled={removingPhoto}
-                className="absolute right-2 top-2 flex size-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors active:bg-red-500/80 disabled:opacity-50 md:hidden"
+                className="absolute right-2 top-2 z-10 flex size-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm transition-colors active:bg-red-500/80 disabled:opacity-50 md:hidden"
               >
                 <ImageOff className="size-3.5" />
               </button>

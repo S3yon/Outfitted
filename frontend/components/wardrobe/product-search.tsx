@@ -467,7 +467,7 @@ export function ProductSearch({
 
       {/* Desktop: Dialog */}
       <Dialog open={isDesktop && open} onOpenChange={setOpen}>
-        <DialogContent className="h-[85vh] max-w-5xl overflow-hidden p-0">
+        <DialogContent className="h-[85vh] w-[90vw] !max-w-5xl overflow-hidden p-0">
           <div className="flex flex-col gap-3 p-6 h-full">
             <DialogHeader>
               <DialogTitle>Find Items</DialogTitle>
