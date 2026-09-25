@@ -9,7 +9,7 @@ import {
   marketListings,
   priceCandles,
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { generatePriceHistory, generateTicker } from "@/lib/market";
 
 // GET: list all market listings with outfit data
@@ -73,7 +73,8 @@ export async function POST(req: Request) {
   const [outfit] = await db
     .select()
     .from(outfits)
-    .where(eq(outfits.id, outfitId))
+    // scoped to the caller, so you can only list your own outfits
+    .where(and(eq(outfits.id, outfitId), eq(outfits.userId, user.id)))
     .limit(1);
 
   if (!outfit) {
