@@ -92,12 +92,12 @@ export async function POST(
       }
     }
 
-    // Simulate price impact
-    const impact = side === "buy" ? 1 : -1;
-    const priceDelta = Math.max(
+    // Simulate price impact: at least 1 cent, up on buys and down on sells.
+    const step = Math.max(
       1,
-      Math.round(listing.currentPrice * 0.005 * quantity * impact),
+      Math.round(listing.currentPrice * 0.005 * quantity),
     );
+    const priceDelta = side === "buy" ? step : -step;
     const newPrice = Math.max(1, listing.currentPrice + priceDelta);
 
     await tx
