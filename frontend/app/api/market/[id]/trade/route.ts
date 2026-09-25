@@ -33,125 +33,129 @@ export async function POST(
 
   const { side, quantity } = await req.json();
 
-  if (!["buy", "sell"].includes(side) || !quantity || quantity <= 0) {
+  // whole shares only — the holdings/trades columns are integers
+  if (
+    !["buy", "sell"].includes(side) ||
+    !Number.isInteger(quantity) ||
+    quantity <= 0
+  ) {
     return NextResponse.json({ error: "Invalid trade" }, { status: 400 });
   }
 
-  const [listing] = await db
-    .select()
-    .from(marketListings)
-    .where(eq(marketListings.id, listingId))
-    .limit(1);
+  // Every write below either lands together or not at all, and the listing
+  // row is locked so two trades can't both price off the same stale value.
+  const result = await db.transaction(async (tx) => {
+    const [listing] = await tx
+      .select()
+      .from(marketListings)
+      .where(eq(marketListings.id, listingId))
+      .limit(1)
+      .for("update");
 
-  if (!listing) {
-    return NextResponse.json({ error: "Listing not found" }, { status: 404 });
-  }
+    if (!listing) return { error: "Listing not found", status: 404 } as const;
 
-  // For sells, check holdings
-  if (side === "sell") {
-    const [holding] = await db
+    const [holding] = await tx
       .select()
       .from(holdings)
       .where(
-        and(
-          eq(holdings.userId, user.id),
-          eq(holdings.listingId, listingId),
-        ),
+        and(eq(holdings.userId, user.id), eq(holdings.listingId, listingId)),
       )
-      .limit(1);
+      .limit(1)
+      .for("update");
 
-    if (!holding || holding.quantity < quantity) {
-      return NextResponse.json({ error: "Insufficient holdings" }, { status: 400 });
+    if (side === "sell") {
+      if (!holding || holding.quantity < quantity) {
+        return { error: "Insufficient holdings", status: 400 } as const;
+      }
+      const newQty = holding.quantity - quantity;
+      if (newQty === 0) {
+        await tx.delete(holdings).where(eq(holdings.id, holding.id));
+      } else {
+        await tx
+          .update(holdings)
+          .set({ quantity: newQty })
+          .where(eq(holdings.id, holding.id));
+      }
+    } else {
+      if (listing.circulatingSupply + quantity > listing.totalSupply) {
+        return { error: "Not enough supply left", status: 400 } as const;
+      }
+      if (holding) {
+        await tx
+          .update(holdings)
+          .set({ quantity: holding.quantity + quantity })
+          .where(eq(holdings.id, holding.id));
+      } else {
+        await tx
+          .insert(holdings)
+          .values({ userId: user.id, listingId, quantity });
+      }
     }
 
-    const newQty = holding.quantity - quantity;
-    if (newQty === 0) {
-      await db.delete(holdings).where(eq(holdings.id, holding.id));
-    } else {
-      await db
-        .update(holdings)
-        .set({ quantity: newQty })
-        .where(eq(holdings.id, holding.id));
-    }
-  }
+    // Simulate price impact
+    const impact = side === "buy" ? 1 : -1;
+    const priceDelta = Math.max(
+      1,
+      Math.round(listing.currentPrice * 0.005 * quantity * impact),
+    );
+    const newPrice = Math.max(1, listing.currentPrice + priceDelta);
 
-  // For buys, upsert holdings
-  if (side === "buy") {
-    const [existing] = await db
-      .select()
-      .from(holdings)
-      .where(
-        and(
-          eq(holdings.userId, user.id),
-          eq(holdings.listingId, listingId),
-        ),
-      )
-      .limit(1);
+    await tx
+      .update(marketListings)
+      .set({
+        currentPrice: newPrice,
+        circulatingSupply:
+          listing.circulatingSupply + (side === "buy" ? quantity : -quantity),
+        volume24h: listing.volume24h + quantity,
+      })
+      .where(eq(marketListings.id, listingId));
 
-    if (existing) {
-      await db
-        .update(holdings)
-        .set({ quantity: existing.quantity + quantity })
-        .where(eq(holdings.id, existing.id));
-    } else {
-      await db.insert(holdings).values({
+    // Record trade
+    const [trade] = await tx
+      .insert(trades)
+      .values({
         userId: user.id,
         listingId,
+        side,
         quantity,
-      });
-    }
-  }
+        price: listing.currentPrice,
+      })
+      .returning();
 
-  // Simulate price impact
-  const impact = side === "buy" ? 1 : -1;
-  const priceDelta = Math.max(1, Math.round(listing.currentPrice * 0.005 * quantity * impact));
-  const newPrice = Math.max(1, listing.currentPrice + priceDelta);
+    // Add a new candle — ensure timestamp is strictly after the last one
+    const [lastCandle] = await tx
+      .select({ timestamp: priceCandles.timestamp })
+      .from(priceCandles)
+      .where(eq(priceCandles.listingId, listingId))
+      .orderBy(sql`timestamp DESC`)
+      .limit(1);
 
-  await db
-    .update(marketListings)
-    .set({
-      currentPrice: newPrice,
-      circulatingSupply: listing.circulatingSupply + (side === "buy" ? quantity : -quantity),
-      volume24h: listing.volume24h + quantity,
-    })
-    .where(eq(marketListings.id, listingId));
+    const now = Math.floor(Date.now() / 1000);
+    const candleTime = lastCandle
+      ? Math.max(now, lastCandle.timestamp + 1)
+      : now;
 
-  // Record trade
-  const [trade] = await db
-    .insert(trades)
-    .values({
-      userId: user.id,
-      listingId,
-      side,
-      quantity,
-      price: listing.currentPrice,
-    })
-    .returning();
+    const [newCandle] = await tx
+      .insert(priceCandles)
+      .values({
+        listingId,
+        timestamp: candleTime,
+        open: listing.currentPrice,
+        high: Math.max(listing.currentPrice, newPrice),
+        low: Math.min(listing.currentPrice, newPrice),
+        close: newPrice,
+        volume: quantity,
+      })
+      .returning();
 
-  // Add a new candle — ensure timestamp is strictly after the last one
-  const [lastCandle] = await db
-    .select({ timestamp: priceCandles.timestamp })
-    .from(priceCandles)
-    .where(eq(priceCandles.listingId, listingId))
-    .orderBy(sql`timestamp DESC`)
-    .limit(1);
-
-  const now = Math.floor(Date.now() / 1000);
-  const candleTime = lastCandle ? Math.max(now, lastCandle.timestamp + 1) : now;
-
-  const [newCandle] = await db.insert(priceCandles).values({
-    listingId,
-    timestamp: candleTime,
-    open: listing.currentPrice,
-    high: Math.max(listing.currentPrice, newPrice),
-    low: Math.min(listing.currentPrice, newPrice),
-    close: newPrice,
-    volume: quantity,
-  }).returning();
-
-  return NextResponse.json({
-    trade,
-    newPrice,
-    candle: newCandle,
+    return { trade, newPrice, candle: newCandle } as const;
   });
+
+  if ("error" in result) {
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.status },
+    );
+  }
+  return NextResponse.json(result);
 }
