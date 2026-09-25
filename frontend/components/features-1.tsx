@@ -66,10 +66,14 @@ export function Features1() {
     setSelectedIndex(emblaApi.selectedScrollSnap());
   }, [emblaApi]);
 
+  // selectedIndex starts at 0, which is already embla's first snap, so no
+  // initial sync call is needed — just follow later changes
   useEffect(() => {
     if (!emblaApi) return;
-    emblaApi.on("select", onSelect);
-    onSelect();
+    emblaApi.on("select", onSelect).on("reInit", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect).off("reInit", onSelect);
+    };
   }, [emblaApi, onSelect]);
 
   return (
