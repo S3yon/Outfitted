@@ -847,7 +847,7 @@ Return the user's linked wallet address and a list of their minted item mint add
 ### Environment Variable
 ```env
 # A devnet Solana keypair (JSON array of 64 numbers) — fund it with devnet SOL via faucet
-SOLANA_PAYER_PRIVATE_KEY=[1,2,3,...] # 64 numbers
+SOLANA_PAYER_PRIVATE_KEY=<your-solana-payer-private-key>
 ```
 
 Fund the payer wallet:
@@ -888,27 +888,27 @@ For the demo: upload an item, mark it Owned, and show the Solana Explorer link t
 
 ```env
 # Auth0
-AUTH0_SECRET=use_openssl_rand_hex_32_to_generate
+AUTH0_SECRET=<your-auth0-secret>
 AUTH0_BASE_URL=http://localhost:3000
-AUTH0_ISSUER_BASE_URL=https://adamshaldam.ca.auth0.com
-AUTH0_CLIENT_ID=BBXNhOVGlpuZohKa9p6MK85fICUEmFhD
-AUTH0_CLIENT_SECRET=fEsuTuGWLMXLBHyC2OZs1AuIvbymUBPI-Q_bdDprPbZ9zZsm46QYO0vHf-AWHkik
+AUTH0_ISSUER_BASE_URL=<your-auth0-issuer-base-url>
+AUTH0_CLIENT_ID=<your-auth0-client-id>
+AUTH0_CLIENT_SECRET=<your-auth0-client-secret>
 
 # PostgreSQL
-DATABASE_URL=postgresql://localhost:5432/outfitted
+DATABASE_URL=<your-postgres-connection-string>
 
 # Cloudinary
-CLOUDINARY_CLOUD_NAME=da6fuzpyp
-CLOUDINARY_API_KEY=427842624251227
-CLOUDINARY_API_SECRET=gESLE1MCxM2KBxE3JbHPt7x4tnU
+CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
+CLOUDINARY_API_KEY=<your-cloudinary-api-key>
+CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
 
 # Google Gemini
-GEMINI_API_KEY=AIzaSyCg4Z_Vzgx6czeFvnVGrFbd6g39qxl7G_U
+GEMINI_API_KEY=<your-gemini-api-key>
 
 # Solana (devnet payer keypair — JSON array of 64 numbers)
 # Generate with: solana-keygen new --outfile payer.json
 # Fund with:     solana airdrop 2 <PUBKEY> --url devnet
-SOLANA_PAYER_PRIVATE_KEY=[1,2,3,...]
+SOLANA_PAYER_PRIVATE_KEY=<your-solana-payer-private-key>
 ```
 
 ### Auth0 App Settings (Dashboard)
