@@ -45,7 +45,8 @@ From `frontend/`:
 npm run verify
 ```
 
-That runs typecheck → lint → build, and fails on the first one that does.
+That runs typecheck → lint → build → smoke, and fails on the first one
+that does.
 Run it before you hand anything back. "It compiles" is not a claim you get
 to make without having run it.
 
@@ -54,9 +55,12 @@ Two things it will catch that are easy to misread:
 - **typecheck failing on a missing module** usually means the local install
   has drifted from `package-lock.json`, not that the code is wrong. Fix
   with `npm ci`, not by editing imports or adding the dep again.
-- **the Playwright smoke step is currently a stub.** It prints a skip
-  notice and exits 0. It is not evidence of anything yet. Do not describe
-  a verify run as "smoke tested" until that step is real.
+- **smoke only covers logged-out behaviour.** `scripts/smoke.py` checks
+  the landing CTA reaches `/login`, `/wardrobe` bounces a logged-out user
+  to `/`, and `/api/wardrobe` returns 401. The server runs on dummy Auth0
+  values, so nothing logged-in is exercised: uploads, generation, the
+  market. A green verify says those flows *build*, not that they *work*.
+  Never give the smoke run real credentials to widen it.
 
 Useful on their own: `npm run typecheck`, `npm run lint`, `npm run format`.
 
