@@ -35,20 +35,21 @@ function fetchDailyOutfit(): Promise<PopulatedOutfit | null> {
 }
 
 export function DailyOutfitCard() {
+  // Read straight from localStorage on first render. Safe because this card
+  // only mounts after the wardrobe page's client-side fetch, never during
+  // server render — if that changes, this becomes a hydration mismatch.
+  const [dismissed, setDismissed] = useState(
+    () => typeof window !== "undefined" && !!localStorage.getItem(getTodayKey()),
+  );
   const [outfit, setOutfit] = useState<PopulatedOutfit | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [dismissed, setDismissed] = useState(false);
+  const [loading, setLoading] = useState(!dismissed);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && localStorage.getItem(getTodayKey())) {
-      setDismissed(true);
-      setLoading(false);
-      return;
-    }
+    if (dismissed) return;
     fetchDailyOutfit()
       .then((outfit) => setOutfit(outfit))
       .finally(() => setLoading(false));
-  }, []);
+  }, [dismissed]);
 
   function dismiss() {
     localStorage.setItem(getTodayKey(), "1");
