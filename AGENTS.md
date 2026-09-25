@@ -13,8 +13,9 @@ it — **this file being read and obeyed is the only enforcement there is.**
 `docs/CONTEXT.md` is the product spec: architecture, design language,
 component scope. It describes what the app is *meant* to be and was
 written during a 14-hour hackathon. Where it disagrees with the code, the
-code is the truth and CONTEXT.md is the intent. **Do not read section 16**
-(see "off-limits" below).
+code is the truth and CONTEXT.md is the intent. Its credential values were
+replaced with placeholders on 2026-09-25, but **git history still holds
+the real ones** until the history rewrite lands (see "off-limits").
 
 ## the stack
 
@@ -61,19 +62,24 @@ Useful on their own: `npm run typecheck`, `npm run lint`, `npm run format`.
 
 ## off-limits
 
-- **Never read any `.env`, anywhere.** Not to check a variable name, not to
-  debug a connection. `frontend/.env.local.example` is the only env file
-  you may open, and it holds names only.
-- **Never read `docs/CONTEXT.md` section 16** ("Credentials & Environment
-  Variables"). As of 2026-09-24 it contains real, unrotated credential
-  values committed to a public repo. Read the sections around it freely;
-  skip that one. If you need to know what a variable is called, read
-  `.env.local.example`.
+- **Never read any `.env` file, anywhere — including
+  `frontend/.env.local.example`.** An earlier version of this file called
+  the example safe. It is not: as of 2026-09-25 it holds live-shaped
+  credential values at HEAD and across ~150 commits of history. Treat it
+  exactly like a real `.env` until Adam replaces it.
+- **Never read old revisions of `docs/CONTEXT.md` or the example env
+  file** (`git show`, `git log -p`, `git grep <rev>`). The working copy of
+  CONTEXT.md is clean; its history is not.
 - **Never commit a secret, in any file type.** The `.gitignore` catches
-  `.env*.local` and nothing else — it did not catch section 16, because
-  markdown is not a file type anyone thought to guard. Before committing a
-  doc, config or script that mentions a key, check that what follows the
-  `=` is a placeholder.
+  `.env*.local` and nothing else. It missed CONTEXT.md because markdown
+  was never guarded, and it missed the example file because `.example`
+  is exempt by design. Before committing a doc, config or script that
+  mentions a key, check that what follows the `=` is a placeholder.
+- **Don't work around the secrets hook.** On this machine a
+  `block-secrets.sh` hook blocks any tool call whose text contains `.env`
+  — including harmless strings like `process.env`. That is intended.
+  Don't split or encode strings to get past it; if a task genuinely needs
+  a blocked path, stop and hand Adam the command.
 - **Never push, never open a PR, never deploy.** This repo is a fork of a
   team repo (`github.com/S3yon/Outfitted`, public). Adam pushes; agents
   commit locally and stop.
