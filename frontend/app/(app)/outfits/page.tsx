@@ -13,6 +13,7 @@ import { TryOnView } from "@/components/try-on/try-on-view";
 import { toast } from "sonner";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 const SEASONS = ["All", "Spring", "Summer", "Fall", "Winter"] as const;
 const OCCASIONS = ["All", "Casual", "Work", "Night Out", "Gym", "Formal"] as const;
@@ -117,7 +118,7 @@ export default function OutfitsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold tracking-tight">
-              <a href="/?home=1" className="md:hidden">Outfitted</a>
+              <Link href="/?home=1" className="md:hidden">Outfitted</Link>
               <span className="hidden md:inline">Outfits</span>
             </h1>
             <p className="text-xs text-muted-foreground">AI-styled combinations from your wardrobe</p>

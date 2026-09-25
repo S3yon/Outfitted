@@ -266,6 +266,7 @@ export default function ProfilePage() {
             className="w-full justify-start text-destructive hover:text-destructive"
             asChild
           >
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- auth route handler; must be a full navigation, and <Link> prefetch would hit it */}
             <a href="/api/auth/logout">
               <LogOut className="size-4" data-icon="inline-start" />
               Log Out

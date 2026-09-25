@@ -6,6 +6,7 @@ import { useUser } from "@auth0/nextjs-auth0/client";
 import { motion } from "motion/react";
 import { ArrowRight, ArrowLeft, Wand2 } from "lucide-react";
 import Grainient from "@/components/grainient";
+import Link from "next/link";
 
 const FEATURES = [
   "Upload your entire wardrobe in seconds",
@@ -47,19 +48,19 @@ export default function LoginPage() {
 
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-5">
-        <a
+        <Link
           href="/"
           className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
         >
           <ArrowLeft className="size-3.5" />
           Back
-        </a>
-        <a
+        </Link>
+        <Link
           href="/"
           className="text-base font-semibold tracking-tight text-neutral-800 dark:text-white"
         >
           Outfitted
-        </a>
+        </Link>
         <div className="w-16" />
       </div>
 
@@ -83,6 +84,7 @@ export default function LoginPage() {
 
           {/* Auth card */}
           <div className="rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white/75 dark:bg-neutral-900/75 backdrop-blur-xl shadow-xl p-6 space-y-4">
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- auth route handler; must be a full navigation, and <Link> prefetch would hit it */}
             <a
               href="/api/auth/login?returnTo=/wardrobe"
               className="flex items-center justify-center gap-2.5 w-full px-5 py-3.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"

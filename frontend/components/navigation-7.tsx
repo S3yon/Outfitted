@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { motion, AnimatePresence } from "motion/react";
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
 
 interface NavItem {
   label: string;
@@ -40,13 +41,13 @@ export function Navigation7() {
         <div className="max-w-[1100px] mx-auto w-full flex items-center justify-between gap-8">
           {/* Left: Logo + Nav */}
           <div className="flex items-center gap-6">
-            <a
+            <Link
               href="/"
               className="text-base font-semibold tracking-tight text-neutral-800 dark:text-white"
               aria-label="Home"
             >
               Outfitted
-            </a>
+            </Link>
 
             <div className="hidden md:flex items-center gap-1">
               {navItems.map((item) => (

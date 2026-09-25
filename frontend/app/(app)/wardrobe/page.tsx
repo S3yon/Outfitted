@@ -11,6 +11,7 @@ import { ProductSearch } from "@/components/wardrobe/product-search";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
 import { DailyOutfitCard } from "@/components/wardrobe/daily-outfit-card";
 import { PullToRefresh } from "@/components/pull-to-refresh";
+import Link from "next/link";
 
 export default function WardrobePage() {
   const { user: auth0User, isLoading: authLoading } = useUser();
@@ -68,7 +69,7 @@ export default function WardrobePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">
-            <a href="/?home=1" className="md:hidden">Outfitted</a>
+            <Link href="/?home=1" className="md:hidden">Outfitted</Link>
             <span className="hidden md:inline">Wardrobe</span>
           </h1>
           <p className="hidden md:block text-xs text-muted-foreground">
