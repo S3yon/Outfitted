@@ -119,14 +119,21 @@ rediscover them the hard way:
   redirect loop in the PWA. Don't reintroduce it.
 - **`auth0.getSession(request)` needs the request** inside the proxy.
   Calling it without produced a PWA redirect loop (`0210f96`).
-- **Migrations are behind the schema.** `db/schema.ts` declares
-  `market_listings`, `price_candles`, `holdings` and `trades`; no migration
-  creates them. A database built from `db/migrations/` alone will not run
-  the market feature. Fix this before trusting a fresh environment.
+- **Migrations were rebuilt as one baseline on 2026-09-25.**
+  `db/migrations/0000_baseline.sql` creates all 10 tables exactly as
+  `db/schema.ts` declares them, and is tested on a fresh Postgres. The
+  production database was built with `drizzle-kit push`, not migrations,
+  so it has no record of the baseline — running `drizzle-kit migrate`
+  against it will fail on the first `CREATE TABLE`. Adopting migrations in
+  prod means marking 0000 as applied first. That's Adam's call; don't.
 - **Routes cost real money per call.** `/api/outfits/generate`,
   `/api/try-on`, `/api/upload` and `/api/recommendations` each hit a paid
   API. There is no rate limiting anywhere in the app. Don't loop them in a
   test, and don't add a retry without a ceiling.
 - **`getOrCreateUser`** is how every route resolves the Auth0 session to a
-  DB row. Per-resource routes scope by `userId` — keep it that way; the
-  market publish route is the one place that currently doesn't.
+  DB row. Per-resource routes scope by `userId` — keep it that way. Any new
+  route that takes an id from the request must check the row belongs to
+  the caller; market publish didn't, until 2026-09-25.
+- **Market trades run in one transaction** with the listing row locked
+  (`.for("update")`). Any new write in that route belongs inside `tx`, not
+  on `db`, or it escapes the transaction.
