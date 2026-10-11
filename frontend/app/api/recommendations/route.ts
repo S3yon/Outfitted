@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { recommendationCache } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
+import { TEXT_MODEL } from "@/lib/openrouter";
 import { cleanGeminiJson } from "@/lib/gemini";
 
 const SERPER_API_KEY = process.env.SERPER_API_KEY;
@@ -79,7 +80,7 @@ export async function GET(req: Request) {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: TEXT_MODEL,
         messages: [
           {
             role: "user",

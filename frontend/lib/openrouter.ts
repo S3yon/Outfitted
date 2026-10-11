@@ -1,5 +1,7 @@
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-3.1-flash-image-preview";
+// Text model for outfits and recommendations. gemini-2.0-flash-001 was retired on OpenRouter.
+export const TEXT_MODEL = "google/gemini-3.1-flash-lite";
 
 type IdentifiedItem = {
   category: "tops" | "bottoms" | "shoes" | "outerwear" | "accessories";

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { clothingItems, outfits, outfitItems } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
+import { TEXT_MODEL } from "@/lib/openrouter";
 import { cleanGeminiJson, type GeminiResponse } from "@/lib/gemini";
 
 const SEASONS = ["Spring", "Summer", "Fall", "Winter"];
@@ -104,7 +105,7 @@ ${anchorItemIds.length > 0 ? `- The anchor item IDs listed above MUST appear in 
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-001",
+        model: TEXT_MODEL,
         messages: [{ role: "user", content: prompt }],
       }),
     });
