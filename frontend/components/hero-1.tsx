@@ -1,28 +1,28 @@
-import Image from "next/image";
+"use client";
+
+import dynamic from "next/dynamic";
 import { ArrowRight } from "lucide-react";
 
-const looks = [
-  { src: "/hero-casual.png", label: "01", caption: "Tee, grey joggers" },
-  { src: "/hero-outfit.png", label: "02", caption: "Tee, pinstripe trousers" },
-];
+const ShaderReveal = dynamic(() => import("@/components/shader-reveal"), {
+  ssr: false,
+});
+
+const fade =
+  "linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%)";
 
 export function Hero1() {
   return (
-    <section className="w-full border-b border-border">
-      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 lg:grid-cols-[1.1fr_1fr]">
-        <div className="flex flex-col justify-between gap-12 px-5 py-14 sm:px-8 lg:border-r lg:border-border lg:py-20">
+    <section className="w-full">
+      <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 items-center gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[1.1fr_1fr] lg:py-20">
+        <div className="flex flex-col gap-8">
           <p className="label-caps text-muted-foreground">AI wardrobe and stylist</p>
-
-          <div className="space-y-8">
-            <h1 className="font-serif text-6xl leading-[0.95] tracking-tight text-foreground sm:text-7xl lg:text-[7.5rem]">
-              Your wardrobe, <em className="italic">digitized.</em>
-            </h1>
-            <p className="max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Photograph your clothes and the background is removed for you. Take a short
-              style quiz. Get outfits built only from what you own, every day.
-            </p>
-          </div>
-
+          <h1 className="font-serif text-6xl leading-[0.95] tracking-tight text-foreground sm:text-7xl lg:text-[7.5rem]">
+            Your wardrobe, <em className="italic">digitized.</em>
+          </h1>
+          <p className="max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
+            Photograph your clothes and the background is removed for you. Take a short
+            style quiz. Get outfits built only from what you own, every day.
+          </p>
           <div className="flex items-center gap-6">
             <a
               href="/login"
@@ -40,28 +40,26 @@ export function Hero1() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 border-t border-border lg:border-t-0">
-          {looks.map((look, i) => (
-            <figure
-              key={look.src}
-              className={`flex flex-col bg-card ${i === 0 ? "border-r border-border" : ""}`}
-            >
-              <div className="relative aspect-[3/4] w-full lg:aspect-auto lg:flex-1">
-                <Image
-                  src={look.src}
-                  alt={look.caption}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 280px, 50vw"
-                  className="object-contain p-6"
-                />
-              </div>
-              <figcaption className="flex items-baseline gap-3 border-t border-border px-4 py-3">
-                <span className="font-serif text-lg">{look.label}</span>
-                <span className="label-caps text-muted-foreground">{look.caption}</span>
-              </figcaption>
-            </figure>
-          ))}
+        {/* Move the cursor over the figure to swap the outfit */}
+        <div className="flex justify-center">
+          <div
+            className="relative h-[358px] w-[240px] overflow-hidden md:h-[632px] md:w-[424px]"
+            style={{ mask: fade, WebkitMask: fade }}
+          >
+            <ShaderReveal
+              frontImage="/hero-casual.png"
+              backImage="/hero-outfit.png"
+              mouseForce={50}
+              cursorSize={250}
+              resolution={0.5}
+              autoDemo
+              autoSpeed={0.55}
+              autoIntensity={2.2}
+              revealStrength={1}
+              revealSoftness={1}
+              className="h-full w-full"
+            />
+          </div>
         </div>
       </div>
     </section>
