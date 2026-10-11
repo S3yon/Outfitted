@@ -3,6 +3,10 @@
 > This document is the single source of truth for all LLMs working on this codebase.
 > It covers architecture, design language, component scope, API integrations, and implementation constraints.
 > Read this before writing any code.
+>
+> Updated 2026-10-11: sections 2, 3, 5 and 13 match the code (light editorial look, Next 16,
+> `proxy.ts`, OpenRouter). The rest was written during the hackathon and describes intent;
+> where it disagrees with the code, the code wins.
 
 ---
 
@@ -48,35 +52,27 @@ Users photograph their real-life clothing items, upload them, and the app automa
 
 Every component, every page, and every animation must conform to this aesthetic. Do not deviate.
 
-### Aesthetic: Minimalist Luxury
+### Aesthetic: Light editorial
+
+Fashion-magazine layout (SSENSE, Max Mara): the clothes carry the colour, the UI stays quiet.
 
 | Property | Value |
 |---|---|
-| **Color Mode** | Dark mode by default, always |
-| **Primary Style** | Glassmorphism — frosted overlays with `backdrop-filter: blur` |
-| **Layouts** | Masonry grids, clean CSS Grid, bold typographic hierarchy |
-| **Palette** | Monochrome (blacks, deep greys, off-whites) |
-| **Accents** | Subtle **gold** (`#C9A84C`, `#FFD700`) or **neon** (`#39FF14`, soft electric blues) |
-| **Typography** | Bold, editorial. Large headings. Tight letter-spacing on labels. |
-| **Animations** | Smooth, subtle. `transition-all duration-300 ease-in-out`. No jarring snaps. |
-| **Borders** | `border border-white/10` or `border border-gold/20`. Thin, refined. |
-| **Shadows** | Soft glows. `shadow-lg shadow-black/50`. No hard drop shadows. |
-
-### Glassmorphism Recipe (Tailwind)
-
-```tsx
-// Standard glassmorphic card
-className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl"
-
-// Elevated glassmorphic card
-className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-lg shadow-black/40"
-```
+| **Color Mode** | Light only |
+| **Canvas** | `#f4f4f4` page, `#ffffff` for item and outfit tiles so cutouts read as flatlays |
+| **Ink** | `#111111` text and primary buttons, `#6b6b6b` secondary text |
+| **Lines** | 1px hairlines (`#d9d9d9`) separate sections, rows and tiles. No cards floating on shadows |
+| **Radius** | 0 everywhere, including buttons, inputs and images |
+| **Shadows, glass, gradients** | None. No `backdrop-blur`, no shader backgrounds |
+| **Display type** | Instrument Serif for headings and large numbers |
+| **Text type** | A grotesk (Inter Tight) for body, labels and buttons. Labels uppercase, small, tracked |
+| **Animations** | Short fades only (150-300 ms). Content is visible on first paint, never gated on scroll |
 
 ### Component Rules
-- Use **shadcn/ui** components as the base for all interactive elements (Cards, Buttons, Inputs, Dialogs, Badges).
-- Use **Lucide Icons** for all iconography — no other icon libraries.
-- All buttons must have hover states with subtle glow or border transitions.
-- Loading states must use a glassmorphic spinner overlay, never a plain browser spinner.
+- shadcn/ui stays the base for interactive elements; the theme tokens in `app/globals.css` set the look.
+- Icons: Lucide (Phosphor exists in a few places; don't add more).
+- Buttons: solid ink or 1px outline, square corners, no glow.
+- Loading: a thin progress line or plain text ("Processing"), not a glass overlay.
 
 ---
 
@@ -85,9 +81,9 @@ className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shado
 ### Frontend
 | Tool | Purpose |
 |---|---|
-| **Next.js 14+ (App Router)** | Framework, routing, SSR/SSG |
+| **Next.js 16 (App Router), React 19** | Framework, routing, SSR/SSG |
 | **TypeScript** | Type safety across all files |
-| **Tailwind CSS** | All styling — utility-first, no CSS modules |
+| **Tailwind CSS v4** | All styling — utility-first, no CSS modules |
 | **shadcn/ui** | Base component library (Cards, Buttons, Inputs, Badges, Dialogs) |
 | **Lucide Icons** | All icons |
 | **Zustand** | Global client state — wardrobe items, outfits, filters, user profile |
@@ -104,7 +100,7 @@ className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shado
 |---|---|
 | **Auth0** | Authentication — login, signup, session management |
 | **Cloudinary** | Image hosting + AI Background Removal add-on |
-| **Google Gemini API** | LLM-powered outfit generation and style badge creation |
+| **OpenRouter** | Gemini models: `google/gemini-3.1-flash-lite` for outfits and recommendations, `google/gemini-3.1-flash-image-preview` for try-on and upload analysis |
 | **Solana (devnet)** | On-chain ownership records for wardrobe items via NFT minting |
 
 ### Solana Packages
@@ -192,7 +188,7 @@ import { UserProvider } from "@auth0/nextjs-auth0/client";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body>
         <UserProvider>
           {children}
@@ -212,18 +208,13 @@ const { user, isLoading } = useUser();
 // user.name, user.email, user.picture available
 ```
 
-### Middleware Route Protection
-File: `middleware.ts` at root of `frontend/`
+### Route Protection
+File: `proxy.ts` at the root of `frontend/` (Next 16's name for middleware). There is no
+`middleware.ts`: having both caused a redirect loop in the PWA.
 
-```ts
-import { withMiddlewareAuthRequired } from "@auth0/nextjs-auth0/edge";
-
-export default withMiddlewareAuthRequired();
-
-export const config = {
-  matcher: ["/wardrobe/:path*", "/outfits/:path*", "/profile/:path*"],
-};
-```
+It runs `auth0.middleware(request)`, then for `/wardrobe`, `/outfits`, `/market` and `/profile`
+calls `auth0.getSession(request)` (the request argument is required) and redirects a logged-out
+visitor to `/`.
 
 ### First-Login Detection
 After Auth0 callback, check the DB for the user's `auth0_id`. If no record exists → new user → trigger Onboarding Flow. If record exists but `style_string` is null/empty → also trigger onboarding.
@@ -674,22 +665,16 @@ const finalUrl = result.eager?.[0]?.secure_url ?? result.secure_url;
 
 ## 13. Gemini API — Outfit Generation
 
-### API Route: `app/api/generate-outfits/route.ts`
+### API Route: `app/api/outfits/generate/route.ts`
 
-**Method:** POST (or GET with auth via session)
+**Method:** POST
 **Output:** JSON with array of 3 generated outfits
 
-### SDK
-```bash
-npm install @google/generative-ai
-```
-
-```ts
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-```
+### Model
+Called through OpenRouter's chat completions endpoint with `OPENROUTER_API_KEY`. The model id is
+`TEXT_MODEL` in `lib/openrouter.ts` (`google/gemini-3.1-flash-lite`), shared with
+`/api/outfit/daily` and `/api/recommendations`. `gemini-2.0-flash-001` was retired on OpenRouter
+in 2026. Each call costs money and there is no rate limiting.
 
 ### Owned Items Filter
 **Critical:** Only pass `status === "owned"` items to Gemini. Wishlisted items are aspirational — the user cannot wear them yet.
@@ -734,9 +719,9 @@ Rules:
 ```
 
 ### Response Parsing
+`cleanGeminiJson` in `lib/gemini.ts` strips the code fences, then the route parses it:
 ```ts
-const result = await model.generateContent(prompt);
-const text = result.response.text();
+const text = data.choices?.[0]?.message?.content ?? "";
 
 // Strip markdown code blocks if Gemini wraps in ```json
 const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -889,8 +874,8 @@ For the demo: upload an item, mark it Owned, and show the Solana Explorer link t
 ```env
 # Auth0
 AUTH0_SECRET=<your-auth0-secret>
-AUTH0_BASE_URL=http://localhost:3000
-AUTH0_ISSUER_BASE_URL=<your-auth0-issuer-base-url>
+APP_BASE_URL=http://localhost:3000
+AUTH0_DOMAIN=<your-auth0-domain>
 AUTH0_CLIENT_ID=<your-auth0-client-id>
 AUTH0_CLIENT_SECRET=<your-auth0-client-secret>
 
@@ -902,8 +887,8 @@ CLOUDINARY_CLOUD_NAME=<your-cloudinary-cloud-name>
 CLOUDINARY_API_KEY=<your-cloudinary-api-key>
 CLOUDINARY_API_SECRET=<your-cloudinary-api-secret>
 
-# Google Gemini
-GEMINI_API_KEY=<your-gemini-api-key>
+# OpenRouter (Gemini models for outfits, recommendations, try-on)
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 
 # Solana (devnet payer keypair — JSON array of 64 numbers)
 # Generate with: solana-keygen new --outfile payer.json
