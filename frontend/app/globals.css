@@ -5,30 +5,30 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: oklch(0.98 0.003 80);
-    --foreground: oklch(0.2 0.01 50);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.58 0.22 27);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --background: #f4f4f4;
+    --foreground: #111111;
+    --card: #ffffff;
+    --card-foreground: #111111;
+    --popover: #ffffff;
+    --popover-foreground: #111111;
+    --primary: #111111;
+    --primary-foreground: #f4f4f4;
+    --secondary: #ebebeb;
+    --secondary-foreground: #111111;
+    --muted: #ebebeb;
+    --muted-foreground: #6b6b6b;
+    --accent: #ebebeb;
+    --accent-foreground: #111111;
+    --destructive: #b42318;
+    --border: #d9d9d9;
+    --input: #d9d9d9;
+    --ring: #111111;
     --chart-1: oklch(0.809 0.105 251.813);
     --chart-2: oklch(0.623 0.214 259.815);
     --chart-3: oklch(0.546 0.245 262.881);
     --chart-4: oklch(0.488 0.243 264.376);
     --chart-5: oklch(0.424 0.199 265.638);
-    --radius: 0.45rem;
+    --radius: 0rem;
     --gold: oklch(0.72 0.14 86.4);
     --gold-foreground: oklch(0.145 0 0);
     --neon: oklch(0.68 0.2 163.2);
@@ -83,6 +83,22 @@
 
 @theme inline {
     --font-sans: var(--font-sans);
+    --font-serif: var(--font-serif);
+    /* Editorial: flat surfaces, so shadow and blur utilities render nothing */
+    --shadow-2xs: 0 0 #0000;
+    --shadow-xs: 0 0 #0000;
+    --shadow-sm: 0 0 #0000;
+    --shadow-md: 0 0 #0000;
+    --shadow-lg: 0 0 #0000;
+    --shadow-xl: 0 0 #0000;
+    --shadow-2xl: 0 0 #0000;
+    --blur-xs: 0px;
+    --blur-sm: 0px;
+    --blur-md: 0px;
+    --blur-lg: 0px;
+    --blur-xl: 0px;
+    --blur-2xl: 0px;
+    --blur-3xl: 0px;
     --color-gold: var(--gold);
     --color-gold-foreground: var(--gold-foreground);
     --color-neon: var(--neon);
@@ -149,15 +165,19 @@
 }
 
 @layer utilities {
+  /* Kept as class names; flat surfaces now, no blur */
   .glass {
-    background: oklch(1 0 0 / 5%);
-    backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid oklch(1 0 0 / 10%);
+    background: var(--card);
+    border: 1px solid var(--border);
   }
   .glass-heavy {
-    background: oklch(1 0 0 / 10%);
-    backdrop-filter: blur(24px) saturate(1.4);
-    border: 1px solid oklch(1 0 0 / 15%);
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+  .label-caps {
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
   }
 }
 
@@ -172,7 +192,7 @@
     --width: calc(100vw - 2rem);
   }
   [data-sonner-toast] {
-    border-radius: 14px !important;
+    border-radius: 0 !important;
     font-size: 0.8125rem !important;
     padding: 12px 14px !important;
   }

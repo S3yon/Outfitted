@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next"
-import { Geist_Mono, Outfit } from "next/font/google"
+import { Geist_Mono, Instrument_Serif, Inter_Tight } from "next/font/google"
 import { Auth0Provider } from "@auth0/nextjs-auth0/client"
 
 import "./globals.css"
@@ -8,7 +8,14 @@ import { Toaster } from "@/components/ui/sonner"
 // import { SolanaProvider } from "@/providers/solana-provider"
 import { cn } from "@/lib/utils"
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-sans" })
+const interTight = Inter_Tight({ subsets: ["latin"], variable: "--font-sans" })
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-serif",
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -26,7 +33,7 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#f4f4f4",
   viewportFit: "cover",
 }
 
@@ -39,7 +46,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", outfit.variable)}
+      className={cn("antialiased", fontMono.variable, "font-sans", interTight.variable, instrumentSerif.variable)}
     >
       <body suppressHydrationWarning>
         <Auth0Provider>
