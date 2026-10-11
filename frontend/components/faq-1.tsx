@@ -42,7 +42,7 @@ export default function FAQ1() {
   return (
     <section className="w-full border-b border-border">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 lg:grid-cols-[1fr_2fr]">
-        <div className="border-b border-border px-5 py-10 sm:px-8 lg:border-b-0 lg:border-r lg:py-14">
+        <div className="border-b border-border px-5 py-10 sm:px-8 lg:border-b-0 lg:py-14">
           <div className="lg:sticky lg:top-24">
             <h2 className="font-serif text-5xl leading-none sm:text-6xl">FAQ</h2>
             <p className="mt-4 max-w-[25ch] text-base leading-relaxed text-muted-foreground">

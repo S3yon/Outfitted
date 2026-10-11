@@ -5,7 +5,7 @@ export default function CTA1() {
   return (
     <section className="w-full border-b border-border">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 md:grid-cols-[1.4fr_1fr]">
-        <div className="flex flex-col justify-between gap-10 px-5 py-14 sm:px-8 md:border-r md:border-border lg:py-20">
+        <div className="flex flex-col justify-between gap-10 px-5 py-14 sm:px-8 lg:py-20">
           <h2 className="font-serif text-6xl leading-[0.95] sm:text-7xl">
             Ready to digitize <em className="italic">your wardrobe?</em>
           </h2>

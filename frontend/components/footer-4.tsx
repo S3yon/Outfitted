@@ -23,15 +23,15 @@ export default function Footer4() {
   return (
     <footer className="w-full">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 border-b border-border md:grid-cols-[2fr_1fr_1fr]">
-        <div className="border-b border-border px-5 py-10 sm:px-8 md:border-b-0 md:border-r">
+        <div className="px-5 py-10 sm:px-8">
           <p className="max-w-sm font-serif text-3xl leading-tight">
             Your closet. Your style. Outfits from what you own.
           </p>
         </div>
-        {footerColumns.map((column, i) => (
+        {footerColumns.map((column) => (
           <div
             key={column.title}
-            className={`px-5 py-10 sm:px-8 ${i === 0 ? "border-b border-border md:border-b-0 md:border-r" : ""}`}
+            className="px-5 py-10 sm:px-8"
           >
             <h4 className="label-caps mb-5 text-muted-foreground">{column.title}</h4>
             <ul className="space-y-3">

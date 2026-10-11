@@ -13,7 +13,7 @@ export function Features1() {
   return (
     <section className="w-full border-b border-border">
       <div className="mx-auto w-full max-w-[1200px]">
-        <div className="grid grid-cols-1 gap-6 border-b border-border px-5 py-10 sm:px-8 lg:grid-cols-[1fr_1fr] lg:py-14">
+        <div className="grid grid-cols-1 gap-6 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_1fr] lg:py-14">
           <h2 className="font-serif text-5xl leading-none sm:text-6xl">Everything your closet needs</h2>
           <p className="max-w-md self-end text-base leading-relaxed text-muted-foreground lg:justify-self-end">
             Upload your real clothes, get clean cutouts, and let the stylist build outfits
@@ -21,23 +21,11 @@ export function Features1() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4">
-          {features.map((feature, i) => (
-            <div
-              key={feature.title}
-              className={[
-                "flex min-h-[160px] flex-col justify-between gap-6 border-border px-5 py-6 sm:px-8",
-                i % 2 === 0 ? "border-r" : "lg:border-r",
-                (i + 1) % 4 === 0 ? "lg:border-r-0" : "",
-                i < features.length - 2 ? "border-b" : "",
-                i >= features.length - 4 ? "lg:border-b-0" : "lg:border-b",
-              ].join(" ")}
-            >
-              <span className="label-caps text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
-              <div>
-                <h3 className="font-serif text-2xl leading-tight">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
-              </div>
+        <div className="grid grid-cols-2 gap-x-8 gap-y-10 px-5 pb-14 sm:px-8 lg:grid-cols-4">
+          {features.map((feature) => (
+            <div key={feature.title}>
+              <h3 className="font-serif text-2xl leading-tight">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
             </div>
           ))}
         </div>

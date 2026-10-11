@@ -12,7 +12,7 @@ export default function Stats4() {
   return (
     <section className="w-full border-b border-border">
       <div className="mx-auto grid w-full max-w-[1200px] grid-cols-1 lg:grid-cols-[1fr_1.4fr]">
-        <div className="flex flex-col justify-between gap-10 border-b border-border px-5 py-10 sm:px-8 lg:border-b-0 lg:border-r lg:py-14">
+        <div className="flex flex-col justify-between gap-10 border-b border-border px-5 py-10 sm:px-8 lg:border-b-0 lg:py-14">
           <h2 className="font-serif text-5xl leading-none sm:text-6xl">By the numbers</h2>
           <div className="space-y-6">
             <p className="max-w-sm text-base leading-relaxed text-muted-foreground">
@@ -29,16 +29,14 @@ export default function Stats4() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2">
-          {stats.map((stat, i) => (
+        <div className="grid grid-cols-2 content-center py-6">
+          {stats.map((stat) => (
             <div
               key={stat.label}
-              className={`flex min-h-[200px] flex-col justify-between gap-6 border-border px-5 py-6 sm:px-8 ${
-                i % 2 === 0 ? "border-r" : ""
-              } ${i < 2 ? "border-b" : ""}`}
+              className="flex flex-col gap-3 px-5 py-8 sm:px-8"
             >
-              <span className="label-caps text-muted-foreground">{stat.label}</span>
-              <span className="font-serif text-8xl leading-none">{stat.value}</span>
+              <span className="font-serif text-7xl leading-none">{stat.value}</span>
+              <span className="text-sm text-muted-foreground">{stat.label}</span>
             </div>
           ))}
         </div>
