@@ -82,9 +82,6 @@ export function Features1() {
         {/* Header */}
         <div className="mb-10 md:mb-16 lg:mb-20">
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.4 }}
             className="text-sm sm:text-base text-neutral-600 dark:text-neutral-400 mb-4"
           >
@@ -92,9 +89,6 @@ export function Features1() {
           </motion.p>
 
           <motion.h2
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.1 }}
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal text-neutral-900 dark:text-white mb-6"
           >
@@ -102,9 +96,6 @@ export function Features1() {
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
             transition={{ duration: 0.4, delay: 0.2 }}
             className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 max-w-xl"
           >
@@ -166,9 +157,6 @@ export function Features1() {
             return (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
                 className="flex flex-col"
               >

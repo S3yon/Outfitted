@@ -35,9 +35,6 @@ export default function Stats4() {
           <div className="flex flex-col lg:justify-between lg:min-h-[400px]">
             {/* Title */}
             <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
               transition={{ duration: 0.5 }}
               className="text-4xl sm:text-5xl md:text-6xl font-medium tracking-tight text-neutral-900 dark:text-white leading-normal sm:leading-[0.6]"
             >
@@ -47,9 +44,6 @@ export default function Stats4() {
             {/* Description and Button */}
             <div className="space-y-6 sm:space-y-8 mt-8 lg:mt-0">
               <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="text-base sm:text-lg text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-md"
               >
@@ -59,9 +53,6 @@ export default function Stats4() {
 
               <motion.a
                 href="/login"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.2 }}
                 className="cursor-pointer inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-3.5 rounded-full bg-neutral-800 dark:bg-white text-white dark:text-black font-medium text-sm sm:text-base hover:bg-neutral-700 dark:hover:bg-neutral-200 transition-colors duration-200 w-fit"
               >
@@ -76,9 +67,6 @@ export default function Stats4() {
             {stats.map((stat, index) => (
               <motion.div
                 key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.1 + index * 0.1 }}
                 className="relative rounded-3xl border border-neutral-200/60 dark:border-neutral-800 shadow-sm overflow-hidden p-6 min-h-[180px] sm:min-h-[200px] flex flex-col justify-between bg-white dark:bg-neutral-900"
               >

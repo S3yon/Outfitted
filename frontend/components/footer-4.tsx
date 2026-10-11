@@ -52,9 +52,8 @@ export default function Footer4() {
     <footer className="w-full">
       <motion.div
         variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+        initial={false}
+        animate="visible"
       >
         {/* Headline */}
         <div className="mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8">
