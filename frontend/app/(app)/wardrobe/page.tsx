@@ -66,15 +66,17 @@ export default function WardrobePage() {
   return (
     <PullToRefresh onRefresh={fetchWardrobe}>
     <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
-      <div className="flex items-center justify-between">
+      <Link href="/?home=1" className="mb-6 block font-serif text-2xl leading-none md:hidden">
+        Outfitted
+      </Link>
+      <div className="flex items-end justify-between border-b border-border pb-5">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">
-            <Link href="/?home=1" className="md:hidden">Outfitted</Link>
-            <span className="hidden md:inline">Wardrobe</span>
-          </h1>
-          <p className="hidden md:block text-xs text-muted-foreground">
+          <p className="label-caps text-muted-foreground">
             {wardrobeItems.length} {wardrobeItems.length === 1 ? "item" : "items"}
           </p>
+          <h1 className="mt-2 font-serif text-5xl leading-none tracking-tight md:text-6xl">
+            Wardrobe
+          </h1>
         </div>
         {/* Desktop buttons */}
         <div className="hidden md:flex items-center gap-2">
@@ -89,10 +91,6 @@ export default function WardrobePage() {
           <UploadButton onTrigger={(fn) => { uploadTriggerRef.current = fn; }} />
         </div>
       </div>
-      <p className="md:hidden text-xs text-muted-foreground mt-1">
-        {wardrobeItems.length} {wardrobeItems.length === 1 ? "item" : "items"}
-      </p>
-
       <div className="mt-6">
         <DailyOutfitCard />
         <WardrobeGrid />
@@ -101,7 +99,8 @@ export default function WardrobePage() {
       {/* Mobile FAB */}
       <button
         onClick={() => setSheetOpen(true)}
-        className="md:hidden fixed right-5 z-40 flex size-14 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg"
+        aria-label="Add to wardrobe"
+        className="md:hidden fixed right-5 z-40 flex size-14 items-center justify-center bg-foreground text-background"
         style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
       >
         <Plus className="size-6" />
@@ -116,7 +115,7 @@ export default function WardrobePage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="md:hidden fixed inset-0 z-50 bg-black/40"
+              className="md:hidden fixed inset-0 z-50 bg-foreground/30"
               onClick={() => setSheetOpen(false)}
             />
             <motion.div
@@ -125,25 +124,23 @@ export default function WardrobePage() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="md:hidden fixed bottom-0 left-0 right-0 z-50 rounded-t-2xl bg-background pt-4 shadow-xl"
+              className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background pt-4"
               style={{ paddingBottom: "calc(2rem + env(safe-area-inset-bottom))" }}
             >
-              <div className="mb-4 flex items-center justify-between px-5">
-                <p className="text-base font-semibold">Add to wardrobe</p>
-                <button onClick={() => setSheetOpen(false)}>
+              <div className="mb-2 flex items-center justify-between px-5">
+                <p className="font-serif text-3xl leading-none">Add to wardrobe</p>
+                <button onClick={() => setSheetOpen(false)} aria-label="Close">
                   <X className="size-5 text-muted-foreground" />
                 </button>
               </div>
-              <div className="flex flex-col gap-1 px-3">
+              <div className="flex flex-col border-t border-border">
                 {ADD_OPTIONS.map(({ icon: Icon, label, description, action }) => (
                   <button
                     key={label}
                     onClick={action}
-                    className="flex items-center gap-4 rounded-xl px-3 py-3 text-left transition-colors hover:bg-secondary"
+                    className="flex items-center gap-4 border-b border-border px-5 py-4 text-left transition-colors hover:bg-secondary"
                   >
-                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary">
-                      <Icon className="size-5" />
-                    </div>
+                    <Icon className="size-5 shrink-0 stroke-[1.5]" />
                     <div>
                       <p className="text-sm font-medium">{label}</p>
                       <p className="text-xs text-muted-foreground">{description}</p>
