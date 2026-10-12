@@ -3,15 +3,14 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { motion } from "motion/react";
-import { ArrowRight, ArrowLeft, Wand2 } from "lucide-react";
-import Grainient from "@/components/grainient";
+import { ArrowRight, ArrowLeft } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 const FEATURES = [
-  "Upload your entire wardrobe in seconds",
-  "AI generates outfits you'll actually wear",
-  "Try on looks before you step out",
+  "Photograph your clothes, backgrounds removed for you",
+  "Outfits built only from what you own",
+  "Try a look on before you wear it",
 ];
 
 export default function LoginPage() {
@@ -25,100 +24,73 @@ export default function LoginPage() {
   }, [user, isLoading, router]);
 
   return (
-    <div className="relative min-h-svh overflow-hidden">
-      <div className="pointer-events-none fixed inset-0 z-0">
-        <Grainient
-          color1="#F9D1D1"
-          color2="#FDE8C8"
-          color3="#DDD6FE"
-          grainAmount={0.12}
-          timeSpeed={0.3}
-          warpStrength={0.8}
-          warpFrequency={2.0}
-          warpSpeed={1.5}
-          warpAmplitude={30.0}
-          blendSoftness={0.3}
-          contrast={1.1}
-          saturation={0.9}
-          rotationAmount={200.0}
-          noiseScale={1.5}
-          className="h-full w-full"
-        />
-      </div>
+    <div className="grid min-h-svh grid-cols-1 bg-background lg:grid-cols-2">
+      <div className="flex flex-col">
+        {/* Top bar */}
+        <div className="flex h-14 items-center justify-between border-b border-border px-5 sm:px-8">
+          <Link
+            href="/"
+            className="label-caps flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="size-3.5" />
+            Back
+          </Link>
+          <Link href="/" className="font-serif text-2xl leading-none text-foreground">
+            Outfitted
+          </Link>
+          <div className="w-12" />
+        </div>
 
-      {/* Top bar */}
-      <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-5">
-        <Link
-          href="/"
-          className="flex items-center gap-1.5 text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
-        >
-          <ArrowLeft className="size-3.5" />
-          Back
-        </Link>
-        <Link
-          href="/"
-          className="text-base font-semibold tracking-tight text-neutral-800 dark:text-white"
-        >
-          Outfitted
-        </Link>
-        <div className="w-16" />
-      </div>
-
-      {/* Centered content */}
-      <div className="relative z-10 min-h-svh flex items-center justify-center px-4">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut" }}
-          className="w-full max-w-sm"
-        >
-          {/* Heading */}
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white">
-              Get started
+        {/* Content */}
+        <div className="flex flex-1 items-center px-5 py-16 sm:px-8">
+          <div className="mx-auto w-full max-w-sm">
+            <p className="label-caps text-muted-foreground">Sign in</p>
+            <h1 className="mt-4 font-serif text-5xl leading-[0.95] tracking-tight text-foreground sm:text-6xl">
+              Get <em className="italic">started.</em>
             </h1>
-            <p className="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400">
-              Your personal AI stylist is ready.
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+              One account for your wardrobe, outfits and try-ons.
             </p>
-          </div>
 
-          {/* Auth card */}
-          <div className="rounded-2xl border border-neutral-200/60 dark:border-neutral-800/60 bg-white/75 dark:bg-neutral-900/75 backdrop-blur-xl shadow-xl p-6 space-y-4">
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- auth route handler; must be a full navigation, and <Link> prefetch would hit it */}
             <a
               href="/api/auth/login?returnTo=/wardrobe"
-              className="flex items-center justify-center gap-2.5 w-full px-5 py-3.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium hover:bg-neutral-800 dark:hover:bg-neutral-100 transition-colors"
+              className="label-caps group mt-10 flex w-full items-center justify-between bg-foreground px-6 py-4 text-background transition-opacity hover:opacity-85"
             >
               Continue
-              <ArrowRight className="size-4" />
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
             </a>
-
-            <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 leading-relaxed">
-              By continuing you agree to our Terms &amp; Privacy Policy.
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              By continuing you agree to our Terms and Privacy Policy.
             </p>
-          </div>
 
-          {/* Feature list */}
-          <ul className="mt-8 space-y-3.5">
-            {FEATURES.map((feature) => (
-              <li
-                key={feature}
-                className="flex items-center gap-3 text-sm text-neutral-600 dark:text-neutral-400"
-              >
-                <span className="size-1.5 rounded-full bg-gold flex-shrink-0" />
-                {feature}
-              </li>
-            ))}
-          </ul>
+            <ul className="mt-12 border-t border-border">
+              {FEATURES.map((feature, i) => (
+                <li
+                  key={feature}
+                  className="flex items-baseline gap-4 border-b border-border py-4 text-sm text-foreground"
+                >
+                  <span className="label-caps text-muted-foreground">0{i + 1}</span>
+                  {feature}
+                </li>
+              ))}
+            </ul>
 
-          {/* Hackathon note */}
-          <div className="mt-8 flex items-center gap-2 rounded-xl border border-neutral-200/50 dark:border-neutral-800/50 bg-white/50 dark:bg-neutral-900/50 backdrop-blur-sm px-4 py-3">
-            <Wand2 className="size-3.5 text-neutral-400 flex-shrink-0" />
-            <p className="text-xs text-neutral-500 dark:text-neutral-400">
-              Built for Hack Canada 2025 — fashion meets AI.
-            </p>
+            <p className="label-caps mt-8 text-muted-foreground">Built for Hack Canada 2025</p>
           </div>
-        </motion.div>
+        </div>
+      </div>
+
+      {/* Image panel, large screens only */}
+      <div className="relative hidden border-l border-border bg-card lg:block">
+        <Image
+          src="/hero-outfit.png"
+          alt="An outfit put together in Outfitted"
+          fill
+          priority
+          sizes="50vw"
+          className="object-contain p-16"
+        />
       </div>
     </div>
   );
