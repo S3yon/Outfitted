@@ -35,12 +35,12 @@ export function AppNav() {
   return (
     <>
       {/* Desktop: top bar */}
-      <nav className="hidden md:flex items-center h-14 border-b border-border px-6">
-        <Link href="/?home=1" className="text-base font-semibold tracking-tight mr-8">
+      <nav className="hidden md:flex items-center h-14 border-b border-border bg-background px-6">
+        <Link href="/?home=1" className="font-serif text-2xl leading-none mr-10">
           Outfitted
         </Link>
-        <div className="flex items-center gap-1">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        <div className="flex h-full items-center gap-8">
+          {NAV_ITEMS.map(({ href, label }) => {
             const active = pathname.startsWith(href)
             return (
               <Link
@@ -48,13 +48,12 @@ export function AppNav() {
                 href={href}
                 onClick={active ? () => window.scrollTo({ top: 0, behavior: "smooth" }) : undefined}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors duration-150",
+                  "label-caps flex h-full items-center border-b transition-colors duration-150",
                   active
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon className="size-4" />
                 {label}
               </Link>
             )
@@ -64,7 +63,7 @@ export function AppNav() {
 
       {/* Mobile: bottom tabs */}
       <nav
-        className="md:hidden fixed left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-background/95 backdrop-blur-sm transform-gpu"
+        className="md:hidden fixed left-0 right-0 z-50 flex items-center justify-around border-t border-border bg-background transform-gpu"
         style={{ bottom: navBottom, paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
@@ -74,17 +73,17 @@ export function AppNav() {
               key={href}
               href={href}
               onClick={active ? () => window.scrollTo({ top: 0, behavior: "smooth" }) : undefined}
-              className="relative flex flex-1 flex-col items-center gap-0.5 py-3 text-xs"
+              className="relative flex flex-1 flex-col items-center gap-1 py-3"
             >
               {active && (
                 <motion.div
                   layoutId="tab-pill"
-                  className="absolute inset-x-3 inset-y-1.5 rounded-xl bg-secondary"
+                  className="absolute inset-x-6 top-0 h-px bg-foreground"
                   transition={{ type: "spring", stiffness: 400, damping: 35 }}
                 />
               )}
-              <Icon className={cn("relative z-10 size-5 transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")} />
-              <span className={cn("relative z-10 transition-colors duration-150", active ? "text-foreground font-medium" : "text-muted-foreground")}>
+              <Icon className={cn("relative z-10 size-[18px] stroke-[1.5] transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")} />
+              <span className={cn("label-caps relative z-10 transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")}>
                 {label}
               </span>
             </Link>
