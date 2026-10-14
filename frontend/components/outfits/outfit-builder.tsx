@@ -66,50 +66,50 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-[80] flex items-center justify-center bg-foreground/30"
       >
         <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="relative mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl bg-background ring-1 ring-border"
+          className="relative mx-4 flex max-h-[85vh] w-full max-w-2xl flex-col border border-border bg-background"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border px-5 py-4">
             <div>
-              <h2 className="text-lg font-semibold tracking-tight">Build Outfit</h2>
-              <p className="text-xs text-muted-foreground">
+              <p className="label-caps text-muted-foreground">
                 {selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""} selected
               </p>
+              <h2 className="mt-1.5 font-serif text-3xl leading-none">Build an outfit</h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-full p-1.5 text-muted-foreground hover:text-foreground"
+              aria-label="Close"
+              className="p-1.5 text-muted-foreground hover:text-foreground"
             >
-              <X className="size-5" />
+              <X className="size-5 stroke-[1.5]" />
             </button>
           </div>
 
           {/* Name input */}
           <div className="border-b border-border px-5 py-3">
             <Input
-              placeholder="Outfit name (e.g. 'Sunday Brunch')"
+              placeholder="Outfit name, e.g. Sunday brunch"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-secondary"
             />
           </div>
 
           {/* Category filters */}
-          <div className="flex gap-1.5 overflow-x-auto border-b border-border px-5 py-3">
+          <div className="flex gap-6 overflow-x-auto no-scrollbar border-b border-border px-5">
             <button
               onClick={() => setActiveCategory(null)}
               className={cn(
-                "shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors",
+                "label-caps -mb-px shrink-0 border-b py-3 transition-colors",
                 !activeCategory
-                  ? "bg-foreground text-background"
-                  : "bg-secondary text-muted-foreground hover:text-foreground",
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
               All
@@ -119,10 +119,10 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
-                  "shrink-0 rounded-full px-3 py-1 text-xs font-medium capitalize transition-colors",
+                  "label-caps -mb-px shrink-0 border-b py-3 transition-colors",
                   activeCategory === cat
-                    ? "bg-foreground text-background"
-                    : "bg-secondary text-muted-foreground hover:text-foreground",
+                    ? "border-foreground text-foreground"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
                 )}
               >
                 {cat}
@@ -140,10 +140,10 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
                     key={item.id}
                     onClick={() => toggleItem(item.id)}
                     className={cn(
-                      "relative aspect-square overflow-hidden rounded-xl border-2 bg-secondary transition-all",
+                      "relative aspect-square overflow-hidden border bg-white transition-colors",
                       isSelected
-                        ? "border-foreground ring-2 ring-foreground/20"
-                        : "border-border hover:border-muted-foreground",
+                        ? "border-foreground"
+                        : "border-transparent hover:border-border",
                     )}
                   >
                     <Image
@@ -154,11 +154,11 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
                       sizes="120px"
                     />
                     {isSelected && (
-                      <div className="absolute right-1 top-1 rounded-full bg-foreground p-0.5">
+                      <div className="absolute right-1 top-1 bg-foreground p-0.5">
                         <Check className="size-3 text-background" />
                       </div>
                     )}
-                    <span className="absolute inset-x-0 bottom-0 bg-black/60 px-1 py-0.5 text-[9px] capitalize text-white">
+                    <span className="absolute inset-x-0 bottom-0 px-1.5 py-1 text-left text-[0.5625rem] uppercase tracking-[0.12em] text-muted-foreground">
                       {item.category}
                     </span>
                   </button>
@@ -166,7 +166,7 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
               })}
             </div>
             {filtered.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center font-serif text-xl text-muted-foreground">
                 No items in this category
               </p>
             )}
@@ -180,7 +180,7 @@ export function OutfitBuilder({ onClose }: { onClose: () => void }) {
               onClick={handleSave}
               disabled={saving || selectedIds.size < 2}
             >
-              {saving ? "Saving..." : "Create Outfit"}
+              {saving ? "Saving" : "Create outfit"}
             </Button>
           </div>
         </motion.div>
