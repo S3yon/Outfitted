@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, Sparkles, RefreshCw } from "lucide-react";
+import { Search, Plus, Loader2, ExternalLink, X, Check, Shirt, ArrowLeft, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence, useDragControls } from "motion/react";
 import { Button } from "@/components/ui/button";
 import {
@@ -116,14 +116,14 @@ function ProductGrid({ products }: { products: Product[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3">
       {products.map((product, i) => (
         <motion.div
           key={i}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.04, duration: 0.2 }}
-          className="group relative overflow-hidden rounded-xl border border-border bg-secondary"
+          className="group relative flex flex-col"
         >
           <div className="relative aspect-square bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -133,18 +133,18 @@ function ProductGrid({ products }: { products: Product[] }) {
               className="h-full w-full object-contain p-2"
             />
           </div>
-          <div className="p-2.5">
-            <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+          <div className="pt-3">
+            <p className="label-caps text-muted-foreground">
               {product.source}
             </p>
-            <p className="mt-0.5 line-clamp-2 text-xs text-foreground">{product.title}</p>
-            <p className="mt-1 text-sm font-semibold text-foreground">{product.price}</p>
+            <p className="mt-1 line-clamp-2 text-sm text-foreground">{product.title}</p>
+            <p className="mt-0.5 text-sm text-foreground">{product.price}</p>
           </div>
-          <div className="flex flex-col gap-1.5 px-2.5 pb-2.5">
+          <div className="mt-3 flex flex-col gap-px">
             <Button
               size="sm"
               variant="default"
-              className="w-full text-xs"
+              className="w-full"
               disabled={addingToWardrobeIdx === i || addedToWardrobe.has(i)}
               onClick={() => handleAddToWardrobe(product, i)}
             >
@@ -157,11 +157,11 @@ function ProductGrid({ products }: { products: Product[] }) {
               )}
               {addedToWardrobe.has(i) ? "Added" : "Add to wardrobe"}
             </Button>
-            <div className="flex gap-1.5">
+            <div className="flex gap-px">
               <Button
                 size="sm"
                 variant="outline"
-                className="flex-1 text-xs"
+                className="flex-1"
                 disabled={addingIdx === i}
                 onClick={() => handleAddToWishlist(product, i)}
               >
@@ -173,7 +173,7 @@ function ProductGrid({ products }: { products: Product[] }) {
                 Wishlist
               </Button>
               <a href={product.link} target="_blank" rel="noopener noreferrer">
-                <Button size="sm" variant="outline" className="text-xs">
+                <Button size="sm" variant="outline" aria-label="Open product page">
                   <ExternalLink className="size-3" />
                 </Button>
               </a>
@@ -285,7 +285,7 @@ export function ProductSearch({
 
   const searchBar = (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search className="absolute left-0 top-1/2 size-4 -translate-y-1/2 stroke-[1.5] text-muted-foreground" />
       <input
         type="text"
         value={query}
@@ -293,12 +293,12 @@ export function ProductSearch({
         onKeyDown={(e) => e.key === "Enter" && handleSearch()}
         placeholder="Search by brand, item, style..."
         style={{ fontSize: 16 }}
-        className="w-full rounded-xl border border-border bg-secondary py-3 pl-10 pr-4 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20 transition-shadow"
+        className="w-full border-b border-border bg-transparent py-3 pl-7 pr-8 text-foreground placeholder:text-muted-foreground focus:border-foreground focus:outline-none transition-colors"
       />
       {query && (
         <button
           onClick={() => { setQuery(""); setProducts([]); }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          className="absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
         >
           <X className="size-4" />
         </button>
@@ -307,16 +307,16 @@ export function ProductSearch({
   );
 
   const brandChips = (
-    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+    <div className="flex gap-5 overflow-x-auto no-scrollbar">
       {BRANDS.map((brand) => (
         <button
           key={brand}
           onClick={() => handleBrandClick(brand)}
           className={cn(
-            "shrink-0 rounded-full border px-3 py-1 text-xs transition-all",
+            "label-caps shrink-0 border-b py-1.5 transition-colors",
             query === brand
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-secondary text-muted-foreground hover:border-foreground/20",
+              ? "border-foreground text-foreground"
+              : "border-transparent text-muted-foreground hover:text-foreground",
           )}
         >
           {brand}
@@ -384,15 +384,10 @@ export function ProductSearch({
             {!loadingRecs && recommendations.length > 0 && (
               <>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <Sparkles className="size-3.5 text-amber-400" />
-                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                      For You
-                    </p>
-                  </div>
+                  <p className="label-caps text-muted-foreground">For you</p>
                   <button
                     onClick={handleRefreshRecs}
-                    className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+                    className="label-caps flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <RefreshCw className="size-3" />
                     Refresh
@@ -416,7 +411,7 @@ export function ProductSearch({
         className="hidden md:flex"
       >
         <Search className="size-4" data-icon="inline-start" />
-        Find Items
+        Find items
       </Button>
 
       {/* Mobile: full-screen slide-in panel */}
@@ -425,7 +420,7 @@ export function ProductSearch({
           <>
             <motion.div
               key="mobile-backdrop"
-              className="md:hidden fixed inset-0 z-50 bg-black/40"
+              className="md:hidden fixed inset-0 z-50 bg-foreground/30"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -433,7 +428,7 @@ export function ProductSearch({
             />
             <motion.div
               key="mobile-panel"
-              className="md:hidden fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-2xl"
+              className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background"
               style={{ height: "92dvh" }}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -449,21 +444,22 @@ export function ProductSearch({
               }}
             >
               {/* Sticky header — drag handle only */}
-              <div className="sticky top-0 z-10 bg-background rounded-t-2xl px-4 pt-3 pb-3 space-y-3">
+              <div className="sticky top-0 z-10 bg-background px-5 pt-3 pb-3 space-y-3">
                 <div
                   className="flex justify-center cursor-grab active:cursor-grabbing touch-none"
                   onPointerDown={(e) => dragControls.start(e)}
                 >
-                  <div className="h-1 w-10 rounded-full bg-border" />
+                  <div className="h-px w-10 bg-foreground/40" />
                 </div>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setOpen(false)}
-                    className="flex size-8 shrink-0 items-center justify-center rounded-full hover:bg-secondary transition-colors"
+                    aria-label="Back"
+                    className="flex size-8 shrink-0 items-center justify-center hover:bg-secondary transition-colors"
                   >
                     <ArrowLeft className="size-4" />
                   </button>
-                  <h2 className="text-base font-semibold">Find Items</h2>
+                  <h2 className="font-serif text-3xl leading-none">Find items</h2>
                 </div>
                 {searchBar}
               </div>
@@ -471,7 +467,7 @@ export function ProductSearch({
               {/* Scrollable content — dismiss when pulling down from top */}
               <div
                 ref={scrollRef}
-                className="overflow-y-auto px-4 pb-8"
+                className="overflow-y-auto px-5 pb-8"
                 style={{ height: "calc(92dvh - 9rem)" }}
                 onTouchStart={(e) => { touchStartY.current = e.touches[0].clientY; }}
                 onTouchMove={(e) => {
@@ -493,7 +489,7 @@ export function ProductSearch({
         <DialogContent className="h-[85vh] w-[90vw] !max-w-5xl overflow-hidden p-0 !grid-rows-[1fr]">
           <div className="flex flex-col gap-3 p-6 min-h-0 h-full overflow-hidden">
             <DialogHeader className="shrink-0">
-              <DialogTitle>Find Items</DialogTitle>
+              <DialogTitle>Find items</DialogTitle>
             </DialogHeader>
             <div className="shrink-0">{searchBar}</div>
             <div className="flex-1 overflow-y-auto min-h-0 pr-1">
