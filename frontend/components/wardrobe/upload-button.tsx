@@ -102,7 +102,7 @@ export function UploadButton({ onTrigger }: { onTrigger?: (fn: () => void) => vo
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Add to Wardrobe</DialogTitle>
+            <DialogTitle>Add to wardrobe</DialogTitle>
           </DialogHeader>
 
           {previews.length > 0 && (
@@ -115,7 +115,7 @@ export function UploadButton({ onTrigger }: { onTrigger?: (fn: () => void) => vo
               {previews.map((src, i) => (
                 <div
                   key={i}
-                  className="h-36 w-full overflow-hidden rounded-lg bg-white"
+                  className="h-36 w-full overflow-hidden bg-white"
                 >
                   <img
                     src={src}
@@ -135,22 +135,20 @@ export function UploadButton({ onTrigger }: { onTrigger?: (fn: () => void) => vo
 
           {/* Status toggle */}
           <div>
-            <p className="mb-2 text-xs font-medium text-muted-foreground">
-              Status
-            </p>
-            <div className="flex gap-2">
+            <p className="label-caps text-muted-foreground">Add as</p>
+            <div className="mt-1 flex gap-6 border-b border-border">
               {(["owned", "wishlisted"] as const).map((s) => (
                 <button
                   key={s}
                   onClick={() => setStatus(s)}
                   className={cn(
-                    "flex-1 rounded-lg border px-3 py-2 text-sm capitalize transition-all",
+                    "label-caps -mb-px border-b py-2.5 transition-colors",
                     status === s
-                      ? "border-foreground bg-foreground/5 text-foreground"
-                      : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80",
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
                   )}
                 >
-                  {s}
+                  {s === "owned" ? "Owned" : "Wishlist"}
                 </button>
               ))}
             </div>
@@ -162,19 +160,19 @@ export function UploadButton({ onTrigger }: { onTrigger?: (fn: () => void) => vo
             disabled={uploading}
             onClick={handleUpload}
           >
-            Process & Add
+            Process and add
           </Button>
         </DialogContent>
       </Dialog>
 
       {/* Full-screen processing overlay */}
       {uploading && (
-        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Loader2 className="size-10 animate-spin text-amber-400" />
-          <p className="text-sm font-medium text-neutral-100">
+        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-background/95">
+          <Loader2 className="size-8 animate-spin stroke-[1.5] text-foreground" />
+          <p className="font-serif text-3xl leading-none text-foreground">
             AI is analyzing your {files.length === 1 ? "photo" : `${files.length} photos`}...
           </p>
-          <p className="text-xs text-neutral-400">
+          <p className="label-caps text-muted-foreground">
             Detecting items, removing backgrounds, sorting into categories
           </p>
         </div>
