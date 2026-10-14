@@ -50,15 +50,15 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
   );
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-foreground/30" onClick={onClose}>
       <div
-        className="relative w-full max-w-lg bg-background rounded-t-2xl sm:rounded-2xl ring-1 ring-border overflow-hidden"
+        className="relative w-full max-w-lg overflow-hidden border border-border bg-background"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="px-5 pt-5 pb-4 border-b border-border">
-          <h2 className="text-base font-semibold tracking-tight">Generate Outfits</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Customize what the AI considers when building your looks</p>
+          <p className="label-caps text-muted-foreground">From your owned pieces</p>
+          <h2 className="mt-1.5 font-serif text-3xl leading-none">Generate outfits</h2>
         </div>
 
         {/* Scrollable body */}
@@ -66,17 +66,17 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
 
           {/* Season */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Season</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="label-caps text-muted-foreground/60">Season</p>
+            <div className="flex flex-wrap gap-x-5 border-b border-border">
               {SEASONS.map((s) => (
                 <button
                   key={s}
                   onClick={() => setSeason(s)}
                   className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium border transition-all",
+                    "label-caps -mb-px border-b py-2.5 transition-colors",
                     season === s
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-secondary border-border text-muted-foreground hover:border-foreground/30"
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {s}
@@ -87,17 +87,17 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
 
           {/* Occasion */}
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">Occasion</p>
-            <div className="flex flex-wrap gap-1.5">
+            <p className="label-caps text-muted-foreground/60">Occasion</p>
+            <div className="flex flex-wrap gap-x-5 border-b border-border">
               {OCCASIONS.map((o) => (
                 <button
                   key={o}
                   onClick={() => setOccasion(o)}
                   className={cn(
-                    "rounded-full px-3 py-1 text-xs font-medium border transition-all",
+                    "label-caps -mb-px border-b py-2.5 transition-colors",
                     occasion === o
-                      ? "bg-foreground text-background border-foreground"
-                      : "bg-secondary border-border text-muted-foreground hover:border-foreground/30"
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {o}
@@ -109,23 +109,23 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
           {/* Anchor items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Build Around These Pieces
+              <p className="label-caps text-muted-foreground/60">
+                Build around
               </p>
               {anchorIds.length > 0 && (
                 <button
                   onClick={() => setAnchorIds([])}
-                  className="text-xs text-muted-foreground hover:text-foreground"
+                  className="label-caps text-muted-foreground hover:text-foreground"
                 >
                   Clear ({anchorIds.length})
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-muted-foreground mb-2">
-              Select pieces you want in every outfit — AI will style around them.
+            <p className="mb-3 text-xs text-muted-foreground">
+              Pick pieces to keep in every outfit.
             </p>
             {owned.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">No owned items yet.</p>
+              <p className="font-serif text-xl text-muted-foreground">No owned items yet.</p>
             ) : (
               <div className="grid grid-cols-5 gap-2">
                 {sortedOwned.map((item) => {
@@ -135,22 +135,20 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
                       key={item.id}
                       onClick={() => toggleAnchor(item.id)}
                       className={cn(
-                        "relative aspect-square rounded-xl overflow-hidden border-2 transition-all",
-                        selected ? "border-foreground scale-95" : "border-transparent"
+                        "relative aspect-square overflow-hidden border bg-white transition-colors",
+                        selected ? "border-foreground" : "border-transparent hover:border-border"
                       )}
                     >
                       <Image
                         src={item.cloudinaryUrl}
                         alt={item.notes ?? item.category}
                         fill
-                        className="object-contain p-1 bg-secondary"
+                        className="object-contain p-1"
                         sizes="80px"
                       />
                       {selected && (
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                          <div className="rounded-full bg-white p-0.5">
-                            <Check className="size-3 text-black" />
-                          </div>
+                        <div className="absolute right-1 top-1 bg-foreground p-0.5">
+                          <Check className="size-3 text-background" />
                         </div>
                       )}
                     </button>
@@ -170,7 +168,7 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
             className="gap-2"
           >
             <Shuffle className="size-4" />
-            Surprise Me
+            Surprise me
           </Button>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={onClose} disabled={generating}>
@@ -178,7 +176,7 @@ export function OutfitGenerateSheet({ defaultSeason, onClose, onGenerate, genera
             </Button>
             <Button onClick={handleGenerate} disabled={generating}>
               <Sparkles className="size-4" />
-              {generating ? "Generating..." : "Generate"}
+              {generating ? "Generating" : "Generate"}
             </Button>
           </div>
         </div>
