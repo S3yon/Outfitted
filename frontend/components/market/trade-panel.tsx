@@ -56,20 +56,18 @@ export function TradePanel({ listingId, ticker, currentPrice, onTrade }: TradePa
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-secondary/30 p-4">
+    <div className="flex flex-col gap-5">
       {/* Buy / Sell toggle */}
-      <div className="flex gap-1 rounded-lg bg-secondary p-1">
+      <div className="flex gap-6 border-b border-border">
         {(["buy", "sell"] as const).map((s) => (
           <button
             key={s}
             onClick={() => setSide(s)}
             className={cn(
-              "flex-1 rounded-md py-2 text-sm font-medium capitalize transition-all",
+              "label-caps -mb-px border-b pb-3 transition-colors",
               side === s
-                ? s === "buy"
-                  ? "bg-green-500 text-white"
-                  : "bg-red-500 text-white"
-                : "text-muted-foreground hover:text-foreground",
+                ? "border-foreground text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             {s}
@@ -79,16 +77,16 @@ export function TradePanel({ listingId, ticker, currentPrice, onTrade }: TradePa
 
       {/* Amount */}
       <div>
-        <p className="mb-1 text-xs text-muted-foreground">Amount</p>
-        <div className="flex items-center gap-2">
+        <p className="label-caps mb-2 text-muted-foreground">Amount</p>
+        <div className="flex">
           {[1, 10, 50, 100].map((q) => (
             <button
               key={q}
               onClick={() => setQuantity(q)}
               className={cn(
-                "flex-1 rounded-lg border py-2 text-sm transition-all",
+                "-ml-px flex-1 border py-2 font-mono text-sm transition-colors first:ml-0",
                 quantity === q
-                  ? "border-foreground bg-foreground/5 text-foreground"
+                  ? "relative border-foreground bg-foreground text-background"
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
             >
@@ -98,34 +96,24 @@ export function TradePanel({ listingId, ticker, currentPrice, onTrade }: TradePa
         </div>
       </div>
 
-      {/* Price per token */}
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-xs text-muted-foreground">Price per token</span>
-        <span className="font-mono text-xs">{priceInSol.toFixed(6)} SOL</span>
-      </div>
+      <div>
+        {/* Price per token */}
+        <div className="flex items-baseline justify-between border-b border-border py-2.5">
+          <span className="label-caps text-muted-foreground">Price per token</span>
+          <span className="font-mono text-sm">{priceInSol.toFixed(6)} SOL</span>
+        </div>
 
-      {/* Total */}
-      <div className="rounded-lg bg-secondary px-3 py-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">Total</span>
+        {/* Total */}
+        <div className="flex items-baseline justify-between border-b border-border py-2.5">
+          <span className="label-caps text-muted-foreground">Total</span>
           <div className="text-right">
-            <p className="text-sm font-semibold">{totalSol.toFixed(4)} SOL</p>
-            <p className="text-xs text-muted-foreground">${totalUsd.toFixed(2)}</p>
+            <p className="font-mono text-sm">{totalSol.toFixed(4)} SOL</p>
+            <p className="label-caps mt-0.5 text-muted-foreground">${totalUsd.toFixed(2)}</p>
           </div>
         </div>
       </div>
 
-      <Button
-        size="lg"
-        className={cn(
-          "w-full capitalize",
-          side === "buy"
-            ? "bg-green-500 hover:bg-green-600 text-white"
-            : "bg-red-500 hover:bg-red-600 text-white",
-        )}
-        disabled={submitting}
-        onClick={handleTrade}
-      >
+      <Button size="lg" className="w-full" disabled={submitting} onClick={handleTrade}>
         {submitting ? (
           <Loader2 className="size-4 animate-spin" />
         ) : (
