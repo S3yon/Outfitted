@@ -2,37 +2,36 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Loader2, LogOut, RefreshCw, Pencil, Check, X } from "lucide-react";
+import { Loader2, Pencil, Check, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/use-app-store";
 import { toast } from "sonner";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 
-const BADGE_RULES: Array<{ match: string; label: string; color: string }> = [
-  { match: "Minimalist", label: "Minimalist", color: "bg-slate-500/10 text-slate-400 border-slate-500/20" },
-  { match: "Streetwear", label: "Streetwear", color: "bg-orange-500/10 text-orange-400 border-orange-500/20" },
-  { match: "Preppy", label: "Preppy", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  { match: "Bohemian", label: "Bohemian", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" },
-  { match: "Corporate", label: "Corporate", color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" },
-  { match: "Eclectic", label: "Eclectic", color: "bg-purple-500/10 text-purple-400 border-purple-500/20" },
-  { match: "Slim/Fitted", label: "Slim Fit", color: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20" },
-  { match: "Oversized", label: "Oversized", color: "bg-teal-500/10 text-teal-400 border-teal-500/20" },
-  { match: "Relaxed", label: "Relaxed Fit", color: "bg-green-500/10 text-green-400 border-green-500/20" },
-  { match: "Tailored", label: "Tailored", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" },
-  { match: "Work", label: "Office-Ready", color: "bg-blue-500/10 text-blue-400 border-blue-500/20" },
-  { match: "Formal", label: "Formal", color: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20" },
-  { match: "Nightlife", label: "Night Out", color: "bg-violet-500/10 text-violet-400 border-violet-500/20" },
-  { match: "Gym", label: "Athleisure", color: "bg-lime-500/10 text-lime-400 border-lime-500/20" },
-  { match: "Spring/Summer", label: "Spring/Summer", color: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" },
-  { match: "Fall/Winter", label: "Fall/Winter", color: "bg-orange-800/10 text-orange-300 border-orange-800/20" },
-  { match: "Tropical", label: "Tropical", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" },
+const BADGE_RULES: Array<{ match: string; label: string }> = [
+  { match: "Minimalist", label: "Minimalist" },
+  { match: "Streetwear", label: "Streetwear" },
+  { match: "Preppy", label: "Preppy" },
+  { match: "Bohemian", label: "Bohemian" },
+  { match: "Corporate", label: "Corporate" },
+  { match: "Eclectic", label: "Eclectic" },
+  { match: "Slim/Fitted", label: "Slim Fit" },
+  { match: "Oversized", label: "Oversized" },
+  { match: "Relaxed", label: "Relaxed Fit" },
+  { match: "Tailored", label: "Tailored" },
+  { match: "Work", label: "Office-Ready" },
+  { match: "Formal", label: "Formal" },
+  { match: "Nightlife", label: "Night Out" },
+  { match: "Gym", label: "Athleisure" },
+  { match: "Spring/Summer", label: "Spring/Summer" },
+  { match: "Fall/Winter", label: "Fall/Winter" },
+  { match: "Tropical", label: "Tropical" },
 ];
 
-function generateBadges(styleProfile: string | null): Array<{ label: string; color: string }> {
+function generateBadges(styleProfile: string | null): string[] {
   if (!styleProfile) return [];
-  return BADGE_RULES.filter((r) => styleProfile.includes(r.match)).map((r) => ({ label: r.label, color: r.color }));
+  return BADGE_RULES.filter((r) => styleProfile.includes(r.match)).map((r) => r.label);
 }
 
 export default function ProfilePage() {
@@ -119,160 +118,139 @@ export default function ProfilePage() {
 
   return (
     <PullToRefresh onRefresh={fetchUser}>
-      <div className="mx-auto max-w-lg px-5 py-8 sm:px-8 space-y-6">
+      <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+        {/* Header */}
+        <div className="flex items-end justify-between gap-6 border-b border-border pb-5">
+          <div className="min-w-0">
+            <p className="label-caps truncate text-muted-foreground">
+              {user?.email ?? auth0User?.email}
+            </p>
 
-        {/* Hero card */}
-        <div className="glass rounded-2xl p-6 flex flex-col items-center text-center">
-          <div className="relative mb-4">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold/40 to-transparent blur-md" />
-            <Avatar className="relative size-20 border-2 border-white/10">
-              <AvatarImage src={auth0User?.picture ?? undefined} alt={displayName} />
-              <AvatarFallback className="bg-white/10 text-2xl font-semibold">{initials}</AvatarFallback>
-            </Avatar>
-          </div>
-
-          {/* Editable name */}
-          {editingName ? (
-            <div className="flex items-center gap-2 w-full max-w-xs">
-              <input
-                autoFocus
-                value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") saveName();
-                  if (e.key === "Escape") setEditingName(false);
-                }}
-                className="flex-1 min-w-0 rounded-lg border border-border bg-secondary px-2.5 py-1 text-base font-semibold text-center tracking-tight focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <button onClick={saveName} disabled={savingName} className="text-muted-foreground hover:text-foreground">
-                {savingName ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
-              </button>
-              <button onClick={() => setEditingName(false)} className="text-muted-foreground hover:text-foreground">
-                <X className="size-3.5" />
-              </button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 group">
-              <h1 className="text-xl font-semibold tracking-tight">{displayName || "—"}</h1>
-              <button
-                onClick={() => { setNameValue(displayName); setEditingName(true); }}
-                className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-foreground transition-all"
-              >
-                <Pencil className="size-3" />
-              </button>
-            </div>
-          )}
-          <p className="text-xs text-muted-foreground mt-0.5">{user?.email ?? auth0User?.email}</p>
-
-          {/* Stats row */}
-          <div className="mt-5 grid w-full grid-cols-3 divide-x divide-border rounded-xl border border-border bg-background/40">
-            {[
-              { label: "Owned", value: ownedCount },
-              { label: "Wishlisted", value: wishlistCount },
-              { label: "Outfits", value: outfitCount },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col items-center py-3 px-2">
-                <span className="text-lg font-semibold">{value}</span>
-                <span className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</span>
+            {/* Editable name */}
+            {editingName ? (
+              <div className="mt-2 flex max-w-md items-center gap-3">
+                <input
+                  autoFocus
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveName();
+                    if (e.key === "Escape") setEditingName(false);
+                  }}
+                  className="min-w-0 flex-1 border-b border-foreground bg-transparent font-serif text-5xl leading-none tracking-tight focus:outline-none md:text-6xl"
+                />
+                <button onClick={saveName} disabled={savingName} className="text-muted-foreground hover:text-foreground">
+                  {savingName ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4 stroke-[1.5]" />}
+                </button>
+                <button onClick={() => setEditingName(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="size-4 stroke-[1.5]" />
+                </button>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Style DNA */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Style DNA
-            </h2>
-            {!editingStyle && user?.styleProfile && (
-              <button
-                onClick={() => { setStyleValue(user.styleProfile ?? ""); setEditingStyle(true); }}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Pencil className="size-3" />
-                Edit
-              </button>
+            ) : (
+              <div className="group mt-2 flex items-center gap-3">
+                <h1 className="truncate font-serif text-5xl leading-none tracking-tight md:text-6xl">
+                  {displayName || "—"}
+                </h1>
+                <button
+                  onClick={() => { setNameValue(displayName); setEditingName(true); }}
+                  aria-label="Edit name"
+                  className="text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                >
+                  <Pencil className="size-3.5 stroke-[1.5]" />
+                </button>
+              </div>
             )}
           </div>
+          <Avatar className="size-14 shrink-0 after:hidden">
+            <AvatarImage src={auth0User?.picture ?? undefined} alt={displayName} />
+            <AvatarFallback className="bg-white font-serif text-xl text-foreground">{initials}</AvatarFallback>
+          </Avatar>
+        </div>
 
-          {editingStyle ? (
-            <div className="space-y-2">
-              <textarea
-                autoFocus
-                value={styleValue}
-                onChange={(e) => setStyleValue(e.target.value)}
-                rows={4}
-                className="w-full rounded-xl border border-border bg-secondary px-3 py-2.5 text-sm leading-relaxed focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-              />
-              <div className="flex gap-2">
-                <Button size="sm" onClick={saveStyle} disabled={savingStyle}>
-                  {savingStyle ? <Loader2 className="size-3 animate-spin" /> : "Save"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setEditingStyle(false)}>
-                  Cancel
+        {/* Stats row */}
+        <div className="grid grid-cols-3 border-b border-border">
+          {[
+            { label: "Owned", value: ownedCount },
+            { label: "Wishlisted", value: wishlistCount },
+            { label: "Outfits", value: outfitCount },
+          ].map(({ label, value }) => (
+            <div key={label} className="py-5">
+              <p className="font-serif text-4xl leading-none">{value}</p>
+              <p className="label-caps mt-2 text-muted-foreground">{label}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="max-w-2xl">
+          {/* Style DNA */}
+          <section className="border-b border-border py-6">
+            <div className="flex items-baseline justify-between">
+              <h2 className="label-caps text-muted-foreground">Style DNA</h2>
+              {!editingStyle && user?.styleProfile && (
+                <button
+                  onClick={() => { setStyleValue(user.styleProfile ?? ""); setEditingStyle(true); }}
+                  className="label-caps text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+
+            {editingStyle ? (
+              <div className="mt-4 space-y-4">
+                <textarea
+                  autoFocus
+                  value={styleValue}
+                  onChange={(e) => setStyleValue(e.target.value)}
+                  rows={4}
+                  style={{ fontSize: 16 }}
+                  className="w-full resize-none border-b border-border bg-transparent py-2 leading-relaxed transition-colors focus:border-foreground focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={saveStyle} disabled={savingStyle}>
+                    {savingStyle ? <Loader2 className="size-3 animate-spin" /> : "Save"}
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setEditingStyle(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : user?.styleProfile ? (
+              <blockquote className="mt-4 font-serif text-2xl leading-snug md:text-3xl">
+                {user.styleProfile}
+              </blockquote>
+            ) : (
+              <div className="mt-4">
+                <p className="font-serif text-2xl text-muted-foreground">No style profile yet.</p>
+                <Button size="sm" className="mt-4" onClick={() => setShowOnboarding(true)}>
+                  Take the style quiz
                 </Button>
               </div>
-            </div>
-          ) : user?.styleProfile ? (
-            <blockquote className="glass rounded-xl p-4 text-sm leading-relaxed italic text-foreground/80">
-              {user.styleProfile}
-            </blockquote>
-          ) : (
-            <div className="glass rounded-xl p-5 text-center">
-              <p className="text-sm text-muted-foreground mb-3">No style profile yet.</p>
-              <Button size="sm" onClick={() => setShowOnboarding(true)}>
-                Take the Style Quiz
-              </Button>
-            </div>
-          )}
-        </section>
+            )}
 
-        {/* Style Badges */}
-        {badges.length > 0 && (
-          <section>
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
-              Style Badges
-            </h2>
-            <div className="flex flex-wrap gap-2">
-              {badges.map(({ label, color }) => (
-                <Badge
-                  key={label}
-                  variant="outline"
-                  className={color}
-                >
-                  {label}
-                </Badge>
-              ))}
-            </div>
+            {/* Style badges */}
+            {badges.length > 0 && !editingStyle && (
+              <p className="label-caps mt-5 text-muted-foreground">{badges.join(" · ")}</p>
+            )}
           </section>
-        )}
 
-        {/* Actions */}
-        <section className="flex flex-col gap-3">
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full justify-start"
-            onClick={() => setShowOnboarding(true)}
-          >
-            <RefreshCw className="size-4" data-icon="inline-start" />
-            {user?.styleProfile ? "Retake Style Quiz" : "Take Style Quiz"}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="lg"
-            className="w-full justify-start text-destructive hover:text-destructive"
-            asChild
-          >
+          {/* Actions */}
+          <section className="flex flex-col">
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="label-caps border-b border-border py-4 text-left transition-colors hover:text-muted-foreground"
+            >
+              {user?.styleProfile ? "Retake style quiz" : "Take style quiz"}
+            </button>
             {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- auth route handler; must be a full navigation, and <Link> prefetch would hit it */}
-            <a href="/api/auth/logout">
-              <LogOut className="size-4" data-icon="inline-start" />
-              Log Out
+            <a
+              href="/api/auth/logout"
+              className="label-caps border-b border-border py-4 text-red-700 transition-colors hover:text-foreground"
+            >
+              Log out
             </a>
-          </Button>
-        </section>
+          </section>
+        </div>
       </div>
     </PullToRefresh>
   );
