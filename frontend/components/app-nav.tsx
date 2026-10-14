@@ -35,7 +35,8 @@ export function AppNav() {
   return (
     <>
       {/* Desktop: top bar */}
-      <nav className="hidden md:flex items-center h-14 border-b border-border bg-background px-6">
+      <nav className="hidden md:block border-b border-border bg-background">
+        <div className="mx-auto flex h-14 max-w-7xl items-center px-5 sm:px-8">
         <Link href="/?home=1" className="font-serif text-2xl leading-none mr-10">
           Outfitted
         </Link>
@@ -58,6 +59,7 @@ export function AppNav() {
               </Link>
             )
           })}
+        </div>
         </div>
       </nav>
 
