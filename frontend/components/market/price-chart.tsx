@@ -27,19 +27,19 @@ export function PriceChart({ candles }: PriceChartProps) {
     const chart = createChart(containerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#999",
+        textColor: "#737373",
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "rgba(150,150,150,0.08)" },
-        horzLines: { color: "rgba(150,150,150,0.08)" },
+        vertLines: { visible: false },
+        horzLines: { color: "#e6e6e6" },
       },
       crosshair: {
-        vertLine: { color: "rgba(150,150,150,0.3)", width: 1, style: 2 },
-        horzLine: { color: "rgba(150,150,150,0.3)", width: 1, style: 2 },
+        vertLine: { color: "#111111", width: 1, style: 2, labelBackgroundColor: "#111111" },
+        horzLine: { color: "#111111", width: 1, style: 2, labelBackgroundColor: "#111111" },
       },
-      rightPriceScale: { borderColor: "rgba(150,150,150,0.15)" },
-      timeScale: { borderColor: "rgba(150,150,150,0.15)", timeVisible: true },
+      rightPriceScale: { borderColor: "#d9d9d9" },
+      timeScale: { borderColor: "#d9d9d9", timeVisible: true },
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight,
     });
@@ -47,12 +47,12 @@ export function PriceChart({ candles }: PriceChartProps) {
     chartRef.current = chart;
 
     const candleSeries = chart.addCandlestickSeries({
-      upColor: "#22c55e",
-      downColor: "#ef4444",
-      borderUpColor: "#22c55e",
-      borderDownColor: "#ef4444",
-      wickUpColor: "#22c55e",
-      wickDownColor: "#ef4444",
+      upColor: "#047857",
+      downColor: "#b91c1c",
+      borderUpColor: "#047857",
+      borderDownColor: "#b91c1c",
+      wickUpColor: "#047857",
+      wickDownColor: "#b91c1c",
     });
     candleSeriesRef.current = candleSeries;
 
@@ -99,7 +99,7 @@ export function PriceChart({ candles }: PriceChartProps) {
       const volumeData = candles.map((c) => ({
         time: c.timestamp as CandlestickData["time"],
         value: c.volume,
-        color: c.close >= c.open ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
+        color: c.close >= c.open ? "rgba(4,120,87,0.15)" : "rgba(185,28,28,0.15)",
       }));
 
       candleSeriesRef.current.setData(candleData);
@@ -119,7 +119,7 @@ export function PriceChart({ candles }: PriceChartProps) {
         volumeSeriesRef.current.update({
           time: c.timestamp as CandlestickData["time"],
           value: c.volume,
-          color: c.close >= c.open ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)",
+          color: c.close >= c.open ? "rgba(4,120,87,0.15)" : "rgba(185,28,28,0.15)",
         });
       }
     }
