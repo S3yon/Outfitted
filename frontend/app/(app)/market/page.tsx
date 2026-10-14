@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
-import { Loader2, TrendingUp, TrendingDown, ArrowLeft, Rocket } from "lucide-react";
+import { Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -142,47 +142,43 @@ export default function MarketPage() {
     const isUp = selected.change24h >= 0;
 
     return (
-      <div className="mx-auto max-w-6xl px-5 py-6 sm:px-8">
+      <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
         <button
           onClick={() => setSelected(null)}
-          className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="label-caps flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="size-4" />
-          Back to Market
+          <ArrowLeft className="size-3.5 stroke-[1.5]" />
+          Market
         </button>
 
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight">{selected.ticker}</h1>
-              <span
-                className={cn(
-                  "flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-                  isUp ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500",
-                )}
-              >
-                {isUp ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
-                {isUp ? "+" : ""}{changePercent.toFixed(2)}%
+        <div className="mt-5 flex items-end justify-between gap-6 border-b border-border pb-5">
+          <div className="min-w-0">
+            <p className="label-caps text-muted-foreground">
+              {selected.ticker} ·{" "}
+              <span className={isUp ? "text-emerald-700" : "text-red-700"}>
+                {isUp ? "+" : ""}{changePercent.toFixed(2)}% 24h
               </span>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">{selected.name}</p>
+            </p>
+            <h1 className="mt-2 truncate font-serif text-4xl leading-none tracking-tight md:text-5xl">
+              {selected.name}
+            </h1>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold font-mono">
+          <div className="shrink-0 text-right">
+            <p className="font-mono text-xl md:text-2xl">
               {(selected.currentPrice / 100 / SOL_PRICE).toFixed(4)} SOL
             </p>
-            <p className="text-xs text-muted-foreground">
-              ${(selected.currentPrice / 100).toFixed(2)} &middot; Vol {selected.volume24h.toLocaleString()}
+            <p className="label-caps mt-1 text-muted-foreground">
+              ${(selected.currentPrice / 100).toFixed(2)} · Vol {selected.volume24h.toLocaleString()}
             </p>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_300px]">
+        <div className="mt-6 grid gap-10 lg:grid-cols-[1fr_320px]">
           {/* Chart */}
-          <div className="h-[400px] rounded-xl border border-border bg-secondary/20 p-2">
+          <div className="h-[400px] border-b border-border pb-2">
             {loadingCandles ? (
               <div className="flex h-full items-center justify-center">
-                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                <Loader2 className="size-5 animate-spin text-muted-foreground" />
               </div>
             ) : (
               <PriceChart candles={candles} />
@@ -190,7 +186,7 @@ export default function MarketPage() {
           </div>
 
           {/* Trade panel + outfit preview */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-8">
             <TradePanel
               listingId={selected.id}
               ticker={selected.ticker}
@@ -200,16 +196,13 @@ export default function MarketPage() {
 
             {/* Outfit items */}
             {selected.outfit && (
-              <div className="rounded-xl border border-border p-3">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                  Outfit Items
+              <div>
+                <p className="label-caps border-b border-border pb-3 text-muted-foreground">
+                  Outfit items
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="mt-3 flex flex-wrap gap-1">
                   {selected.outfit.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="relative size-16 overflow-hidden rounded-lg bg-white"
-                    >
+                    <div key={item.id} className="relative size-16 bg-white">
                       <Image
                         src={item.cloudinaryUrl}
                         alt={item.notes ?? item.category}
@@ -223,30 +216,25 @@ export default function MarketPage() {
               </div>
             )}
 
-            <div className="rounded-xl border border-border p-3">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Stats
-              </p>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <p className="text-xs text-muted-foreground">Supply</p>
-                  <p className="font-medium">{selected.totalSupply.toLocaleString()}</p>
+            <div>
+              <p className="label-caps border-b border-border pb-3 text-muted-foreground">Stats</p>
+              {[
+                ["Supply", selected.totalSupply.toLocaleString()],
+                ["Circulating", selected.circulatingSupply.toLocaleString()],
+                [
+                  "Market cap",
+                  `${((selected.currentPrice / 100 / SOL_PRICE) * selected.totalSupply).toFixed(1)} SOL`,
+                ],
+                ["Creator", selected.creatorName],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex items-baseline justify-between gap-4 border-b border-border py-2.5"
+                >
+                  <span className="label-caps text-muted-foreground">{label}</span>
+                  <span className="truncate font-mono text-sm">{value}</span>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Circulating</p>
-                  <p className="font-medium">{selected.circulatingSupply.toLocaleString()}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Market Cap</p>
-                  <p className="font-medium font-mono">
-                    {((selected.currentPrice / 100 / SOL_PRICE) * selected.totalSupply).toFixed(1)} SOL
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Creator</p>
-                  <p className="truncate font-medium">{selected.creatorName}</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
@@ -388,18 +376,15 @@ export default function MarketPage() {
       >
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Publish to Market</DialogTitle>
+            <DialogTitle>Publish to market</DialogTitle>
           </DialogHeader>
 
           {publishOutfit && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               {/* Preview items */}
-              <div className="flex justify-center -space-x-2">
+              <div className="flex gap-1">
                 {publishOutfit.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="relative size-14 overflow-hidden rounded-lg border-2 border-background bg-white"
-                  >
+                  <div key={item.id} className="relative size-14 bg-white">
                     <Image
                       src={item.cloudinaryUrl}
                       alt={item.category}
@@ -412,26 +397,24 @@ export default function MarketPage() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                  Token Name
-                </label>
+                <label className="label-caps block text-muted-foreground">Token name</label>
                 <input
                   value={tokenName}
                   onChange={(e) => setTokenName(e.target.value)}
                   placeholder="e.g. Street Drip"
-                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm outline-none focus:border-foreground"
+                  style={{ fontSize: 16 }}
+                  className="w-full border-b border-border bg-transparent py-2.5 text-foreground placeholder:text-muted-foreground transition-colors focus:border-foreground focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                  Ticker (optional)
-                </label>
+                <label className="label-caps block text-muted-foreground">Ticker (optional)</label>
                 <input
                   value={tokenTicker}
                   onChange={(e) => setTokenTicker(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6))}
                   placeholder="Auto-generated if empty"
-                  className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm font-mono outline-none focus:border-foreground"
+                  style={{ fontSize: 16 }}
+                  className="w-full border-b border-border bg-transparent py-2.5 font-mono text-foreground placeholder:font-sans placeholder:text-muted-foreground transition-colors focus:border-foreground focus:outline-none"
                 />
               </div>
 
@@ -441,14 +424,7 @@ export default function MarketPage() {
                 disabled={publishing || !tokenName.trim()}
                 onClick={handlePublish}
               >
-                {publishing ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <>
-                    <Rocket className="size-4" />
-                    Launch Token
-                  </>
-                )}
+                {publishing ? <Loader2 className="size-4 animate-spin" /> : "Launch token"}
               </Button>
             </div>
           )}
