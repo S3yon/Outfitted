@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import Image from "next/image";
-import { Loader2, TrendingUp, TrendingDown, ArrowLeft, Wallet, Rocket } from "lucide-react";
+import { Loader2, TrendingUp, TrendingDown, ArrowLeft, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -259,44 +259,39 @@ export default function MarketPage() {
   const unlistedOutfits = outfits.filter((o) => !listedOutfitIds.has(o.id));
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+      <div className="flex items-end justify-between border-b border-border pb-5">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Market</h1>
-          <p className="text-xs text-muted-foreground">
-            Trade tokenized outfits on Solana
+          <p className="label-caps text-muted-foreground">
+            {listings.length} {listings.length === 1 ? "token" : "tokens"} · Solana devnet
           </p>
+          <h1 className="mt-2 font-serif text-5xl leading-none tracking-tight md:text-6xl">
+            Market
+          </h1>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-border bg-secondary/50 px-4 py-2">
-          <Wallet className="size-4 text-muted-foreground" />
-          <div className="text-right">
-            <p className="text-sm font-semibold">{SIMULATED_BALANCE_SOL} SOL</p>
-            <p className="text-[10px] text-muted-foreground">
-              ${(SIMULATED_BALANCE_SOL * SOL_PRICE).toFixed(2)}
-            </p>
-          </div>
+        <div className="text-right">
+          <p className="label-caps text-muted-foreground">Balance</p>
+          <p className="mt-1.5 font-mono text-sm">{SIMULATED_BALANCE_SOL} SOL</p>
+          <p className="label-caps mt-0.5 text-muted-foreground">
+            ${(SIMULATED_BALANCE_SOL * SOL_PRICE).toFixed(2)}
+          </p>
         </div>
       </div>
 
       {/* Publish section */}
       {unlistedOutfits.length > 0 && (
-        <div className="mt-6">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Publish an Outfit
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="border-b border-border py-5">
+          <p className="label-caps mb-3 text-muted-foreground">Publish an outfit</p>
+          <div className="flex gap-6 overflow-x-auto no-scrollbar">
             {unlistedOutfits.map((outfit) => (
               <button
                 key={outfit.id}
                 onClick={() => openPublishDialog(outfit)}
-                className="flex shrink-0 items-center gap-3 rounded-xl border-2 border-dashed border-border bg-secondary/30 p-3 transition-all hover:border-foreground/30"
+                className="group flex shrink-0 items-center gap-3 text-left"
               >
-                <div className="flex -space-x-2">
+                <div className="flex gap-1">
                   {outfit.items.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      className="relative size-10 overflow-hidden rounded-lg border-2 border-background bg-white"
-                    >
+                    <div key={item.id} className="relative size-10 bg-white">
                       <Image
                         src={item.cloudinaryUrl}
                         alt={item.category}
@@ -307,11 +302,11 @@ export default function MarketPage() {
                     </div>
                   ))}
                 </div>
-                <div className="text-left">
-                  <p className="max-w-[150px] truncate text-sm font-medium">
-                    {outfit.explanation}
+                <div>
+                  <p className="max-w-[180px] truncate text-sm">{outfit.explanation}</p>
+                  <p className="label-caps text-muted-foreground transition-colors group-hover:text-foreground">
+                    Publish
                   </p>
-                  <p className="text-xs text-muted-foreground">Click to publish</p>
                 </div>
               </button>
             ))}
@@ -319,80 +314,70 @@ export default function MarketPage() {
         </div>
       )}
 
-      {/* Listings grid */}
+      {/* Listings table */}
       {listings.length === 0 ? (
-        <div className="mt-24 flex flex-col items-center text-center">
-          <div className="flex size-16 items-center justify-center rounded-2xl bg-secondary">
-            <TrendingUp className="size-7 text-muted-foreground" />
-          </div>
-          <p className="mt-4 text-sm text-muted-foreground">
+        <div className="py-24 text-center">
+          <p className="font-serif text-2xl text-muted-foreground">
             No tokens yet. Publish an outfit to start trading.
           </p>
         </div>
       ) : (
         <div className="mt-6">
-          <div className="rounded-xl border border-border">
-            {/* Header */}
-            <div className="grid grid-cols-[1fr_100px_100px_100px] gap-4 border-b border-border px-4 py-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              <span>Token</span>
-              <span className="text-right">Price (SOL)</span>
-              <span className="text-right">24h</span>
-              <span className="text-right">Volume</span>
-            </div>
-
-            {/* Rows */}
-            {listings.map((listing) => {
-              const isUp = listing.change24h >= 0;
-              const changePercent = listing.change24h / 100;
-
-              return (
-                <button
-                  key={listing.id}
-                  onClick={() => openListing(listing)}
-                  className="grid w-full grid-cols-[1fr_100px_100px_100px] gap-4 px-4 py-3 text-left transition-colors hover:bg-secondary/50"
-                >
-                  <div className="flex items-center gap-3">
-                    {listing.outfit && listing.outfit.items.length > 0 && (
-                      <div className="flex shrink-0 -space-x-2">
-                        {listing.outfit.items.slice(0, 4).map((item) => (
-                          <div
-                            key={item.id}
-                            className="relative size-10 overflow-hidden rounded-lg border-2 border-background bg-white"
-                          >
-                            <Image
-                              src={item.cloudinaryUrl}
-                              alt={item.category}
-                              fill
-                              className="object-contain p-0.5"
-                              sizes="40px"
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold">{listing.ticker}</p>
-                      <p className="truncate text-xs text-muted-foreground">{listing.name}</p>
-                    </div>
-                  </div>
-                  <p className="self-center text-right text-sm font-medium font-mono">
-                    {(listing.currentPrice / 100 / SOL_PRICE).toFixed(4)}
-                  </p>
-                  <p
-                    className={cn(
-                      "self-center text-right text-sm font-medium",
-                      isUp ? "text-green-500" : "text-red-500",
-                    )}
-                  >
-                    {isUp ? "+" : ""}{changePercent.toFixed(2)}%
-                  </p>
-                  <p className="self-center text-right text-sm text-muted-foreground">
-                    {listing.volume24h.toLocaleString()}
-                  </p>
-                </button>
-              );
-            })}
+          <div className="label-caps grid grid-cols-[1fr_80px_70px] gap-4 border-b border-border pb-3 text-muted-foreground sm:grid-cols-[1fr_120px_100px_100px]">
+            <span>Token</span>
+            <span className="text-right">Price (SOL)</span>
+            <span className="text-right">24h</span>
+            <span className="hidden text-right sm:block">Volume</span>
           </div>
+
+          {listings.map((listing) => {
+            const isUp = listing.change24h >= 0;
+            const changePercent = listing.change24h / 100;
+
+            return (
+              <button
+                key={listing.id}
+                onClick={() => openListing(listing)}
+                className="grid w-full grid-cols-[1fr_80px_70px] gap-4 border-b border-border py-4 text-left transition-colors hover:bg-secondary sm:grid-cols-[1fr_120px_100px_100px]"
+              >
+                <div className="flex min-w-0 items-center gap-4">
+                  {listing.outfit && listing.outfit.items.length > 0 && (
+                    <div className="flex shrink-0 gap-1">
+                      {listing.outfit.items.slice(0, 4).map((item) => (
+                        <div key={item.id} className="relative size-10 bg-white">
+                          <Image
+                            src={item.cloudinaryUrl}
+                            alt={item.category}
+                            fill
+                            className="object-contain p-0.5"
+                            sizes="40px"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="label-caps text-foreground">{listing.ticker}</p>
+                    <p className="mt-0.5 truncate text-sm text-muted-foreground">{listing.name}</p>
+                  </div>
+                </div>
+                <p className="self-center text-right font-mono text-sm">
+                  {(listing.currentPrice / 100 / SOL_PRICE).toFixed(4)}
+                </p>
+                <p
+                  className={cn(
+                    "self-center text-right font-mono text-sm",
+                    isUp ? "text-emerald-700" : "text-red-700",
+                  )}
+                >
+                  {isUp ? "+" : ""}{changePercent.toFixed(2)}%
+                </p>
+                <p className="hidden self-center text-right font-mono text-sm text-muted-foreground sm:block">
+                  {listing.volume24h.toLocaleString()}
+                </p>
+              </button>
+            );
+          })}
         </div>
       )}
 
