@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
-import { Loader2, Sparkles, Shirt, Plus } from "lucide-react";
+import { Loader2, Sparkles, Plus } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { Button } from "@/components/ui/button";
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
@@ -113,15 +113,19 @@ export default function OutfitsPage() {
 
   return (
     <PullToRefresh onRefresh={fetchData}>
-      <div className="mx-auto max-w-5xl px-5 py-6 sm:px-8">
+      <div className="mx-auto max-w-7xl px-5 py-6 sm:px-8">
+        <Link href="/?home=1" className="mb-6 block font-serif text-2xl leading-none md:hidden">
+          Outfitted
+        </Link>
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-5 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">
-              <Link href="/?home=1" className="md:hidden">Outfitted</Link>
-              <span className="hidden md:inline">Outfits</span>
+            <p className="label-caps text-muted-foreground">
+              {outfits.length} {outfits.length === 1 ? "outfit" : "outfits"}
+            </p>
+            <h1 className="mt-2 font-serif text-5xl leading-none tracking-tight md:text-6xl">
+              Outfits
             </h1>
-            <p className="text-xs text-muted-foreground">AI-styled combinations from your wardrobe</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="lg" onClick={() => setShowBuilder(true)}>
@@ -132,7 +136,7 @@ export default function OutfitsPage() {
               {generating ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Generating...
+                  Generating
                 </>
               ) : (
                 <>
@@ -144,75 +148,62 @@ export default function OutfitsPage() {
           </div>
         </div>
 
-        {/* Filter chips */}
-        <div className="mt-4 flex flex-col gap-2">
-          <div className="flex gap-1.5 flex-wrap">
-            {SEASONS.map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilterSeason(s)}
-                className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium border transition-all",
-                  filterSeason === s
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-secondary border-border text-muted-foreground hover:border-foreground/30"
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-1.5 flex-wrap">
-            {OCCASIONS.map((o) => (
-              <button
-                key={o}
-                onClick={() => setFilterOccasion(o)}
-                className={cn(
-                  "rounded-full px-3 py-1 text-xs font-medium border transition-all",
-                  filterOccasion === o
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-secondary border-border text-muted-foreground hover:border-foreground/30"
-                )}
-              >
-                {o}
-              </button>
-            ))}
-          </div>
-          {activeFilters > 0 && (
-            <p className="text-[11px] text-muted-foreground">
-              Showing {filtered.length} of {outfits.length} outfits
-              {" · "}
-              <button
-                onClick={() => { setFilterSeason("All"); setFilterOccasion("All"); }}
-                className="underline hover:text-foreground"
-              >
-                Clear filters
-              </button>
-            </p>
-          )}
+        {/* Filters: season row, occasion row */}
+        <div className="border-b border-border">
+          {[
+            { label: "Season", options: SEASONS, value: filterSeason, set: setFilterSeason },
+            { label: "Occasion", options: OCCASIONS, value: filterOccasion, set: setFilterOccasion },
+          ].map((row) => (
+            <div key={row.label} className="flex items-center gap-6 overflow-x-auto no-scrollbar">
+              <span className="label-caps w-20 shrink-0 text-muted-foreground/60">{row.label}</span>
+              {row.options.map((o) => (
+                <button
+                  key={o}
+                  onClick={() => row.set(o)}
+                  className={cn(
+                    "label-caps shrink-0 border-b py-3 transition-colors",
+                    row.value === o
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+          ))}
         </div>
+        {activeFilters > 0 && (
+          <p className="label-caps mt-3 text-muted-foreground">
+            {filtered.length} of {outfits.length}
+            {" · "}
+            <button
+              onClick={() => { setFilterSeason("All"); setFilterOccasion("All"); }}
+              className="underline underline-offset-4 hover:text-foreground"
+            >
+              Clear
+            </button>
+          </p>
+        )}
 
         {filtered.length === 0 && outfits.length === 0 ? (
-          <div className="mt-24 flex flex-col items-center text-center">
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-secondary">
-              <Shirt className="size-7 text-muted-foreground" />
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              No outfits yet. Add at least 3 owned items, then hit Generate.
+          <div className="py-24 text-center">
+            <p className="font-serif text-2xl text-muted-foreground">
+              No outfits yet. Add at least 3 owned items, then generate.
             </p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="mt-24 flex flex-col items-center text-center">
-            <p className="text-sm text-muted-foreground">No outfits match these filters.</p>
+          <div className="py-24 text-center">
+            <p className="font-serif text-2xl text-muted-foreground">No outfits match these filters.</p>
             <button
               onClick={() => { setFilterSeason("All"); setFilterOccasion("All"); }}
-              className="mt-2 text-xs underline text-muted-foreground hover:text-foreground"
+              className="label-caps mt-3 text-muted-foreground underline underline-offset-4 hover:text-foreground"
             >
               Clear filters
             </button>
           </div>
         ) : (
-          <div className="mt-6 grid gap-6 sm:grid-cols-2">
+          <div className="mt-8 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((outfit) => (
               <OutfitCard
                 key={outfit.id}
@@ -251,9 +242,9 @@ export default function OutfitsPage() {
 
       {/* Generating overlay */}
       {generating && (
-        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-black/70 backdrop-blur-sm">
-          <Sparkles className="size-10 animate-pulse text-amber-400" />
-          <p className="text-sm text-neutral-300">Your AI stylist is building outfits...</p>
+        <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-background/95">
+          <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          <p className="font-serif text-3xl">Building outfits</p>
         </div>
       )}
     </PullToRefresh>
