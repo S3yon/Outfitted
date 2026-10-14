@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Trash2, Check, Heart, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
+import { Trash2, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
 // import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 // import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 // import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
@@ -148,53 +148,53 @@ export function WardrobeGrid() {
 
   return (
     <div>
-      {/* Category filter pills */}
-      <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat ?? "all"}
-            onClick={() => setActiveCategory(cat)}
-            className={cn(
-              "shrink-0 rounded-full border px-4 py-1.5 text-xs transition-all",
-              activeCategory === cat
-                ? "border-foreground/30 bg-foreground/10 text-foreground font-medium"
-                : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/20",
-            )}
-          >
-            {cat ? CATEGORY_LABELS[cat] : "All"}
-          </button>
-        ))}
-      </div>
-
-      {/* Status filter */}
-      <div className="mt-3 flex gap-2">
-        {(["owned", "wishlisted"] as const).map((s) => (
-          <button
-            key={s}
-            onClick={() => setActiveStatus(activeStatus === s ? null : s)}
-            className={cn(
-              "rounded-full border px-3 py-1 text-xs capitalize transition-all",
-              activeStatus === s
-                ? "border-foreground/30 bg-foreground/10 text-foreground font-medium"
-                : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/20",
-            )}
-          >
-            {s === "owned" ? "Owned" : "Wishlist"}
-          </button>
-        ))}
+      {/* Filters: category tabs left, status tabs right */}
+      <div className="flex flex-col gap-3 border-b border-border sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex gap-6 overflow-x-auto no-scrollbar">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat ?? "all"}
+              onClick={() => setActiveCategory(cat)}
+              className={cn(
+                "label-caps -mb-px shrink-0 border-b py-3 transition-colors",
+                activeCategory === cat
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {cat ? CATEGORY_LABELS[cat] : "All"}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-6">
+          {(["owned", "wishlisted"] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setActiveStatus(activeStatus === s ? null : s)}
+              className={cn(
+                "label-caps -mb-px border-b py-3 transition-colors",
+                activeStatus === s
+                  ? "border-foreground text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {s === "owned" ? "Owned" : "Wishlist"}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="mt-16 text-center">
-          <p className="text-sm text-muted-foreground">
+        <div className="py-24 text-center">
+          <p className="font-serif text-2xl text-muted-foreground">
             {wardrobeItems.length === 0
               ? "Your wardrobe is empty. Upload your first item."
               : "No items match your filters."}
           </p>
         </div>
       ) : (
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {filtered.map((item) => (
             <ItemCard
               key={item.id}
@@ -233,78 +233,66 @@ function ItemCard({
 
   if (processing) {
     return (
-      <div className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white">
-        <div className="relative aspect-[3/4] animate-pulse bg-muted">
+      <div className="flex flex-col">
+        <div className="relative aspect-[3/4] animate-pulse bg-white">
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
-            <p className="text-[10px] font-medium text-muted-foreground">
-              Updating...
+            <p className="label-caps text-muted-foreground">
+              Updating
             </p>
           </div>
         </div>
-        <div className="border-t border-black/5 bg-background p-2.5">
-          <div className="h-2.5 w-16 animate-pulse rounded bg-muted" />
-          <div className="mt-1.5 h-2 w-24 animate-pulse rounded bg-muted" />
+        <div className="pt-3">
+          <div className="h-2.5 w-16 animate-pulse bg-muted" />
+          <div className="mt-1.5 h-2 w-24 animate-pulse bg-muted" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white transition-shadow hover:shadow-lg hover:shadow-black/20">
-      {/* Status badge */}
-      <div className="absolute left-2 top-2 z-10">
-        {item.status === "owned" ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gold/90 px-2 py-0.5 text-[10px] font-medium text-black">
-            <Check className="size-2.5" />
-            Owned
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1 rounded-full bg-neon/90 px-2 py-0.5 text-[10px] font-medium text-black">
-            <Heart className="size-2.5" />
-            Wishlist
-          </span>
-        )}
-      </div>
-
+    <div className="group relative flex flex-col">
       {/* Delete button */}
       <button
         onClick={() => !deleting && onDelete(item)}
         disabled={deleting}
-        className="absolute right-2 top-2 z-10 rounded-full bg-black/60 p-1.5 text-white/60 transition-opacity hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-40"
+        aria-label="Remove item"
+        className="absolute right-2 top-2 z-10 p-1.5 text-muted-foreground transition-opacity hover:text-destructive opacity-100 sm:opacity-0 sm:group-hover:opacity-100 disabled:opacity-40"
       >
-        {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+        {deleting ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5 stroke-[1.5]" />}
       </button>
 
       {/* Image */}
-      <div className="relative aspect-[3/4]">
+      <div className="relative aspect-[3/4] bg-white">
         <Image
           src={item.cloudinaryUrl}
           alt={item.category}
           fill
           unoptimized
-          className="object-contain p-3"
+          className="object-contain p-5"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
       </div>
 
-      {/* Info — always visible below image */}
-      <div className="border-t border-black/5 bg-background p-2.5">
-        {item.brand && (
-          <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-            {item.brand}
+      {/* Caption */}
+      <div className="pt-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="label-caps truncate text-muted-foreground">
+            {item.brand ? `${item.brand} · ${item.category}` : item.category}
           </p>
-        )}
-        <p className="text-xs font-medium capitalize text-foreground">{item.category}</p>
+          <p className="label-caps shrink-0 text-muted-foreground">
+            {item.status === "owned" ? "Owned" : "Wishlist"}
+          </p>
+        </div>
         {item.notes && (
-          <p className="mt-0.5 truncate text-[10px] text-muted-foreground">{item.notes}</p>
+          <p className="mt-1 truncate text-sm text-foreground">{item.notes}</p>
         )}
         {isWishlisted && hasPrice && (
-          <p className="mt-1 text-sm font-semibold text-foreground">{item.price}</p>
+          <p className="mt-0.5 text-sm text-foreground">{item.price}</p>
         )}
 
         {isWishlisted && (
-          <div className="mt-2 flex flex-col gap-1.5">
+          <div className="mt-3 flex flex-col">
             {/* Buy with SOL hidden
             {hasPrice && (
               <button disabled={busy} onClick={handleBuy} className="...">
@@ -312,11 +300,11 @@ function ItemCard({
               </button>
             )}
             */}
-            <div className="flex gap-1.5">
+            <div className="flex gap-px">
               <button
                 disabled={queued}
                 onClick={() => onMarkOwned(item)}
-                className="flex flex-1 items-center justify-center gap-1 rounded-md bg-gold px-2 py-1.5 text-[11px] font-medium text-black transition-colors hover:bg-gold/80 disabled:opacity-50"
+                className="label-caps flex flex-1 items-center justify-center gap-1.5 bg-foreground px-2 py-2 text-background transition-opacity hover:opacity-80 disabled:opacity-50"
               >
                 {queued ? (
                   <>
@@ -326,7 +314,7 @@ function ItemCard({
                 ) : (
                   <>
                     <ArrowRightLeft className="size-3" />
-                    Mark Owned
+                    Mark owned
                   </>
                 )}
               </button>
@@ -335,7 +323,8 @@ function ItemCard({
                   href={item.productUrl!}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center rounded-md border border-border px-2 py-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                  aria-label="Open product page"
+                  className="flex items-center border border-border px-2.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <ExternalLink className="size-3" />
                 </a>
