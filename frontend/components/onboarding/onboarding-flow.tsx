@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Camera, Sparkles, Shirt, X, Search } from "lucide-react";
+import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/use-app-store";
 import { cn } from "@/lib/utils";
@@ -209,138 +209,151 @@ export function OnboardingFlow() {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="relative mx-4 flex w-full max-w-lg flex-col rounded-2xl bg-background p-8 ring-1 ring-border">
-        {/* Progress bar */}
-        <div className="mb-6 flex gap-1">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40">
+      <div className="relative mx-4 flex w-full max-w-lg flex-col border border-border bg-background p-8">
+        {/* Step count + skip */}
+        <div className="flex items-baseline justify-between">
+          <p className="label-caps text-muted-foreground">
+            Step {String(step + 1).padStart(2, "0")} / {String(TOTAL_STEPS).padStart(2, "0")}
+          </p>
+          <button
+            onClick={handleSkip}
+            disabled={saving}
+            className="label-caps text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Skip
+          </button>
+        </div>
+
+        {/* Progress hairline */}
+        <div className="mt-3 mb-8 flex gap-1">
           {Array.from({ length: TOTAL_STEPS }, (_, i) => (
             <div
               key={i}
               className={cn(
-                "h-1 flex-1 rounded-full transition-colors",
-                i <= step ? "bg-gold" : "bg-border",
+                "h-px flex-1 transition-colors",
+                i <= step ? "bg-foreground" : "bg-border",
               )}
             />
           ))}
         </div>
 
-        {/* Skip button */}
-        <button
-          onClick={handleSkip}
-          disabled={saving}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <X className="size-4" />
-        </button>
-
         {/* Step content */}
         <div className="min-h-[240px]">
           {step === 0 && (
             <GuideStep
-              icon={<Shirt className="size-8 text-gold" />}
+              eyebrow="Welcome"
               title="Welcome to Outfitted"
               description="Let's build your virtual closet and find your style DNA. This takes about a minute."
             />
           )}
           {step === 1 && (
             <GuideStep
-              icon={<Camera className="size-8 text-gold" />}
+              eyebrow="Photos"
               title="How to photograph your clothes"
               description="Lay items flat on a solid, contrasting surface. Use natural light near a window. Make sure the full item is in frame."
             />
           )}
           {step === 2 && (
             <GuideStep
-              icon={<Sparkles className="size-8 text-gold" />}
+              eyebrow="AI styling"
               title="How AI styling works"
               description="Our AI stylist reads your wardrobe and style profile to build curated outfit combinations from only the clothes you own."
             />
           )}
           {step === 3 && (
-            <QuestionStep title="What's your overall vibe?">
-              <div className="grid grid-cols-2 gap-2">
+            <QuestionStep eyebrow="Vibe" title="What's your overall vibe?">
+              <OptionGrid>
                 {VIBES.map((v) => (
-                  <PillButton
+                  <OptionButton
                     key={v}
                     label={v}
                     active={answers.vibe === v}
                     onClick={() => setAnswers((prev) => ({ ...prev, vibe: v }))}
                   />
                 ))}
-              </div>
+              </OptionGrid>
             </QuestionStep>
           )}
           {step === 4 && (
-            <QuestionStep title="How do you like your fits?">
-              <div className="grid grid-cols-2 gap-2">
+            <QuestionStep eyebrow="Fit" title="How do you like your fits?">
+              <OptionGrid>
                 {FITS.map((f) => (
-                  <PillButton
+                  <OptionButton
                     key={f}
                     label={f}
                     active={answers.fit === f}
                     onClick={() => setAnswers((prev) => ({ ...prev, fit: f }))}
                   />
                 ))}
-              </div>
+              </OptionGrid>
             </QuestionStep>
           )}
           {step === 5 && (
-            <QuestionStep title="What occasions do you dress for most?">
-              <div className="grid grid-cols-2 gap-2">
+            <QuestionStep eyebrow="Occasions" title="What occasions do you dress for most?">
+              <OptionGrid>
                 {OCCASIONS.map((o) => (
-                  <PillButton
+                  <OptionButton
                     key={o}
                     label={o}
                     active={answers.occasions.includes(o)}
                     onClick={() => toggleOccasion(o)}
                   />
                 ))}
-              </div>
+              </OptionGrid>
             </QuestionStep>
           )}
           {step === 6 && (
-            <QuestionStep title="Pick 2-3 colors you wear most">
-              <div className="grid grid-cols-5 gap-3">
-                {COLORS.map((c) => (
-                  <button
-                    key={c.name}
-                    onClick={() => toggleColor(c.name)}
-                    className={cn(
-                      "flex flex-col items-center gap-1.5",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "size-10 rounded-full border-2 transition-all",
-                        answers.colors.includes(c.name)
-                          ? "border-gold scale-110"
-                          : "border-border",
-                      )}
-                      style={{ backgroundColor: c.value }}
-                    />
-                    <span className="text-[10px] text-muted-foreground">{c.name}</span>
-                  </button>
-                ))}
+            <QuestionStep eyebrow="Colours" title="Pick 2-3 colors you wear most">
+              <div className="grid grid-cols-5 gap-x-3 gap-y-4">
+                {COLORS.map((c) => {
+                  const active = answers.colors.includes(c.name);
+                  return (
+                    <button
+                      key={c.name}
+                      onClick={() => toggleColor(c.name)}
+                      className="flex flex-col items-start gap-2"
+                    >
+                      <div
+                        className={cn(
+                          "aspect-square w-full border transition-shadow",
+                          active
+                            ? "border-foreground ring-1 ring-foreground ring-offset-2 ring-offset-background"
+                            : "border-border",
+                        )}
+                        style={{ backgroundColor: c.value }}
+                      />
+                      <span
+                        className={cn(
+                          "label-caps",
+                          active ? "text-foreground" : "text-muted-foreground",
+                        )}
+                      >
+                        {c.name}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </QuestionStep>
           )}
           {step === 7 && (
-            <QuestionStep title="Which seasons do you dress for most?">
-              <div className="grid grid-cols-2 gap-2">
+            <QuestionStep eyebrow="Seasons" title="Which seasons do you dress for most?">
+              <OptionGrid>
                 {SEASONS_FOCUS.map((s) => (
-                  <PillButton
+                  <OptionButton
                     key={s}
                     label={s}
                     active={answers.seasonFocus === s}
                     onClick={() => setAnswers((prev) => ({ ...prev, seasonFocus: s }))}
                   />
                 ))}
-              </div>
-              <p className="mt-3 text-xs text-muted-foreground">This helps the AI suggest appropriate fabrics and layering.</p>
+              </OptionGrid>
+              <p className="mt-4 text-xs text-muted-foreground">This helps the AI suggest appropriate fabrics and layering.</p>
             </QuestionStep>
           )}
           {step === 8 && (
-            <QuestionStep title="Any brands or style icons you love?">
+            <QuestionStep eyebrow="Influences" title="Any brands or style icons you love?">
               <BrandPicker
                 selected={answers.influences}
                 onChange={(brands) => setAnswers((prev) => ({ ...prev, influences: brands }))}
@@ -350,15 +363,14 @@ export function OnboardingFlow() {
         </div>
 
         {/* Navigation */}
-        <div className="mt-6 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="lg"
+        <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
+          <button
             onClick={handleBack}
             disabled={step === 0 || saving}
+            className="label-caps text-muted-foreground transition-colors hover:text-foreground disabled:opacity-40 disabled:hover:text-muted-foreground"
           >
             Back
-          </Button>
+          </button>
           <Button
             size="lg"
             onClick={handleNext}
@@ -373,39 +385,46 @@ export function OnboardingFlow() {
 }
 
 function GuideStep({
-  icon,
+  eyebrow,
   title,
   description,
 }: {
-  icon: React.ReactNode;
+  eyebrow: string;
   title: string;
   description: string;
 }) {
   return (
-    <div className="flex flex-col items-center text-center">
-      <div className="mb-4">{icon}</div>
-      <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-      <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-sm">{description}</p>
+    <div>
+      <p className="label-caps text-muted-foreground">{eyebrow}</p>
+      <h2 className="mt-3 font-serif text-4xl leading-[1.05] tracking-tight">{title}</h2>
+      <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
     </div>
   );
 }
 
 function QuestionStep({
+  eyebrow,
   title,
   children,
 }: {
+  eyebrow: string;
   title: string;
   children: React.ReactNode;
 }) {
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold tracking-tight">{title}</h2>
+      <p className="label-caps text-muted-foreground">{eyebrow}</p>
+      <h2 className="mt-3 mb-6 font-serif text-3xl leading-[1.1] tracking-tight">{title}</h2>
       {children}
     </div>
   );
 }
 
-function PillButton({
+function OptionGrid({ children }: { children: React.ReactNode }) {
+  return <div className="grid grid-cols-2 border-t border-l border-border">{children}</div>;
+}
+
+function OptionButton({
   label,
   active,
   onClick,
@@ -418,10 +437,10 @@ function PillButton({
     <button
       onClick={onClick}
       className={cn(
-        "rounded-lg border px-4 py-2.5 text-sm transition-all",
+        "label-caps border-r border-b border-border px-4 py-3.5 text-left transition-colors",
         active
-          ? "border-gold bg-gold/10 text-foreground"
-          : "border-border bg-secondary text-muted-foreground hover:bg-secondary/80",
+          ? "bg-foreground text-background"
+          : "text-muted-foreground hover:text-foreground",
       )}
     >
       {label}
@@ -451,7 +470,7 @@ function BrandLogo({ domain, name }: { domain: string; name: string }) {
   const [err, setErr] = useState(false);
   if (err) {
     return (
-      <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[9px] font-bold uppercase text-muted-foreground">
+      <div className="flex size-6 shrink-0 items-center justify-center border border-border bg-white text-[9px] uppercase text-muted-foreground">
         {name.slice(0, 2)}
       </div>
     );
@@ -461,7 +480,7 @@ function BrandLogo({ domain, name }: { domain: string; name: string }) {
     <img
       src={`https://logo.clearbit.com/${domain}?size=48`}
       alt={name}
-      className="size-6 shrink-0 rounded-full object-contain bg-white"
+      className="size-6 shrink-0 object-contain bg-white"
       onError={() => setErr(true)}
     />
   );
@@ -521,19 +540,20 @@ function BrandPicker({
     <div className="flex flex-col gap-3">
       {/* Selected brand chips */}
       {selected.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="border-t border-border">
           {selected.map((brand) => (
             <div
               key={brand}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-secondary pl-1.5 pr-2.5 py-1"
+              className="flex items-center gap-3 border-b border-border py-2"
             >
               <BrandLogo domain={domainFor(brand)} name={brand} />
-              <span className="text-xs font-medium text-foreground">{brand}</span>
+              <span className="flex-1 text-sm text-foreground">{brand}</span>
               <button
                 onClick={() => removeBrand(brand)}
-                className="ml-0.5 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label={`Remove ${brand}`}
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="size-3" />
+                <X className="size-3.5 stroke-[1.5]" />
               </button>
             </div>
           ))}
@@ -542,8 +562,7 @@ function BrandPicker({
 
       {/* Search input */}
       <div ref={containerRef} className="relative">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
+        <div>
           <input
             ref={inputRef}
             type="text"
@@ -561,13 +580,13 @@ function BrandPicker({
             }}
             placeholder="Search brands or type a style icon..."
             style={{ fontSize: 16 }}
-            className="w-full rounded-xl border border-border bg-secondary py-2.5 pl-9 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground/20"
+            className="w-full border-b border-border bg-transparent py-2.5 text-foreground placeholder:text-muted-foreground transition-colors focus:border-foreground focus:outline-none"
           />
         </div>
 
         {/* Suggestions dropdown */}
         {open && query.trim().length > 0 && (
-          <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
+          <div className="absolute left-0 right-0 top-full z-50 overflow-hidden border border-t-0 border-border bg-background">
             {suggestions.map((brand) => (
               <button
                 key={brand.name}
@@ -584,7 +603,7 @@ function BrandPicker({
                 onMouseDown={(e) => { e.preventDefault(); addBrand(query.trim()); }}
                 className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm hover:bg-secondary transition-colors border-t border-border"
               >
-                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary border border-border text-muted-foreground">
+                <div className="flex size-6 shrink-0 items-center justify-center border border-border text-muted-foreground">
                   <span className="text-xs">+</span>
                 </div>
                 <span className="text-muted-foreground">Add &ldquo;<span className="text-foreground font-medium">{query.trim()}</span>&rdquo;</span>
