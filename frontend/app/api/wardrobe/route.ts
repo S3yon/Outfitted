@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth0 } from "@/lib/auth0";
 import { db } from "@/lib/db";
-import { clothingItems } from "@/db/schema";
+import { clothingItems, clothingItemListColumns } from "@/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
 
@@ -39,7 +39,7 @@ export async function GET(req: Request) {
   }
 
   const items = await db
-    .select()
+    .select(clothingItemListColumns)
     .from(clothingItems)
     .where(and(...filters))
     .orderBy(clothingItems.createdAt);
