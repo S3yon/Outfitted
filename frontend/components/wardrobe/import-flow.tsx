@@ -85,33 +85,35 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
   const [skipped, setSkipped] = useState<Set<string>>(new Set());
   const [openId, setOpenId] = useState<string | null>(null);
   const [saved, setSaved] = useState<Set<string>>(new Set());
-  const cancelled = useRef(false);
+  // Aborted when the overlay closes; stops in-flight requests and any work still queued.
   const abort = useRef(new AbortController());
 
   useEffect(() => {
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const controller = abort.current;
     return () => {
       document.body.style.overflow = previous;
-      cancelled.current = true;
-      controller.abort();
     };
   }, []);
 
+  // A fresh controller per mount: Strict Mode mounts twice in dev, and the first run must stop.
   useEffect(() => {
-    find();
+    const controller = new AbortController();
+    abort.current = controller;
+    find(controller.signal);
+    return () => controller.abort();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function find() {
+  async function find(signal: AbortSignal) {
     const all: Found[] = [];
     const embedding: Promise<void>[] = [];
 
     await eachLimit(files, PARALLEL, async (file, index) => {
       const photoId = `p${index}`;
+      if (signal.aborted) return;
       const blob = await downscale(file);
-      if (cancelled.current) return;
+      if (signal.aborted) return;
       if (!blob) {
         setPhotos((p) => ({ ...p, unreadable: p.unreadable + 1 }));
         return;
@@ -122,7 +124,7 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
         const res = await fetch("/api/import/detect", {
           method: "POST",
           body: form,
-          signal: abort.current.signal,
+          signal,
         });
         if (!res.ok) throw new Error(`detect ${res.status}`);
         const { detections } = (await res.json()) as DetectReply;
@@ -139,13 +141,13 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
         setCrops((c) => ({ ...c, found: c.found + detections.length }));
         setPhotos((p) => ({ ...p, done: p.done + 1 }));
       } catch {
-        if (cancelled.current) return;
+        if (signal.aborted) return;
         setPhotos((p) => ({ ...p, failed: p.failed + 1 }));
       }
     });
 
     await Promise.all(embedding);
-    if (cancelled.current) return;
+    if (signal.aborted) return;
     setFound(all);
     setGroups(groupDetections(all));
     setPhase("review");
@@ -185,6 +187,7 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
   async function save() {
     setOpenId(null);
     setPhase("saving");
+    const { signal } = abort.current;
     let failed = 0;
     const done = new Set<string>();
 
@@ -200,7 +203,7 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
             description: group.description,
             embedding: cover.embedding ?? null,
           }),
-          signal: abort.current.signal,
+          signal,
         });
         if (!res.ok) throw new Error(`save ${res.status}`);
         addWardrobeItem((await res.json()) as ClothingItem);
@@ -211,7 +214,7 @@ function ImportSession({ files, onClose }: { files: File[]; onClose: () => void 
       }
     });
 
-    if (cancelled.current) return;
+    if (signal.aborted) return;
     const added = done.size;
     if (added > 0) {
       toast.success(
