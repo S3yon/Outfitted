@@ -17,6 +17,7 @@
     "@auth0/nextjs-auth0": "^4.16.0",
     "@google/generative-ai": "^0.24.1",
     "@gsap/react": "^2.1.2",
+    "@huggingface/transformers": "4.3.0",
     "@ledgerhq/hw-transport-webhid": "^6.31.0",
     "@phosphor-icons/react": "^2.1.10",
     "@solana/spl-token": "^0.4.14",
