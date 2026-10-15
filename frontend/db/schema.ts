@@ -1,4 +1,4 @@
-import { relations, sql } from "drizzle-orm";
+import { getTableColumns, relations, sql } from "drizzle-orm";
 import { pgTable, text, integer, boolean, uniqueIndex } from "drizzle-orm/pg-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
@@ -40,6 +40,8 @@ export const clothingItems = pgTable("clothing_items", {
   price: text("price"),
   productUrl: text("product_url"),
   solanaTxSignature: text("solana_tx_signature"),
+  // Image embedding (JSON array of 768 floats, FashionSigLIP) for matching photos to items.
+  embedding: text("embedding"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(now() at time zone 'utc')`),
@@ -47,6 +49,13 @@ export const clothingItems = pgTable("clothing_items", {
     .notNull()
     .default(sql`(now() at time zone 'utc')`),
 });
+
+// Every column but the embedding: lists don't need 768 floats per item.
+export const clothingItemListColumns = (() => {
+  const { embedding, ...rest } = getTableColumns(clothingItems);
+  void embedding;
+  return rest;
+})();
 
 // ─── Outfits ──────────────────────────────────────────────────────────────────
 
