@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Gate for anything automated touching this app.
 #
-# ~90 source files, zero tests. Nothing else catches a regression here, so
-# this is the whole net: typecheck, lint, build, smoke. Each stage has to
+# Few tests yet (lib/import only). Nothing else catches a regression here, so
+# this is the whole net: typecheck, unit tests, lint, build, smoke. Each stage has to
 # pass before the next one runs, because a lint error in a file that does
 # not compile is noise, not information.
 set -euo pipefail
@@ -22,6 +22,9 @@ fi
 
 step "typecheck"
 npm run typecheck
+
+step "unit tests"
+npm test
 
 step "lint"
 npm run lint
