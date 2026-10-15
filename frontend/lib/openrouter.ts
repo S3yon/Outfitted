@@ -1,3 +1,6 @@
+import { DETECT_PROMPT } from "@/lib/import/detect-prompt";
+import { parseDetections, type RawDetection } from "@/lib/import/parse";
+
 const API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "google/gemini-3.1-flash-image-preview";
 // Text model for outfits and recommendations. gemini-2.0-flash-001 was retired on OpenRouter.
@@ -17,25 +20,21 @@ export async function analyzeClothingImage(
   imageBase64: string,
   mimeType: string,
 ): Promise<AnalysisResult> {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: { url: `data:${mimeType};base64,${imageBase64}` },
-            },
-            {
-              type: "text",
-              text: `Identify the single main clothing item or accessory that is the clear focus of this image. Ignore any items partially visible in the background or worn by other people.
+  const text = await askImageModel(imageBase64, mimeType, ANALYZE_PROMPT);
+  const cleaned = text
+    .replace(/```json\n?/g, "")
+    .replace(/```\n?/g, "")
+    .trim();
+
+  return JSON.parse(cleaned);
+}
+
+// Every garment the main person wears in an outfit photo (camera-roll importer).
+export async function detectOutfitItems(imageBase64: string, mimeType: string): Promise<RawDetection[]> {
+  return parseDetections(await askImageModel(imageBase64, mimeType, DETECT_PROMPT));
+}
+
+const ANALYZE_PROMPT = `Identify the single main clothing item or accessory that is the clear focus of this image. Ignore any items partially visible in the background or worn by other people.
 
 If the image does not contain a wearable clothing item or fashion accessory (e.g. it shows food, weapons, electronics, people without clothing focus, or anything unrelated to fashion), return { "items": [] }.
 
@@ -52,8 +51,27 @@ Category rules:
 - accessories: hats, bags, belts, jewelry, watches, sunglasses, scarves, necklaces, bracelets, glasses
 
 Respond ONLY with valid JSON, no markdown:
-{ "items": [{ "category": "tops", "description": "white t-shirt", "bbox": { "x1": 0.1, "y1": 0.05, "x2": 0.9, "y2": 0.95 } }] }`,
+{ "items": [{ "category": "tops", "description": "white t-shirt", "bbox": { "x1": 0.1, "y1": 0.05, "x2": 0.9, "y2": 0.95 } }] }`;
+
+// One image plus one prompt to the image model; returns the reply's text.
+async function askImageModel(imageBase64: string, mimeType: string, prompt: string): Promise<string> {
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image_url",
+              image_url: { url: `data:${mimeType};base64,${imageBase64}` },
             },
+            { type: "text", text: prompt },
           ],
         },
       ],
@@ -82,11 +100,5 @@ Respond ONLY with valid JSON, no markdown:
   }
 
   if (!text) throw new Error("No text content in OpenRouter response");
-
-  const cleaned = text
-    .replace(/```json\n?/g, "")
-    .replace(/```\n?/g, "")
-    .trim();
-
-  return JSON.parse(cleaned);
+  return text;
 }
