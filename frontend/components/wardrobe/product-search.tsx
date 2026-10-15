@@ -93,7 +93,16 @@ function ProductGrid({ products }: { products: Product[] }) {
   async function handleAddToWardrobe(product: Product, index: number) {
     setAddingToWardrobeIdx(index);
     try {
-      const blob = await fetch(product.imageUrl).then((r) => r.blob());
+      const imageRes = await fetch(
+        `/api/product-image?url=${encodeURIComponent(product.imageUrl)}`,
+      );
+      if (!imageRes.ok) {
+        const err = await imageRes.json().catch(() => ({}));
+        toast.error(err.error ?? "Could not fetch product image");
+        setAddingToWardrobeIdx(null);
+        return;
+      }
+      const blob = await imageRes.blob();
       const ext = blob.type.includes("png") ? "png" : "jpg";
       const file = new File([blob], `product-${index}.${ext}`, { type: blob.type });
       const formData = new FormData();
