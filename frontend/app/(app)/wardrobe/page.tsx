@@ -3,9 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@auth0/nextjs-auth0/client";
 import { AnimatePresence, motion } from "motion/react";
-import { Loader2, Plus, Search, Camera, Upload, X } from "lucide-react";
+import { Loader2, Plus, Search, Camera, Upload, Images, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/stores/use-app-store";
 import { UploadButton } from "@/components/wardrobe/upload-button";
+import { ImportFlow } from "@/components/wardrobe/import-flow";
 import { CameraButton } from "@/components/wardrobe/camera-button";
 import { ProductSearch } from "@/components/wardrobe/product-search";
 import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
@@ -21,6 +23,7 @@ export default function WardrobePage() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const uploadTriggerRef = useRef<(() => void) | undefined>(undefined);
+  const importTriggerRef = useRef<(() => void) | undefined>(undefined);
 
   async function fetchWardrobe() {
     const res = await fetch("/api/wardrobe");
@@ -61,6 +64,12 @@ export default function WardrobePage() {
       description: "Add items from your photo library",
       action: () => { setSheetOpen(false); uploadTriggerRef.current?.(); },
     },
+    {
+      icon: Images,
+      label: "Import outfit photos",
+      description: "Find every item in photos of you wearing them",
+      action: () => { setSheetOpen(false); importTriggerRef.current?.(); },
+    },
   ];
 
   return (
@@ -83,6 +92,10 @@ export default function WardrobePage() {
           <ProductSearch open={searchOpen} onOpenChange={setSearchOpen} />
           <CameraButton open={cameraOpen} onOpenChange={setCameraOpen} />
           <UploadButton onTrigger={(fn) => { uploadTriggerRef.current = fn; }} />
+          <Button size="lg" variant="outline" onClick={() => importTriggerRef.current?.()}>
+            <Images className="size-4" data-icon="inline-start" />
+            Import
+          </Button>
         </div>
         {/* Mobile: hidden dialogs still render so they can be triggered */}
         <div className="md:hidden">
@@ -91,6 +104,7 @@ export default function WardrobePage() {
           <UploadButton onTrigger={(fn) => { uploadTriggerRef.current = fn; }} />
         </div>
       </div>
+      <ImportFlow onTrigger={(fn) => { importTriggerRef.current = fn; }} />
       <div className="mt-6">
         <DailyOutfitCard />
         <WardrobeGrid />
