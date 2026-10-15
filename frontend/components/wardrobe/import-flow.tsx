@@ -404,7 +404,7 @@ function ReviewTile({
         <div className="flex items-baseline justify-between gap-2">
           <p className="label-caps truncate text-muted-foreground">{group.category}</p>
           {photoCount > 1 && (
-            <p className="label-caps shrink-0 text-muted-foreground">Seen in {photoCount} photos</p>
+            <p className="label-caps shrink-0 text-muted-foreground">{photoCount} photos</p>
           )}
         </div>
         <p className="mt-1 truncate text-sm text-foreground underline-offset-4 hover:underline">
