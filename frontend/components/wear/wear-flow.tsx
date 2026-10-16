@@ -435,7 +435,7 @@ function PhotoRow({
   return (
     <div className="flex gap-4 border-b border-border py-6 sm:gap-6">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={row.thumb} alt="Outfit photo" className="aspect-[3/4] w-20 shrink-0 object-cover sm:w-28" />
+      <img src={row.thumb} alt="Outfit photo" className="aspect-[3/4] w-20 shrink-0 self-start object-cover sm:w-28" />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
           <label className="flex items-baseline gap-3">
