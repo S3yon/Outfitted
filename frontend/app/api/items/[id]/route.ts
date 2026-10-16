@@ -5,8 +5,9 @@ import { clothingItems } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
 import cloudinary, { uploadWithBgRemoval } from "@/lib/cloudinary";
+import { parseItemPatch } from "@/lib/wear/item-patch";
 
-// PATCH /api/items/[id] — update status, notes, or wear level
+// PATCH /api/items/[id] — update status, notes, wear level, price, or embedding
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -29,8 +30,13 @@ export async function PATCH(
 
   const body = await req.json();
   const { status, notes, wearLevel, nftMintAddress } = body;
+  const patch = parseItemPatch(body);
+  if (!patch.ok) return NextResponse.json({ error: patch.error }, { status: 400 });
 
-  const updates: Record<string, unknown> = { updatedAt: new Date().toISOString() };
+  const updates: Record<string, unknown> = {
+    updatedAt: new Date().toISOString(),
+    ...patch.value,
+  };
   if (status !== undefined) updates.status = status;
   if (notes !== undefined) updates.notes = notes;
   if (wearLevel !== undefined) updates.wearLevel = wearLevel;
@@ -45,6 +51,7 @@ export async function PATCH(
       const { url, publicId } = await uploadWithBgRemoval(buffer, existing.category);
       updates.cloudinaryUrl = url;
       updates.cloudinaryPublicId = publicId;
+      updates.embedding = null; // new image, so the old vector no longer matches it
       try {
         await cloudinary.uploader.destroy(existing.cloudinaryPublicId);
       } catch (err) {
@@ -61,7 +68,8 @@ export async function PATCH(
     .where(and(eq(clothingItems.id, id), eq(clothingItems.userId, user.id)))
     .returning();
 
-  return NextResponse.json(updated);
+  // The client's store doesn't need the vector back.
+  return NextResponse.json({ ...updated, embedding: null });
 }
 
 // DELETE /api/items/[id] — delete from Cloudinary and DB (outfit_items cascade automatically)
