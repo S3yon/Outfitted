@@ -15,6 +15,13 @@
       "when": 1792083611369,
       "tag": "0001_item_embedding",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792130128565,
+      "tag": "0002_wear_logs",
+      "breakpoints": true
     }
   ]
 }

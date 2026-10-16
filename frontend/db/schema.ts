@@ -123,6 +123,29 @@ export const dailySuggestions = pgTable(
   (t) => [uniqueIndex("daily_suggestions_user_date_idx").on(t.userId, t.date)],
 );
 
+// ─── Wear Logs ────────────────────────────────────────────────────────────────
+
+export const wearLogs = pgTable(
+  "wear_logs",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    clothingItemId: text("clothing_item_id")
+      .notNull()
+      .references(() => clothingItems.id, { onDelete: "cascade" }),
+    wornOn: text("worn_on").notNull(), // YYYY-MM-DD, the user's local date
+    source: text("source").notNull(), // photo | manual
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(now() at time zone 'utc')`),
+  },
+  (t) => [uniqueIndex("wear_logs_item_day_idx").on(t.clothingItemId, t.wornOn)],
+);
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -137,6 +160,15 @@ export const clothingItemsRelations = relations(clothingItems, ({ one, many }) =
     references: [users.id],
   }),
   outfitItems: many(outfitItems),
+  wearLogs: many(wearLogs),
+}));
+
+export const wearLogsRelations = relations(wearLogs, ({ one }) => ({
+  user: one(users, { fields: [wearLogs.userId], references: [users.id] }),
+  clothingItem: one(clothingItems, {
+    fields: [wearLogs.clothingItemId],
+    references: [clothingItems.id],
+  }),
 }));
 
 export const outfitsRelations = relations(outfits, ({ one, many }) => ({
@@ -298,3 +330,5 @@ export type MarketListing = typeof marketListings.$inferSelect;
 export type PriceCandle = typeof priceCandles.$inferSelect;
 export type Holding = typeof holdings.$inferSelect;
 export type Trade = typeof trades.$inferSelect;
+export type WearLog = typeof wearLogs.$inferSelect;
+export type NewWearLog = typeof wearLogs.$inferInsert;
