@@ -223,7 +223,7 @@ function Section({ title, note, children }: { title: string; note?: string; chil
     <section className="mt-12">
       <div className="flex items-baseline justify-between gap-4 border-b border-border pb-3">
         <h2 className="font-serif text-3xl leading-none">{title}</h2>
-        {note && <p className="label-caps text-right text-muted-foreground">{note}</p>}
+        {note && <p className="label-caps hidden text-right text-muted-foreground sm:block">{note}</p>}
       </div>
       {children}
     </section>
