@@ -146,6 +146,26 @@ export const wearLogs = pgTable(
   (t) => [uniqueIndex("wear_logs_item_day_idx").on(t.clothingItemId, t.wornOn)],
 );
 
+// ─── Week Plans ───────────────────────────────────────────────────────────────
+
+export const weekPlans = pgTable(
+  "week_plans",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    weekStart: text("week_start").notNull(), // YYYY-MM-DD, the Monday, the user's local date
+    plan: text("plan").notNull(), // JSON WeekPlan (lib/planner/plan.ts)
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(now() at time zone 'utc')`),
+  },
+  (t) => [uniqueIndex("week_plans_user_week_idx").on(t.userId, t.weekStart)],
+);
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
