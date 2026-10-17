@@ -14,6 +14,8 @@ import { WardrobeGrid } from "@/components/wardrobe/wardrobe-grid";
 import { DailyOutfitCard } from "@/components/wardrobe/daily-outfit-card";
 import { PullToRefresh } from "@/components/pull-to-refresh";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useDropDot } from "@/components/market/use-drop-dot";
 
 export default function WardrobePage() {
   const { user: auth0User, isLoading: authLoading } = useUser();
@@ -24,6 +26,7 @@ export default function WardrobePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const uploadTriggerRef = useRef<(() => void) | undefined>(undefined);
   const importTriggerRef = useRef<(() => void) | undefined>(undefined);
+  const dropped = useDropDot(Boolean(auth0User), usePathname());
 
   async function fetchWardrobe() {
     const res = await fetch("/api/wardrobe");
@@ -103,6 +106,15 @@ export default function WardrobePage() {
           <CameraButton open={cameraOpen} onOpenChange={setCameraOpen} />
           <UploadButton onTrigger={(fn) => { uploadTriggerRef.current = fn; }} />
         </div>
+      </div>
+      <div className="flex gap-6 border-b border-border py-3">
+        <Link href="/buy" className="label-caps text-muted-foreground transition-colors hover:text-foreground">
+          Should I buy this?
+        </Link>
+        <Link href="/market?tab=wishlist" className="label-caps flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground">
+          Price watch
+          {dropped && <span aria-label="A wishlist price dropped" className="size-1.5 rounded-full bg-emerald-700" />}
+        </Link>
       </div>
       <ImportFlow onTrigger={(fn) => { importTriggerRef.current = fn; }} />
       <div className="mt-6">
