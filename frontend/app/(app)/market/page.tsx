@@ -14,6 +14,7 @@ import {
 import { useAppStore, type PopulatedOutfit } from "@/stores/use-app-store";
 import { PriceChart } from "@/components/market/price-chart";
 import { TradePanel } from "@/components/market/trade-panel";
+import { WatchTab } from "@/components/market/watch-tab";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,21 @@ export default function MarketPage() {
   const [selected, setSelected] = useState<Listing | null>(null);
   const [candles, setCandles] = useState<Candle[]>([]);
   const [loadingCandles, setLoadingCandles] = useState(false);
+
+  // Outfits (token trading) or Wishlist (watched prices). ?tab=wishlist opens the second.
+  // The page shows a spinner until auth loads, so reading the URL here can't mismatch SSR.
+  const [tab, setTab] = useState<"outfits" | "wishlist">(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "wishlist"
+      ? "wishlist"
+      : "outfits",
+  );
+  function changeTab(next: "outfits" | "wishlist") {
+    setTab(next);
+    const url = new URL(window.location.href);
+    if (next === "wishlist") url.searchParams.set("tab", "wishlist");
+    else url.searchParams.delete("tab");
+    window.history.replaceState(null, "", url);
+  }
 
   useEffect(() => {
     if (!auth0User) return;
@@ -251,13 +267,15 @@ export default function MarketPage() {
       <div className="flex items-end justify-between border-b border-border pb-5">
         <div>
           <p className="label-caps text-muted-foreground">
-            {listings.length} {listings.length === 1 ? "token" : "tokens"} · Solana devnet
+            {tab === "wishlist"
+              ? "Wishlist · real store prices"
+              : `${listings.length} ${listings.length === 1 ? "token" : "tokens"} · Solana devnet`}
           </p>
           <h1 className="mt-2 font-serif text-5xl leading-none tracking-tight md:text-6xl">
             Market
           </h1>
         </div>
-        <div className="text-right">
+        <div className={cn("text-right", tab === "wishlist" && "hidden")}>
           <p className="label-caps text-muted-foreground">Balance</p>
           <p className="mt-1.5 font-mono text-sm">{SIMULATED_BALANCE_SOL} SOL</p>
           <p className="label-caps mt-0.5 text-muted-foreground">
@@ -266,6 +284,26 @@ export default function MarketPage() {
         </div>
       </div>
 
+      <div className="flex gap-6 border-b border-border py-3">
+        {(["outfits", "wishlist"] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => changeTab(t)}
+            aria-pressed={tab === t}
+            className={cn(
+              "label-caps border-b pb-0.5 transition-colors",
+              tab === t ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {t === "outfits" ? "Outfits" : "Wishlist"}
+          </button>
+        ))}
+      </div>
+
+      {tab === "wishlist" ? (
+        <WatchTab />
+      ) : (
+      <>
       {/* Publish section */}
       {unlistedOutfits.length > 0 && (
         <div className="border-b border-border py-5">
@@ -367,6 +405,9 @@ export default function MarketPage() {
             );
           })}
         </div>
+      )}
+
+      </>
       )}
 
       {/* Publish dialog */}
