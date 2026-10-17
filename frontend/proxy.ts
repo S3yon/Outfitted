@@ -8,7 +8,7 @@ export async function proxy(request: NextRequest) {
   const authRes = await auth0.middleware(request);
 
   // Protected app routes — redirect unauthenticated users to landing page
-  const protectedPaths = ["/wardrobe", "/outfits", "/market", "/profile", "/wear"];
+  const protectedPaths = ["/wardrobe", "/outfits", "/market", "/profile", "/wear", "/week"];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
   if (isProtected) {

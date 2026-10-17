@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Shirt, Layers, CalendarCheck, User } from "lucide-react"
+import { Shirt, Layers, CalendarDays, CalendarCheck, User } from "lucide-react"
 import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
   { href: "/outfits", label: "Outfits", icon: Layers },
+  { href: "/week", label: "Week", icon: CalendarDays },
   { href: "/wear", label: "Wear", icon: CalendarCheck },
   { href: "/profile", label: "Profile", icon: User },
 ] as const
