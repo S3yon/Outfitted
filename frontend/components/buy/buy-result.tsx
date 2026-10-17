@@ -55,13 +55,14 @@ export function BuyResult({
 
   return (
     <div className="mt-8 grid gap-10 md:grid-cols-[260px_1fr]">
-      <div>
+      <div className="flex gap-4 md:block">
         {product.imageUrl ? (
-          <Tile src={product.imageUrl} alt={product.title ?? "Product"} />
+          <Tile src={product.imageUrl} alt={product.title ?? "Product"} className="w-28 shrink-0 md:w-full" />
         ) : (
-          <div className="flex aspect-[3/4] items-center justify-center bg-white text-sm text-muted-foreground">No image</div>
+          <div className="flex aspect-[3/4] w-28 shrink-0 items-center justify-center bg-white text-sm text-muted-foreground md:w-full">No image</div>
         )}
-        <p className="label-caps mt-3 truncate text-muted-foreground">
+        <div className="min-w-0">
+        <p className="label-caps truncate text-muted-foreground md:mt-3">
           {product.store} · {product.category}
         </p>
         <p className="mt-1 text-sm">{product.title}</p>
@@ -75,6 +76,7 @@ export function BuyResult({
             Open product page <ExternalLink className="size-3" />
           </a>
         )}
+        </div>
       </div>
 
       <div className="min-w-0">
