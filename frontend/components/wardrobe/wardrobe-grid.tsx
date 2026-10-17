@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { Trash2, ExternalLink, Loader2, ArrowRightLeft } from "lucide-react";
 // import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -318,6 +319,12 @@ function ItemCard({
                   </>
                 )}
               </button>
+              <Link
+                href={`/buy?item=${item.id}`}
+                className="label-caps flex items-center border border-border px-2.5 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Check
+              </Link>
               {hasProductUrl && (
                 <a
                   href={item.productUrl!}
