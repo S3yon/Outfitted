@@ -19,11 +19,11 @@ export function WatchList({
 }) {
   return (
     <div>
-      <div className="label-caps grid grid-cols-[1fr_80px_60px] gap-4 border-b border-border pb-3 text-muted-foreground sm:grid-cols-[1fr_100px_80px_100px]">
+      <div className="label-caps grid grid-cols-[1fr_80px_60px] gap-4 border-b border-border pb-3 text-muted-foreground sm:grid-cols-[1fr_100px_80px_100px] lg:grid-cols-[1fr_72px_56px]">
         <span>Item</span>
         <span className="text-right">Price</span>
         <span className="text-right">Change</span>
-        <span className="hidden text-right sm:block">90-day low</span>
+        <span className="hidden text-right sm:block lg:hidden">90-day low</span>
       </div>
       {items.map((item) => {
         const s = item.summary;
@@ -34,7 +34,7 @@ export function WatchList({
             onClick={() => onSelect(item)}
             aria-pressed={item.id === selectedId}
             className={cn(
-              "grid w-full grid-cols-[1fr_80px_60px] gap-4 border-b border-border py-3 text-left transition-colors hover:bg-secondary sm:grid-cols-[1fr_100px_80px_100px]",
+              "grid w-full grid-cols-[1fr_80px_60px] gap-4 border-b border-border py-3 text-left transition-colors hover:bg-secondary sm:grid-cols-[1fr_100px_80px_100px] lg:grid-cols-[1fr_72px_56px]",
               item.id === selectedId && "bg-secondary",
             )}
           >
@@ -59,7 +59,7 @@ export function WatchList({
             >
               {s ? `${s.changePct > 0 ? "+" : ""}${s.changePct}%` : "—"}
             </p>
-            <p className="hidden self-center text-right font-mono text-sm text-muted-foreground sm:block">
+            <p className="hidden self-center text-right font-mono text-sm text-muted-foreground sm:block lg:hidden">
               {s ? formatCents(s.low90) : "—"}
             </p>
           </button>
