@@ -59,3 +59,13 @@ export function droppedSince(points: PricePoint[], seenAt: string | null): boole
   const last = sorted.at(-1)!;
   return last.price < sorted.at(-2)!.price && (!seenAt || last.checkedAt > seenAt);
 }
+
+// When the latest drop (a point lower than the one before it) landed, across one item's
+// history; the nav dot compares the latest of these to when the user last looked.
+export function lastDropAt(points: PricePoint[]): string | null {
+  const sorted = byTime(points);
+  for (let i = sorted.length - 1; i > 0; i--) {
+    if (sorted[i].price < sorted[i - 1].price) return sorted[i].checkedAt;
+  }
+  return null;
+}

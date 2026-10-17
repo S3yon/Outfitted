@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isStale, shouldStore, summary, droppedSince } from "./history.ts";
+import { isStale, shouldStore, summary, droppedSince, lastDropAt } from "./history.ts";
 
 const now = "2026-10-17T12:00:00.000Z";
 const p = (price: number, checkedAt: string) => ({ price, checkedAt });
@@ -53,4 +53,17 @@ test("droppedSince is true when a drop landed after the last look", () => {
   assert.equal(droppedSince(points, "2026-10-14T00:00:00.000Z"), true);
   assert.equal(droppedSince(points, "2026-10-16T00:00:00.000Z"), false);
   assert.equal(droppedSince([p(7000, "2026-10-01T00:00:00.000Z"), p(8000, "2026-10-15T00:00:00.000Z")], null), false);
+});
+
+test("lastDropAt is the time of the latest drop in any price history", () => {
+  assert.equal(lastDropAt([]), null);
+  assert.equal(lastDropAt([p(5000, "2026-10-01T00:00:00.000Z"), p(5500, "2026-10-02T00:00:00.000Z")]), null);
+  assert.equal(
+    lastDropAt([
+      p(5000, "2026-10-01T00:00:00.000Z"),
+      p(4000, "2026-10-03T00:00:00.000Z"), // a drop
+      p(4500, "2026-10-05T00:00:00.000Z"), // a rise does not count
+    ]),
+    "2026-10-03T00:00:00.000Z",
+  );
 });
