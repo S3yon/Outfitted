@@ -1,5 +1,5 @@
 import { getTableColumns, relations, sql } from "drizzle-orm";
-import { pgTable, text, integer, boolean, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, uniqueIndex, index } from "drizzle-orm/pg-core";
 
 // ─── Users ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +42,9 @@ export const clothingItems = pgTable("clothing_items", {
   solanaTxSignature: text("solana_tx_signature"),
   // Image embedding (JSON array of 768 floats, FashionSigLIP) for matching photos to items.
   embedding: text("embedding"),
+  // Price watch (wishlist): when the price was last read, and an optional target in cents.
+  priceCheckedAt: text("price_checked_at"),
+  targetPrice: integer("target_price"),
   createdAt: text("created_at")
     .notNull()
     .default(sql`(now() at time zone 'utc')`),
@@ -166,6 +169,28 @@ export const weekPlans = pgTable(
   (t) => [uniqueIndex("week_plans_user_week_idx").on(t.userId, t.weekStart)],
 );
 
+// ─── Price Points (wishlist price watch) ──────────────────────────────────────
+
+// One row per price change, never per check (lib/watch/history.ts shouldStore).
+export const pricePoints = pgTable(
+  "price_points",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    itemId: text("item_id")
+      .notNull()
+      .references(() => clothingItems.id, { onDelete: "cascade" }),
+    price: integer("price").notNull(), // cents
+    currency: text("currency"), // e.g. USD, null when unknown
+    source: text("source").notNull(), // page | jina | serper | manual
+    checkedAt: text("checked_at")
+      .notNull()
+      .default(sql`(now() at time zone 'utc')`), // when this price was first seen
+  },
+  (t) => [index("price_points_item_checked_idx").on(t.itemId, t.checkedAt)],
+);
+
 // ─── Relations ────────────────────────────────────────────────────────────────
 
 export const usersRelations = relations(users, ({ many }) => ({
@@ -181,6 +206,11 @@ export const clothingItemsRelations = relations(clothingItems, ({ one, many }) =
   }),
   outfitItems: many(outfitItems),
   wearLogs: many(wearLogs),
+  pricePoints: many(pricePoints),
+}));
+
+export const pricePointsRelations = relations(pricePoints, ({ one }) => ({
+  item: one(clothingItems, { fields: [pricePoints.itemId], references: [clothingItems.id] }),
 }));
 
 export const wearLogsRelations = relations(wearLogs, ({ one }) => ({
@@ -352,3 +382,5 @@ export type Holding = typeof holdings.$inferSelect;
 export type Trade = typeof trades.$inferSelect;
 export type WearLog = typeof wearLogs.$inferSelect;
 export type NewWearLog = typeof wearLogs.$inferInsert;
+export type PricePoint = typeof pricePoints.$inferSelect;
+export type NewPricePoint = typeof pricePoints.$inferInsert;

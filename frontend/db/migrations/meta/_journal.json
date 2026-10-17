@@ -29,6 +29,13 @@
       "when": 1792172614386,
       "tag": "0003_week_plans",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792267050091,
+      "tag": "0004_price_watch",
+      "breakpoints": true
     }
   ]
 }
