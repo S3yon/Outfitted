@@ -77,9 +77,11 @@ cron (daily) ─► GET /api/cron/prices ─► refresh stale items, ≤ 100
 - **Cost per wear.** Price ÷ expected wears in a year. Expected wears = the median yearly wear
   rate of owned items in the same category (wears ÷ days owned × 365), or 30 when there is no
   history.
-- **Score (0-100).** Starts from new outfits (log scale, 20 new outfits ≈ full marks), minus up
-  to 40 for a duplicate, minus up to 20 when the category is already crowded (twice the median
-  category size), minus up to 20 when cost per wear is over $5.
+- **Score (0-100).** Starts from new outfits, on the better of two scales: absolute (log, 20
+  new outfits ≈ full marks) and relative (doubling what the closet makes = full marks, so small
+  closets aren't punished). Minus up to 40 for a look-alike (0.75 → 0.85 similarity), up to 20
+  when the category is crowded (4+ items and above the median category size; full at twice),
+  up to 20 when cost per wear is over $5 (full at $10).
 - **Verdict.** Skip: duplicate, or it unlocks no outfit (with a reason like "you own no
   bottoms"). Wait: price history says it's 5%+ above its 30-day low. Buy: score ≥ 50. Else Skip.
 
