@@ -4,22 +4,7 @@ import { db } from "@/lib/db";
 import { clothingItems } from "@/db/schema";
 import { getOrCreateUser } from "@/lib/get-or-create-user";
 import cloudinary from "@/lib/cloudinary";
-
-const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  shoes: ["shoe", "sneaker", "boot", "sandal", "loafer", "heel", "slipper", "mule", "clog", "trainer"],
-  tops: ["shirt", "tee", "top", "blouse", "hoodie", "sweater", "pullover", "polo", "tank", "jersey", "knit", "cardigan", "vest"],
-  bottoms: ["pant", "jean", "trouser", "short", "skirt", "legging", "jogger", "cargo", "chino", "denim"],
-  outerwear: ["jacket", "coat", "blazer", "parka", "bomber", "windbreaker", "puffer", "overcoat", "trench", "anorak"],
-  accessories: ["bag", "hat", "cap", "scarf", "belt", "wallet", "sunglasses", "glasses", "watch", "ring", "necklace", "bracelet", "earring", "chain", "pendant", "beanie", "glove"],
-};
-
-function inferCategory(title: string): string {
-  const lower = title.toLowerCase();
-  for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((kw) => lower.includes(kw))) return category;
-  }
-  return "accessories";
-}
+import { inferCategory } from "@/lib/buy/category";
 
 async function uploadUrlToCloudinary(
   imageUrl: string,
