@@ -6,6 +6,15 @@ import { useEffect, useState } from "react"
 import { Shirt, Layers, CalendarDays, CalendarCheck, User } from "lucide-react"
 import { motion } from "motion/react"
 import { cn } from "@/lib/utils"
+import { useDropDot } from "@/components/market/use-drop-dot"
+
+// Market isn't a tab, so a wishlist price drop shows on Wardrobe, where the wishlist and the
+// Price watch link live.
+const DOT_TAB = "/wardrobe"
+
+function DropDot({ className }: { className?: string }) {
+  return <span aria-label="A wishlist price dropped" className={cn("size-1.5 rounded-full bg-emerald-700", className)} />
+}
 
 const NAV_ITEMS = [
   { href: "/wardrobe", label: "Wardrobe", icon: Shirt },
@@ -17,6 +26,7 @@ const NAV_ITEMS = [
 
 export function AppNav() {
   const pathname = usePathname()
+  const dropped = useDropDot(true, pathname)
 
   // Track browser chrome at the bottom (toolbar sliding in on scroll-up)
   // and push the nav above it so it's never hidden
@@ -58,6 +68,7 @@ export function AppNav() {
                 )}
               >
                 {label}
+                {dropped && href === DOT_TAB && <DropDot className="ml-1.5 -translate-y-1.5" />}
               </Link>
             )
           })}
@@ -87,6 +98,7 @@ export function AppNav() {
                 />
               )}
               <Icon className={cn("relative z-10 size-[18px] stroke-[1.5] transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")} />
+              {dropped && href === DOT_TAB && <DropDot className="absolute top-2.5 left-1/2 z-10 ml-3" />}
               <span className={cn("label-caps relative z-10 transition-colors duration-150", active ? "text-foreground" : "text-muted-foreground")}>
                 {label}
               </span>
